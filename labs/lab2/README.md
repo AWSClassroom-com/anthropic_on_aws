@@ -35,76 +35,29 @@ By the end of this lab, you will be able to:
 
 ## Prerequisites
 
-Before starting this lab, ensure you have:
+Before starting this lab, verify and set up the following:
 
-- [ ] AWS account with Amazon Bedrock access enabled
-- [ ] Claude model access (Sonnet 4.6 and Haiku 4.5) approved
-- [ ] Lab 1 completed (Knowledge Base created and documents ingested)
-- [ ] AWS CLI configured with appropriate credentials
-- [ ] Python 3.11+ installed
-- [ ] AWS SAM CLI installed
-- [ ] Lab starter code repository cloned
+- [ ] **Lab 1 completed** — Knowledge Base created, synced, and tested with RAG queries
+- [ ] **AWS account** with Amazon Bedrock access enabled (same account as Lab 1)
+- [ ] **Claude model access** — Sonnet 4.6 and Haiku 4.5 approved (verify in **Configure and learn** > **Model access**)
 
-### Required IAM Permissions
+**Software you need installed locally:**
 
-Your IAM user or role needs these permissions:
+| Tool | Check Command | Install If Missing |
+|------|---------------|--------------------|
+| Python 3.11+ | `python --version` | [python.org/downloads](https://python.org/downloads) |
+| pip | `pip --version` | Included with Python |
+| boto3 | `pip show boto3` | `pip install boto3` |
+| AWS CLI | `aws --version` | [aws.amazon.com/cli](https://aws.amazon.com/cli/) |
+| AWS SAM CLI | `sam --version` | [docs.aws.amazon.com/serverless-application-model](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html) |
 
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "BedrockModelInvocation",
-            "Effect": "Allow",
-            "Action": [
-                "bedrock:InvokeModel",
-                "bedrock:InvokeModelWithResponseStream"
-            ],
-            "Resource": [
-                "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-*",
-                "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-*"
-            ]
-        },
-        {
-            "Sid": "BedrockKnowledgeBase",
-            "Effect": "Allow",
-            "Action": "bedrock:Retrieve",
-            "Resource": "arn:aws:bedrock:us-east-1:*:knowledge-base/*"
-        },
-        {
-            "Sid": "BedrockGuardrails",
-            "Effect": "Allow",
-            "Action": [
-                "bedrock:GetGuardrail",
-                "bedrock:ApplyGuardrail"
-            ],
-            "Resource": "arn:aws:bedrock:us-east-1:*:guardrail/*"
-        },
-        {
-            "Sid": "CloudWatchMetrics",
-            "Effect": "Allow",
-            "Action": [
-                "cloudwatch:PutMetricData",
-                "cloudwatch:PutDashboard",
-                "cloudwatch:GetDashboard"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Sid": "CloudWatchLogs",
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "arn:aws:logs:us-east-1:*:log-group:/aws/lambda/lab2-*"
-        }
-    ]
-}
-```
+> **AWS CLI configuration:** Run `aws configure` and enter your Access Key, Secret Key, and region (`us-east-1`). Your instructor will provide credentials if needed.
 
-> **Note:** These policies follow least-privilege principles. Replace `us-east-1` with your region if different. For training accounts, your instructor may have pre-configured broader permissions.
+### IAM Permissions
+
+Your training account should have the required Bedrock, CloudWatch, and Lambda permissions pre-configured. If you encounter permission errors during the lab, ask your instructor — they can provide the IAM policy or attach the necessary permissions to your role.
+
+> **For self-paced learners:** You need permissions for `bedrock:InvokeModel`, `bedrock:Retrieve`, `bedrock:ApplyGuardrail`, `cloudwatch:PutMetricData`, `cloudwatch:PutDashboard`, and `logs:*` for Lambda log groups. A policy template is available in the course repository.
 
 ---
 
@@ -150,7 +103,7 @@ python -c "import boto3; client = boto3.client('bedrock-runtime', region_name='u
 
 Select one use case to build during this lab:
 
-### Option A: Customer Support Chatbot (Recommended)
+### Option A: Customer Support Chatbot
 
 - RAG-powered answers from support documentation
 - Tools: Order lookup, ticket creation, account status
@@ -164,7 +117,7 @@ Select one use case to build during this lab:
 - Guardrails: Content filtering, compliance checks
 - Batch processing workflow
 
-**Note:** The instructions below focus on Option A (Customer Support Chatbot). If you choose Option B, the patterns are similar but you will process documents instead of chat messages.
+> **Note:** The instructions below follow Option A (Customer Support Chatbot). Option B follows the same architectural patterns — the difference is the data flow (chat messages vs. document uploads). Choose whichever matches your interest.
 
 ---
 
@@ -190,7 +143,7 @@ lab2-application/
 
 ---
 
-## Part 1: Application Foundation (20 minutes)
+## Part 1: Application Foundation
 
 ### Objective
 
@@ -452,7 +405,7 @@ Before proceeding, verify:
 
 ---
 
-## Part 2: Tool Use and API Integration (25 minutes)
+## Part 2: Tool Use and API Integration
 
 ### Objective
 
@@ -930,7 +883,7 @@ Executing tool: lookup_order with input: {'order_id': 'ORD-12345'}
 
 ---
 
-## Part 3: Guardrails Implementation (20 minutes)
+## Part 3: Guardrails Implementation
 
 ### Objective
 
@@ -1302,7 +1255,7 @@ Before proceeding, verify:
 
 ---
 
-## Part 4: CloudWatch Monitoring (15 minutes)
+## Part 4: CloudWatch Monitoring
 
 ### Objective
 
@@ -1680,7 +1633,7 @@ Before proceeding, verify:
 
 ---
 
-## Part 5: Deployment (15 minutes)
+## Part 5: Deployment
 
 ### Objective
 
@@ -1977,7 +1930,7 @@ After the course, consider these enhancements:
 - [Amazon Bedrock Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/)
 - [Anthropic Claude Documentation](https://docs.anthropic.com/)
 - [AWS SAM Documentation](https://docs.aws.amazon.com/serverless-application-model/)
-- [Lab Starter Repository](https://github.com/your-org/lab2-application)
+- [Lab Starter Repository](https://github.com/AWSClassroom-com/anthropic_on_aws)
 
 ---
 
@@ -2055,6 +2008,27 @@ lab2-application/
 | `ThrottlingException` | Rate limit exceeded | Implement exponential backoff retry |
 | `ModelTimeoutException` | Claude response took too long | Reduce prompt size or use shorter max_tokens |
 | `ServiceUnavailableException` | Bedrock service issue | Retry with exponential backoff |
+
+---
+
+## Cleanup
+
+Delete all AWS resources created during this lab to avoid ongoing charges:
+
+1. **Delete the CloudFormation stack** (removes Lambda, API Gateway, and IAM roles):
+   ```bash
+   aws cloudformation delete-stack --stack-name lab2-claude-app --region us-east-1
+   ```
+
+2. **Delete the Guardrail** — in the Bedrock console, navigate to **Guardrails**, select your guardrail, and click **Delete**
+
+3. **Delete the CloudWatch dashboard** — navigate to **CloudWatch** > **Dashboards**, select the lab dashboard, and click **Delete**
+
+4. **Delete the Knowledge Base** (created in Lab 1) — in Bedrock console, navigate to **Knowledge Bases**, select your KB, and click **Delete**
+
+5. **Delete the OpenSearch Serverless collection** — this was auto-created with the Knowledge Base and is deleted when the KB is deleted
+
+> **Note:** If you plan to continue with the industry-specific labs (Labs 3-5), keep the Knowledge Base and skip steps 4-5 — those labs can use the same infrastructure.
 
 ---
 
