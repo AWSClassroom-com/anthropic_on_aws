@@ -2,7 +2,7 @@
 
 **Course:** Building AI Applications with Anthropic on AWS Bedrock
 **Lab:** 2 of 2 (Capstone Lab)
-**Duration:** 95 minutes (3:25 - 5:00)
+**Duration:** 60 minutes
 **Level:** Intermediate to Advanced
 
 ---
