@@ -1,0 +1,41 @@
+Regional Medical Center — Clinical Practice Guidelines
+Last Updated: January 2025
+
+HYPERTENSION MANAGEMENT
+First-line therapy: Lifestyle modifications for all patients
+- Dietary sodium restriction (<2,300 mg/day)
+- Regular aerobic exercise (150 min/week moderate intensity)
+- Weight management (BMI target 18.5-24.9)
+- Limit alcohol consumption
+
+Pharmacological therapy (if BP remains >140/90 after 3 months):
+- Stage 1 (140-159/90-99): Single agent — ACE inhibitor or ARB preferred
+  * Lisinopril 10mg daily (first choice for most patients)
+  * Losartan 50mg daily (alternative if ACE intolerant — cough)
+- Stage 2 (≥160/100): Combination therapy
+  * ACE inhibitor + calcium channel blocker (amlodipine 5mg)
+  * OR ACE inhibitor + thiazide diuretic (HCTZ 12.5mg)
+
+Monitoring:
+- Recheck BP in 4 weeks after starting/adjusting medication
+- Labs: BMP (electrolytes, creatinine) at baseline and 2 weeks after starting ACE/ARB
+- Annual: lipid panel, HbA1c if diabetic, urinalysis for proteinuria
+
+TYPE 2 DIABETES MANAGEMENT
+First-line: Metformin 500mg BID with meals, titrate to 1000mg BID
+- Check HbA1c every 3 months until stable, then every 6 months
+- Renal function check before starting and annually (contraindicated if eGFR <30)
+- Add second agent if HbA1c >7% after 3 months on maximum tolerated metformin
+
+ASTHMA (ADULT)
+Step 1 (Intermittent): SABA PRN (albuterol 2 puffs q4-6h as needed)
+Step 2 (Mild persistent): Low-dose ICS (fluticasone 88mcg BID) + SABA PRN
+Step 3 (Moderate persistent): Medium-dose ICS or low-dose ICS + LABA
+Step 4 (Severe persistent): High-dose ICS + LABA, consider biologics referral
+
+DEPRESSION SCREENING
+- PHQ-9 annually for all adults
+- Score 5-9: Watchful waiting, rescreen in 4 weeks
+- Score 10-14: Consider therapy and/or medication
+- Score 15-19: Recommend therapy + medication
+- Score ≥20: Urgent evaluation, safety assessment, medication + therapy

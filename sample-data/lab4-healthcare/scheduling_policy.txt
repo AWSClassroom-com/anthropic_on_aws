@@ -1,0 +1,33 @@
+Regional Medical Center — Appointment Scheduling Policy
+Effective: January 2025
+
+1. APPOINTMENT TYPES
+   - Annual physical: 45 min, scheduled 2-4 weeks in advance
+   - Sick visit (acute): 15 min, same-day or next-day availability required
+   - Follow-up: 15-20 min, per provider recommendation
+   - Specialist referral: varies, typically 2-6 week lead time
+   - Telehealth: same types as in-person, +5 min for tech setup
+
+2. SCHEDULING RULES
+   - New patients: 30 min minimum, assign to provider with availability within 14 days
+   - Established patients: schedule with their assigned PCP when possible
+   - Urgent: must be seen within 24 hours, any available provider
+   - Double-booking: allowed only with provider approval, maximum 1 per half-day session
+
+3. CANCELLATION AND NO-SHOW POLICY
+   - Cancellation: 24 hours notice requested
+   - No-show: documented in chart, outreach call within 2 business days
+   - Chronic no-show (3+ in 12 months): letter sent, care plan review
+   - No financial penalty for cancellation or no-show
+
+4. PRESCRIPTION REFILL REQUESTS
+   - Routine refills: processed within 48 business hours
+   - Urgent refills (patient out of medication): same-day processing
+   - Controlled substances: require provider review, 72-hour processing
+   - Refill denied if: overdue for follow-up visit (>6 months for chronic meds)
+
+5. PATIENT NOTIFICATIONS
+   - Appointment confirmation: sent 7 days before via patient preference (text/email/call)
+   - Reminder: sent 24 hours before
+   - Follow-up scheduling: offered at end of each visit
+   - Lab results: available in patient portal within 3 business days

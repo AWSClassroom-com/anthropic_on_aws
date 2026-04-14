@@ -1,0 +1,43 @@
+ACME Financial Services — Transaction Monitoring Procedures
+Effective: January 2025
+
+1. MONITORING TIERS
+
+   Tier 1 (Real-Time):
+   - OFAC sanctions screening on all transactions
+   - Velocity checks: more than 10 transactions in 1 hour from single account
+   - Amount threshold: single transactions over $50,000
+
+   Tier 2 (Daily Batch):
+   - Structuring detection: aggregate cash over $8,000 in rolling 24-hour window
+   - Cross-border wire analysis: all international transfers reviewed
+   - Peer group analysis: transactions compared against similar account profiles
+
+   Tier 3 (Weekly Review):
+   - Dormant account activity (no transactions for 12+ months then sudden activity)
+   - Round-dollar transactions pattern (repeated exact amounts)
+   - Layering detection (rapid transfers between multiple accounts)
+
+2. SUSPICIOUS ACTIVITY INDICATORS
+
+   High Priority:
+   - Transaction to/from OFAC sanctioned entity — IMMEDIATE BLOCK AND REPORT
+   - Transaction amount over $100,000 from account with typical balance under $10,000
+   - Multiple wire transfers to different beneficiaries in high-risk jurisdictions same day
+
+   Medium Priority:
+   - Cash deposits just below $10,000 (potential structuring)
+   - Account receiving funds from 5+ unrelated sources in a single day
+   - Transaction narrative doesn't match declared account purpose
+
+   Low Priority:
+   - Minor variations in normal transaction patterns
+   - Single large transaction within stated income range
+   - International transfers to/from low-risk jurisdictions
+
+3. ALERT RESOLUTION
+   - Tier 1 alerts: reviewed within 4 hours
+   - Tier 2 alerts: reviewed within 24 hours
+   - Tier 3 alerts: reviewed within 5 business days
+   - All alerts documented with resolution rationale
+   - Escalation to SAR filing if suspicious activity confirmed

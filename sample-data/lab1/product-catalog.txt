@@ -1,0 +1,28 @@
+ACME Corp — Product Catalog 2025
+
+CATEGORY: SMART HOME
+- ACME Hub Pro ($199) — Central smart home controller, supports Zigbee/Z-Wave/WiFi
+- ACME Sensor Kit ($79) — Temperature, humidity, motion, and door/window sensors
+- ACME Cam 360 ($149) — Indoor security camera with 360° pan, night vision, 2-way audio
+- ACME Thermostat ($129) — AI-powered climate control, learns your schedule
+
+CATEGORY: AUDIO
+- ACME SoundBar Ultra ($299) — Dolby Atmos soundbar with wireless subwoofer
+- ACME BudsPro ($149) — Active noise canceling wireless earbuds, 8hr battery
+- ACME Speaker Mesh ($199/pair) — Multi-room wireless speakers with mesh networking
+
+CATEGORY: ACCESSORIES
+- ACME PowerBank 20K ($49) — 20,000mAh portable charger, USB-C PD 65W
+- ACME Dock Pro ($89) — USB-C docking station, dual 4K display support
+- ACME Cable Kit ($29) — Braided USB-C cables (0.5m, 1m, 2m) with lifetime warranty
+
+PRICING TIERS
+- Standard: Base product with 1-year warranty
+- Premium: Product + extended 3-year warranty + priority support ($50 additional)
+- Enterprise: Product + 5-year warranty + on-site service + dedicated account manager (custom pricing, contact sales@acmecorp.com)
+
+BULK DISCOUNTS
+- 10-49 units: 10% discount
+- 50-99 units: 15% discount
+- 100+ units: 20% discount + free shipping
+- Enterprise agreements: Contact sales for volume pricing

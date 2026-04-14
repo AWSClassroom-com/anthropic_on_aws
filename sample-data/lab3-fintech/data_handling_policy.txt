@@ -1,0 +1,52 @@
+ACME Financial Services — Data Handling and PII Protection Policy
+Effective: January 2025
+
+1. CLASSIFICATION OF SENSITIVE DATA
+   Restricted (highest sensitivity):
+   - Social Security Numbers (SSN)
+   - Bank account numbers
+   - Credit/debit card numbers
+   - Login credentials and passwords
+   - Biometric data
+
+   Confidential:
+   - Customer names and addresses
+   - Date of birth
+   - Phone numbers and email addresses
+   - Transaction history
+   - Account balances
+   - Employment and income information
+
+   Internal Use Only:
+   - Customer risk scores
+   - Internal investigation notes
+   - Compliance review outcomes
+   - System access logs
+
+2. HANDLING REQUIREMENTS
+   Restricted Data:
+   - Encryption at rest: AES-256
+   - Encryption in transit: TLS 1.2+
+   - Access: need-to-know basis with multi-factor authentication
+   - Display: masked by default (show last 4 digits only)
+   - Storage: dedicated encrypted data stores
+   - Sharing: prohibited outside authorized systems
+
+   Confidential Data:
+   - Encryption at rest: AES-256
+   - Encryption in transit: TLS 1.2+
+   - Access: role-based access control
+   - Display: visible to authorized personnel
+   - Sharing: within organization for business purposes only
+
+3. DATA RETENTION AND DISPOSAL
+   - Customer PII: retained 7 years after relationship ends
+   - Transaction records: retained 7 years from transaction date
+   - Disposal: secure deletion with certificate of destruction
+   - Backup data: same retention and disposal schedule as primary
+
+4. BREACH NOTIFICATION
+   - Internal notification: within 1 hour of discovery
+   - Regulatory notification: within 72 hours (per state laws)
+   - Customer notification: within 30 days of confirmed breach
+   - Documentation: complete incident report within 5 business days

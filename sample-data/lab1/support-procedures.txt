@@ -1,0 +1,34 @@
+ACME Corp — Customer Support Procedures (Internal)
+
+TICKET PRIORITY LEVELS
+- P1 (Critical): Product safety issue, data breach, complete product failure
+  → Response time: 1 hour | Resolution target: 4 hours
+- P2 (High): Product not functioning, order not received past expected date
+  → Response time: 4 hours | Resolution target: 24 hours
+- P3 (Medium): Feature not working as expected, minor defect
+  → Response time: 24 hours | Resolution target: 3 business days
+- P4 (Low): General inquiry, feature request, feedback
+  → Response time: 48 hours | Resolution target: 5 business days
+
+ESCALATION PATH
+1. Tier 1 Support Agent → handles P3/P4, basic troubleshooting
+2. Tier 2 Technical Support → handles P2, advanced diagnostics
+3. Tier 3 Engineering → handles P1, root cause analysis
+4. VP of Support → customer escalation beyond Tier 3
+
+REFUND AUTHORIZATION LIMITS
+- Tier 1: Up to $100
+- Tier 2: Up to $500
+- Manager: Up to $2,000
+- VP: Unlimited
+
+COMMON ISSUE RESOLUTIONS
+- "Product won't turn on" → Check power cable, try different outlet, hold power 15s, check for firmware update
+- "Can't connect to WiFi" → Verify 2.4GHz network (not 5GHz), check password, reset network settings, update firmware
+- "Order shows delivered but not received" → Verify shipping address, check with neighbors, file carrier claim after 48 hours, reship if carrier confirms lost
+
+ACCOUNT MANAGEMENT
+- Account status types: Active, Suspended, Closed
+- Suspension reasons: Payment failure, security concern, policy violation
+- To reactivate: Resolve underlying issue, then submit reactivation request
+- Account data retention: 7 years after account closure per legal requirements

@@ -1,0 +1,530 @@
+# Lab 1: Claude on Bedrock with RAG
+
+**Duration:** 30 minutes
+**Course:** Building AI Applications with Anthropic on AWS Bedrock
+
+---
+
+## Objectives
+
+By completing this lab, you will:
+
+1. Select and invoke different Claude models (Opus, Sonnet, Haiku) via the Bedrock console
+2. Measure latency and token usage for text-generation prompts
+3. Create a knowledge base from sample documents stored in S3
+4. Test RAG queries and verify citation accuracy
+
+---
+
+## Prerequisites
+
+Before starting this lab, ensure you have:
+
+- [ ] Access to the AWS Bedrock console in your training account
+- [ ] Model access enabled for Claude models (Opus 4.6, Sonnet 4.6, Haiku 4.5)
+- [ ] Access to the S3 bucket containing sample documents
+- [ ] Lab instructions document open (this guide)
+
+**S3 Bucket Path:** `s3://bedrock-training-[account-id]/lab1-documents/`
+
+> **How to find your Account ID:** In the AWS Console, click your username in the top-right corner. Your 12-digit Account ID is displayed in the dropdown. Replace `[account-id]` with this number (no dashes). Example: `s3://bedrock-training-123456789012/lab1-documents/`
+
+> **Note:** The S3 bucket contains fictional product documentation files (product manuals, FAQs, return policies, warranty terms, support guides) that you will use to build your knowledge base.
+
+---
+
+## Part 1: Model Invocation and Comparison (10 min)
+
+### Step 1: Open the Bedrock Text Playground
+
+1. Sign in to the AWS Management Console
+2. Navigate to **Amazon Bedrock** service
+3. In the left sidebar, select **Playgrounds** > **Text**
+
+**Expected Result:** The text playground interface loads with a model dropdown and text input area.
+
+---
+
+### Step 2: Invoke Claude Sonnet
+
+1. From the model dropdown, select **Claude Sonnet 4.6** (model ID: `anthropic.claude-sonnet-4-6`)
+2. In the text input area, enter the following prompt exactly:
+
+```
+You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
+```
+
+3. Click **Run** or press **Ctrl+Enter**
+4. Observe the response and the metrics panel on the right
+
+**Expected Result:**
+| Metric | Expected Range |
+|--------|----------------|
+| Response | Clear, concise explanation of cloud computing |
+| Latency | 1-3 seconds |
+| Input tokens | 30-40 |
+| Output tokens | 80-120 |
+
+5. **Record these values in your notes** - you will compare them with other models.
+
+> **Troubleshooting:** If latency exceeds 3 seconds, verify your region. If you receive an error, check that model access is enabled for Claude Sonnet.
+
+---
+
+### Step 3: Compare with Claude Opus
+
+1. Change the model dropdown to **Claude Opus 4.6**
+2. Run the **exact same prompt** from Step 2
+3. Record the metrics
+
+**Expected Result:**
+| Metric | Expected Range |
+|--------|----------------|
+| Latency | 3-5+ seconds (slower than Sonnet) |
+| Response quality | More detailed, more nuanced |
+| Input tokens | Similar to Sonnet |
+| Output tokens | May vary |
+
+---
+
+### Step 4: Compare with Claude Haiku
+
+1. Change the model dropdown to **Claude Haiku 4.5**
+2. Run the **exact same prompt** from Step 2
+3. Record the metrics
+
+**Expected Result:**
+| Metric | Expected Range |
+|--------|----------------|
+| Latency | Under 1 second (fastest) |
+| Response quality | Shorter, more direct, still accurate |
+| Input tokens | Similar to other models |
+| Output tokens | Typically fewer |
+
+---
+
+### Step 5: Model Comparison Summary
+
+Fill in your observed results:
+
+| Model | Latency | Input Tokens | Output Tokens |
+|-------|---------|--------------|---------------|
+| Opus 4.6 | _______ | _______ | _______ |
+| Sonnet 4.6 | _______ | _______ | _______ |
+| Haiku 4.5 | _______ | _______ | _______ |
+
+**Pattern to observe:**
+- **Opus:** Highest quality, highest latency, typically more output tokens
+- **Sonnet:** Balanced quality and speed
+- **Haiku:** Fastest, most concise
+
+> **Common Pitfall:** Running different prompts on different models makes comparison invalid. Always use the identical prompt for fair comparison.
+
+---
+
+### Step 6: Observe Streaming Behavior
+
+1. Locate the **streaming toggle** in the playground settings
+2. With **Claude Opus** selected, toggle streaming **OFF**
+3. Run any prompt and observe - you wait for the complete response before seeing anything
+4. Toggle streaming **ON** and run the same prompt
+5. Observe how tokens appear as they are generated
+
+**Key Insight:** For interactive applications (chatbots, assistants), streaming provides a more responsive user experience. For batch processing, non-streaming is acceptable.
+
+---
+
+## Part 2: Token Usage and Latency Measurement (5 min)
+
+### Step 7: Measure with Different Prompt Complexities
+
+Switch back to **Claude Sonnet 4.6** for consistent baseline measurements.
+
+Run these three prompts in sequence and record the metrics for each:
+
+**Prompt 1 (Simple):**
+```
+What is AWS?
+```
+
+**Prompt 2 (Moderate):**
+```
+Explain the difference between IaaS, PaaS, and SaaS. Include one example of each.
+```
+
+**Prompt 3 (Complex):**
+```
+You are a cloud architect. Design a high-level architecture for a web application that needs to handle 1 million daily active users, requires high availability across multiple regions, and must comply with GDPR. List the key AWS services you would use and explain why.
+```
+
+---
+
+### Step 8: Record Your Results
+
+| Prompt | Input Tokens | Output Tokens | Latency |
+|--------|--------------|---------------|---------|
+| Simple | ~10 | 50-100 | < 1 sec |
+| Moderate | ~25 | 150-250 | 1-2 sec |
+| Complex | ~60 | 400-600 | 3-5 sec |
+
+---
+
+### Step 9: Calculate Approximate Costs
+
+Using Claude Sonnet pricing:
+- **Input:** $3 per million tokens
+- **Output:** $15 per million tokens
+
+Calculate the cost for each prompt:
+
+**Formula:**
+```
+Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
+```
+
+| Prompt | Approximate Cost |
+|--------|------------------|
+| Simple | ~$0.00015 |
+| Moderate | ~$0.004 |
+| Complex | ~$0.01 |
+
+**Key Insight:** Individual requests are inexpensive, but costs multiply at scale. Understanding token economics is critical for production applications.
+
+> **Troubleshooting:** If complex prompts produce truncated responses, check your **max_tokens** setting. Ensure it is set to at least 1000 for these exercises.
+
+---
+
+## Part 3: Creating a Knowledge Base (8 min)
+
+### Step 10: Navigate to Knowledge Bases
+
+1. In the Bedrock console left sidebar, select **Knowledge bases**
+2. Click **Create knowledge base**
+
+---
+
+### Step 11: Configure Basic Settings
+
+1. **Name:** `lab1-[your-initials]-kb` (e.g., `lab1-jd-kb`)
+2. **Description:** `Lab 1 knowledge base for product documentation`
+3. **IAM role:** Select **Create and use a new service role**
+
+---
+
+### Step 12: Configure Data Source
+
+1. **Data source type:** Select **Amazon S3**
+2. **S3 URI:** Enter the bucket path from your lab instructions:
+   ```
+   s3://bedrock-training-[account-id]/lab1-documents/
+   ```
+3. **Chunking strategy:** Keep the default settings
+
+---
+
+### Step 13: Configure Embedding Model
+
+1. **Embedding model:** Select **Amazon Titan Embeddings V2**
+
+---
+
+### Step 14: Configure Vector Store
+
+1. **Vector store:** Select **Quick create a new vector store**
+   - This provisions an Amazon OpenSearch Serverless collection
+
+2. Review your settings and click **Create knowledge base**
+
+**Expected Result:** Status shows "Creating" - this typically takes 2-5 minutes.
+
+> **Troubleshooting:** If creation takes more than 10 minutes, notify your instructor.
+
+---
+
+### Step 15: Sync the Data Source
+
+1. Wait for knowledge base status to show **Active**
+2. Click on your knowledge base name to open it
+3. Navigate to the **Data source** section
+4. Select your S3 data source
+5. Click **Sync**
+
+**What happens during sync:**
+1. Bedrock reads documents from S3
+2. Documents are chunked according to your settings
+3. Each chunk is passed through the embedding model
+4. Resulting vectors are stored in OpenSearch
+
+**Expected Result:**
+- Sync status: Complete
+- Document count: Shows number of processed files (typically 5 for sample docs)
+- Duration: 1-2 minutes for sample documents
+
+> **Common Pitfall:** Forgetting to trigger sync results in empty query results. The knowledge base being "Active" only means infrastructure is ready - you must sync to process documents.
+
+---
+
+## Part 4: Testing RAG Queries (7 min)
+
+### Step 16: Open the Test Interface
+
+1. In your knowledge base, click **Test knowledge base** or navigate to the **Test** tab
+
+---
+
+### Step 17: Run Your First RAG Query
+
+1. In the query input, type:
+   ```
+   What is the return policy for damaged products?
+   ```
+2. Press Enter or click the submit button
+
+**Expected Result:**
+- A natural language answer about return policies
+- Source citations displayed below the answer
+- Each citation shows document name and relevance score (typically 0.5-0.9)
+
+> **Troubleshooting:** If you see "No relevant information found," verify that sync completed successfully and document count is greater than zero.
+
+---
+
+### Step 18: Verify Citation Accuracy
+
+1. Click on one of the source citations
+2. Read the actual text from the document chunk
+3. Compare the answer Claude provided to the source text
+
+**Verification questions:**
+- Is the answer supported by the source text?
+- Did Claude add information not in the document?
+- Are there any misinterpretations?
+
+---
+
+### Step 19: Test Another Query
+
+1. Run this query:
+   ```
+   What warranty coverage is included with the premium product tier?
+   ```
+2. Examine the citations and verify they support the answer
+
+---
+
+### Step 20: Test for Hallucinations
+
+1. Run a query about something NOT in the documents:
+   ```
+   What is the CEO's favorite color?
+   ```
+
+**Expected Result:** Claude should indicate it does not have that information, or retrieval should return no relevant chunks.
+
+**Key Insight:** Testing with out-of-scope queries helps you understand how the system behaves when information is not available.
+
+---
+
+### Step 21: Observe Query Phrasing Effects
+
+Run these two queries about the same topic:
+
+**Query A (Vague):**
+```
+How do I return something?
+```
+
+**Query B (Specific):**
+```
+What is the step-by-step process for initiating a product return, including any required documentation and timelines?
+```
+
+**Compare the results:**
+- Which query retrieved more targeted chunks?
+- Which answer was more detailed and useful?
+
+**Key Insight:** Specific queries retrieve more targeted chunks and produce better answers. In production applications, you may want to preprocess user queries to expand them or add context.
+
+---
+
+## Checkpoint: Verify Your Progress
+
+Before finishing, confirm you have completed:
+
+- [ ] Invoked all three Claude models (Opus, Sonnet, Haiku) with the same prompt
+- [ ] Recorded latency and token metrics for each model
+- [ ] Tested three prompts of varying complexity on Sonnet
+- [ ] Calculated approximate costs for each prompt
+- [ ] Created a knowledge base named `lab1-[initials]-kb`
+- [ ] Successfully synced documents from S3
+- [ ] Ran at least three RAG queries
+- [ ] Verified citation accuracy on at least one query
+- [ ] Tested a query for non-existent information
+
+---
+
+## Summary: What You Built
+
+In this 30-minute lab, you:
+
+1. **Experienced model trade-offs firsthand** - Opus is more capable but slower, Haiku is fast but less elaborate, Sonnet provides balance
+
+2. **Understood token economics** - You calculated actual costs and observed how prompt complexity impacts performance and price
+
+3. **Built your first knowledge base** - From raw documents in S3 to a queryable RAG system with vector search
+
+4. **Verified RAG quality** - You checked citations, tested edge cases, and saw how query phrasing affects results
+
+---
+
+## Troubleshooting Reference
+
+| Issue | Symptom | Solution |
+|-------|---------|----------|
+| Model access not enabled | `AccessDeniedException` error | Navigate to Model access, request access for Claude models |
+| S3 bucket access denied | Sync fails with permission error | Verify IAM role has S3 read permissions |
+| Knowledge base stuck creating | Status stays "Creating" > 10 min | Check CloudWatch logs; may need to delete and recreate |
+| Sync returns zero documents | Document count is 0 | Verify S3 prefix is correct; check file formats |
+| RAG queries return no results | "No relevant information found" | Confirm sync completed; verify documents match query topics |
+| High latency on all models | > 10 second response times | Check region; may be networking issue or quota throttling |
+| Truncated responses | Output cuts off mid-sentence | Increase max_tokens setting (set to 1000+) |
+
+---
+
+## Code Reference: boto3 Examples
+
+The following code snippets show how to perform these operations programmatically.
+
+### Invoke Claude Model
+
+```python
+import boto3
+import json
+
+bedrock_runtime = boto3.client('bedrock-runtime', region_name='us-east-1')
+
+def invoke_claude(prompt, model_id='anthropic.claude-sonnet-4-6'):
+    """Invoke a Claude model via Bedrock."""
+    body = json.dumps({
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 1024,
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    })
+
+    response = bedrock_runtime.invoke_model(
+        modelId=model_id,
+        contentType='application/json',
+        accept='application/json',
+        body=body
+    )
+
+    response_body = json.loads(response['body'].read())
+    return response_body
+
+# Example usage
+result = invoke_claude("Explain cloud computing in 3 sentences.")
+print(result['content'][0]['text'])
+print(f"Input tokens: {result['usage']['input_tokens']}")
+print(f"Output tokens: {result['usage']['output_tokens']}")
+```
+
+### Invoke with Streaming
+
+```python
+import boto3
+import json
+
+bedrock_runtime = boto3.client('bedrock-runtime', region_name='us-east-1')
+
+def invoke_claude_streaming(prompt, model_id='anthropic.claude-sonnet-4-6'):
+    """Invoke Claude with streaming response."""
+    body = json.dumps({
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 1024,
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    })
+
+    response = bedrock_runtime.invoke_model_with_response_stream(
+        modelId=model_id,
+        contentType='application/json',
+        accept='application/json',
+        body=body
+    )
+
+    # Process streaming response
+    for event in response['body']:
+        chunk = json.loads(event['chunk']['bytes'].decode())
+        if chunk['type'] == 'content_block_delta':
+            print(chunk['delta']['text'], end='', flush=True)
+    print()  # Newline at end
+
+# Example usage
+invoke_claude_streaming("What is AWS?")
+```
+
+### Query Knowledge Base
+
+```python
+import boto3
+
+bedrock_agent_runtime = boto3.client('bedrock-agent-runtime', region_name='us-east-1')
+
+def query_knowledge_base(query, knowledge_base_id, model_arn):
+    """Query a Bedrock knowledge base with RAG."""
+    response = bedrock_agent_runtime.retrieve_and_generate(
+        input={
+            'text': query
+        },
+        retrieveAndGenerateConfiguration={
+            'type': 'KNOWLEDGE_BASE',
+            'knowledgeBaseConfiguration': {
+                'knowledgeBaseId': knowledge_base_id,
+                'modelArn': model_arn
+            }
+        }
+    )
+
+    # Extract answer and citations
+    answer = response['output']['text']
+    citations = response.get('citations', [])
+
+    return {
+        'answer': answer,
+        'citations': citations
+    }
+
+# Example usage
+result = query_knowledge_base(
+    query="What is the return policy?",
+    knowledge_base_id="YOUR_KB_ID",
+    model_arn="arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-6"
+)
+print(result['answer'])
+```
+
+---
+
+## Next Steps
+
+In **Lab 2** this afternoon, you will:
+- Define custom tools that Claude can invoke
+- Add guardrails for content filtering and PII protection
+- Deploy a serverless architecture with Lambda
+- Set up CloudWatch monitoring
+- Integrate the knowledge base you created today into a complete application
+
+**Keep your lab environment open** - you will continue using the knowledge base in Lab 2.
+
+---
+
+*Lab 1 Complete*

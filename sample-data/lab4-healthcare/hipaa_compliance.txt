@@ -1,0 +1,47 @@
+Regional Medical Center — HIPAA Compliance Reference
+Effective: January 2025
+
+1. PROTECTED HEALTH INFORMATION (PHI) — 18 IDENTIFIERS
+   The following are considered PHI when associated with health information:
+   1. Names
+   2. Geographic data smaller than state
+   3. Dates (except year) related to an individual
+   4. Phone numbers
+   5. Fax numbers
+   6. Email addresses
+   7. Social Security Numbers
+   8. Medical record numbers
+   9. Health plan beneficiary numbers
+   10. Account numbers
+   11. Certificate/license numbers
+   12. Vehicle identifiers and serial numbers
+   13. Device identifiers and serial numbers
+   14. Web URLs
+   15. IP addresses
+   16. Biometric identifiers
+   17. Full-face photographs
+   18. Any other unique identifying number or code
+
+2. MINIMUM NECESSARY STANDARD
+   - Access only the minimum PHI needed to perform your job function
+   - Role-based access controls enforced in all systems
+   - Audit logs track all PHI access (who, what, when)
+
+3. BREACH NOTIFICATION REQUIREMENTS
+   - Internal: Report to Privacy Officer within 24 hours of discovery
+   - HHS: Notify within 60 days if breach affects 500+ individuals
+   - Individuals: Notify within 60 days of discovery
+   - Media: Required if breach affects 500+ individuals in a single state
+
+4. PENALTIES
+   Tier 1 (Unaware): $100-$50,000 per violation
+   Tier 2 (Reasonable cause): $1,000-$50,000 per violation
+   Tier 3 (Willful neglect, corrected): $10,000-$50,000 per violation
+   Tier 4 (Willful neglect, not corrected): $50,000 per violation
+   Annual maximum: $1,500,000 per violation category
+
+5. AI-SPECIFIC CONSIDERATIONS
+   - AI systems processing PHI must have BAA with vendor
+   - Model training data must not contain identifiable PHI
+   - AI outputs containing PHI must be encrypted in transit and at rest
+   - Audit logging required for all AI-PHI interactions

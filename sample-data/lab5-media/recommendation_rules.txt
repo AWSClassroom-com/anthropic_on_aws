@@ -1,0 +1,33 @@
+StreamVault — Recommendation Engine Rules
+Effective: January 2025
+
+1. PERSONALIZATION LOGIC
+   - Weight recent viewing (last 30 days) at 3x vs. older history
+   - Rating-weighted: 5-star content types preferred 2x over 3-star
+   - Genre affinity: calculated from viewing hours, not just count
+   - Completion rate: titles watched to completion weighted higher
+   - Time-of-day patterns: action/comedy for evening, documentaries for weekends
+
+2. DIVERSITY REQUIREMENTS
+   - Maximum 60% of recommendations from user's top genre
+   - At least 1 recommendation from an unexplored genre per session
+   - New releases (<30 days) get 20% boost in recommendation score
+   - StreamVault originals get 10% boost (business priority)
+
+3. CONTENT RESTRICTIONS
+   - Kids profiles: only TV-G, TV-Y7, PG content
+   - Teen profiles: add TV-14 content
+   - Adult profiles: all ratings
+   - Parental controls: respect per-profile rating restrictions
+
+4. PROMOTIONAL RULES
+   - Featured content: appears in first 3 recommendations max once
+   - Promoted content clearly labeled as "Featured" or "Spotlight"
+   - Seasonal relevance: holiday content boosted during relevant periods
+   - Never recommend content the user has already completed
+
+5. RECOMMENDATION PRESENTATION
+   - Primary recommendation: "Because you watched [Title]..."
+   - Secondary: "Trending in [Genre]"
+   - Discovery: "Something different you might enjoy"
+   - Each recommendation includes: title, rating, genre, 1-line reason

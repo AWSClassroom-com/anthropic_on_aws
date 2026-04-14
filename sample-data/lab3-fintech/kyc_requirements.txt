@@ -1,0 +1,48 @@
+ACME Financial Services — Know Your Customer (KYC) Requirements
+Effective: January 2025
+
+1. INDIVIDUAL ACCOUNTS
+   Required Documentation:
+   - Government-issued photo ID (passport, driver's license, or national ID card)
+   - Proof of address dated within 90 days (utility bill, bank statement, or tax document)
+   - Social Security Number or Tax Identification Number
+   - Date of birth verification
+   - Source of funds declaration for deposits over $25,000
+
+   Verification Process:
+   Step 1: Collect required documents
+   Step 2: Verify document authenticity (visual inspection + database check)
+   Step 3: Screen against OFAC sanctions list
+   Step 4: Screen against PEP databases
+   Step 5: Risk score assignment (Low/Medium/High)
+   Step 6: Approval by compliance officer (Medium/High risk only)
+   Step 7: Account activation
+
+2. BUSINESS ACCOUNTS
+   Additional Requirements:
+   - Certificate of incorporation or business registration
+   - Articles of organization/operating agreement
+   - Beneficial ownership disclosure (all individuals owning 25%+ or with significant control)
+   - Business financial statements (most recent fiscal year)
+   - Business license or permit (if applicable)
+
+3. ENHANCED DUE DILIGENCE (EDD)
+   Triggered When:
+   - Customer risk score is HIGH
+   - Customer is a PEP or PEP associate
+   - Transaction patterns are inconsistent with stated business purpose
+   - Customer is from a high-risk jurisdiction
+
+   Additional Requirements:
+   - Senior management approval for account opening
+   - Source of wealth documentation
+   - Enhanced transaction monitoring (lower thresholds)
+   - Annual review of customer relationship
+
+4. ONGOING MONITORING
+   - Account activity reviewed against stated purpose quarterly
+   - Risk scores reassessed annually
+   - Trigger events require immediate review:
+     * Significant change in transaction patterns
+     * Negative media screening alerts
+     * Change in beneficial ownership

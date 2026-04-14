@@ -1,0 +1,30 @@
+StreamVault — Content Classification Guidelines
+Effective: January 2025
+
+AGE RATINGS
+TV-G: Suitable for all ages. No violence, no sexual content, no strong language.
+TV-Y7: Suitable for ages 7+. Mild fantasy violence, simple conflict resolution.
+PG: Parental guidance suggested. Mild action, brief mild language.
+TV-14: Parents strongly cautioned. Moderate violence, suggestive themes, infrequent strong language.
+TV-MA: Mature audiences only. Graphic violence, sexual content, explicit language.
+
+CONTENT WARNING CATEGORIES
+- Violence: mild (cartoon), moderate (action sequences), graphic (realistic injury/death)
+- Language: mild (damn, hell), moderate (occasional profanity), strong (frequent/heavy profanity)
+- Sexual content: none, suggestive, partial nudity, explicit
+- Substance use: none, social drinking, drug use depicted, substance abuse themes
+- Thematic elements: death/grief, mental health, discrimination, war/conflict
+
+CLASSIFICATION PROCESS
+1. Watch/review complete content
+2. Document instances of each warning category with timestamps
+3. Assign primary age rating based on most restrictive element
+4. Generate content warnings for each applicable category
+5. Review by second classifier for consistency
+6. Final approval by content standards team
+
+GENRE ASSIGNMENT RULES
+- Primary genre: the single best-fit genre
+- Secondary genres: up to 2 additional genres
+- Genre tags: specific subgenres and themes (unlimited)
+- Cross-genre content: list most prominent genre first

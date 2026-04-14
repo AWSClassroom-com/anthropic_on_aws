@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lab 2 - Claude-Powered Application
+
+Globals:
+  Function:
+    Timeout: 60
+    Runtime: python3.11
+    MemorySize: 256
+    Environment:
+      Variables:
+        AWS_REGION_NAME: !Ref AWS::Region
+
+Resources:
+  ClaudeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      CodeUri: src/
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - bedrock:Retrieve
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - bedrock:ApplyGuardrail
+              Resource: '*'
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /chat
+            Method: post
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/chat"

@@ -1,0 +1,38 @@
+ACME Financial Services — Regulatory Reporting Requirements
+Effective: January 2025
+
+1. SUSPICIOUS ACTIVITY REPORT (SAR)
+   Filing Threshold: Any known or suspected criminal violation involving $5,000 or more
+   Deadline: 30 calendar days from initial detection; 60 days if no suspect identified
+   Filing Method: FinCEN BSA E-Filing System
+   Required Information:
+   - Subject information (name, address, SSN/EIN, date of birth)
+   - Financial institution information
+   - Suspicious activity details (dates, amounts, type)
+   - Narrative description of suspicious activity (minimum 5 sentences)
+
+   SAR Narrative Requirements:
+   - Who is conducting the suspicious activity?
+   - What instruments or mechanisms are being used?
+   - When did the suspicious activity occur?
+   - Where did the suspicious activity take place?
+   - Why does the activity appear suspicious?
+
+2. CURRENCY TRANSACTION REPORT (CTR)
+   Filing Threshold: Cash transactions over $10,000 (single or aggregate same day)
+   Deadline: 15 calendar days from transaction date
+   Filing Method: FinCEN BSA E-Filing System
+
+3. REPORT OF INTERNATIONAL TRANSPORTATION OF CURRENCY (CMIR)
+   Filing Threshold: Physical transport of currency over $10,000 across US border
+   Deadline: At time of transport (Customs) or within 15 days (FinCEN)
+
+4. FOREIGN BANK ACCOUNT REPORT (FBAR)
+   Filing Threshold: US persons with foreign financial accounts exceeding $10,000 aggregate
+   Deadline: April 15 annually (automatic extension to October 15)
+
+5. RECORD KEEPING
+   - All reports must be retained for 5 years from filing date
+   - Supporting documentation must be maintained with the report
+   - Reports are confidential — sharing with subjects is prohibited (tipping off)
+   - Annual SAR review: all SARs reviewed for patterns and trends

@@ -1,0 +1,49 @@
+StreamVault — Viewer Preference Profiles (Anonymized)
+Last Updated: January 2025
+
+PROFILE: Sci-Fi Enthusiast (18% of viewers)
+- Top genres: Sci-Fi (85%), Action (60%), Documentary (40%)
+- Avg session: 2.5 hours
+- Binge pattern: completes series within 1 week
+- Rating behavior: rates 70% of watched content
+- Preferred ratings: TV-14, TV-MA
+- Engagement: high (shares, adds to lists)
+
+PROFILE: Family Viewer (25% of viewers)
+- Top genres: Kids/Family (90%), Comedy (70%), Documentary (50%)
+- Avg session: 1.5 hours
+- Binge pattern: 1-2 episodes per day
+- Rating behavior: rates 30% of content
+- Preferred ratings: TV-G, TV-Y7, PG
+- Engagement: moderate (adds to kids profiles)
+
+PROFILE: Drama Lover (22% of viewers)
+- Top genres: Drama (80%), Thriller (55%), Documentary (45%)
+- Avg session: 2 hours
+- Binge pattern: 2-3 episodes per session
+- Rating behavior: rates 50% of content, writes reviews
+- Preferred ratings: TV-MA, TV-14
+- Engagement: high (reviews, recommendations)
+
+PROFILE: Casual Viewer (20% of viewers)
+- Top genres: Comedy (65%), Action (50%), varied others
+- Avg session: 1 hour
+- Binge pattern: infrequent, watches popular titles
+- Rating behavior: rarely rates
+- Preferred ratings: PG-13, TV-14
+- Engagement: low (passive consumption)
+
+PROFILE: Documentary Buff (15% of viewers)
+- Top genres: Documentary (90%), Drama (40%), Sci-Fi (30%)
+- Avg session: 1.5 hours
+- Binge pattern: watches 1 title completely then moves on
+- Rating behavior: rates 80% of content, detailed reviews
+- Preferred ratings: PG, TV-14
+- Engagement: very high (shares, discusses)
+
+TRENDING THIS MONTH:
+1. "Quiet Hours" — 4.2M streams (drama surge)
+2. "Parallel" — 3.8M streams (sci-fi consistent)
+3. "Cosmic Wanderers" — 3.1M streams (kids favorite)
+4. "The Last Expedition" — 2.9M streams (adventure buzz)
+5. "Ocean Deep" — 2.5M streams (documentary crossover appeal)

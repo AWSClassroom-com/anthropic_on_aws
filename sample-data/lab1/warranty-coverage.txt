@@ -1,0 +1,34 @@
+ACME Corp — Warranty Coverage Guide
+Effective: January 2025
+
+STANDARD WARRANTY (All Products)
+- Duration: 1 year from date of purchase
+- Covers: Manufacturing defects, hardware failures under normal use
+- Does NOT cover: Accidental damage, water damage, unauthorized modifications
+
+PREMIUM WARRANTY (Premium Tier Products)
+- Duration: 3 years from date of purchase
+- Covers: Everything in Standard, plus accidental damage (up to 2 incidents)
+- Includes: Free expedited shipping for replacements
+- Includes: Priority support queue (4-hour response time)
+- Includes: Loaner device program during repairs
+
+ENTERPRISE WARRANTY (Enterprise Tier)
+- Duration: 5 years from date of purchase
+- Covers: Everything in Premium, plus on-site repair service
+- Includes: Dedicated account manager
+- Includes: Quarterly hardware health checks
+- SLA: 99.9% uptime guarantee for connected products
+
+HOW TO FILE A WARRANTY CLAIM
+1. Visit acmecorp.com/warranty or call 1-800-ACME-HELP
+2. Provide your order number and product serial number
+3. Describe the issue in detail
+4. Our team will diagnose remotely when possible
+5. If repair/replacement is needed, you'll receive shipping instructions
+6. Turnaround time: 5-7 business days (Standard), 2-3 days (Premium), 1 day (Enterprise)
+
+WARRANTY REGISTRATION
+- Products are automatically registered when purchased through acmecorp.com
+- Retail purchases: register at acmecorp.com/register within 30 days
+- Proof of purchase is required for all warranty claims

@@ -1,0 +1,33 @@
+Regional Medical Center — Medication Quick Reference
+Last Updated: January 2025
+
+COMMON DRUG INTERACTIONS
+
+Metformin:
+- Alcohol: increased risk of lactic acidosis
+- Contrast dye: hold metformin 48 hours before and after CT with IV contrast
+- ACE inhibitors: may enhance hypoglycemic effect (monitor blood sugar)
+- Cimetidine: increases metformin levels (avoid combination)
+
+Lisinopril (ACE Inhibitor):
+- NSAIDs (ibuprofen, naproxen): reduces antihypertensive effect, increases renal risk
+- Potassium supplements/spironolactone: risk of hyperkalemia
+- Lithium: ACE inhibitors increase lithium levels (monitor closely)
+- Aliskiren: contraindicated combination in diabetic patients
+
+Warfarin:
+- Antibiotics (especially fluoroquinolones, metronidazole): increased INR
+- NSAIDs: increased bleeding risk
+- Vitamin K-rich foods: decreased anticoagulant effect
+- Acetaminophen >2g/day: may increase INR
+
+Amlodipine (Calcium Channel Blocker):
+- Simvastatin: limit simvastatin to 20mg when combined with amlodipine
+- Cyclosporine: amlodipine may increase cyclosporine levels
+- Grapefruit juice: increases amlodipine levels
+
+DOSING GUIDELINES — HIGH-ALERT MEDICATIONS
+- Insulin: always verify dose with second provider
+- Heparin: use standard concentration protocols only
+- Opioids: start low (morphine 2-4mg IV for opioid-naive patients)
+- Potassium IV: never exceed 10 mEq/hour in non-monitored setting

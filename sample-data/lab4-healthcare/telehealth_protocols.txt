@@ -1,0 +1,42 @@
+Regional Medical Center — Telehealth Visit Protocols
+Effective: January 2025
+
+1. VISIT TYPES AND DURATIONS
+   - New patient consultation: 30 minutes
+   - Follow-up visit: 15 minutes
+   - Urgent care triage: 10 minutes
+   - Mental health session: 45 minutes
+   - Chronic disease management: 20 minutes
+
+2. PRE-VISIT REQUIREMENTS
+   - Patient identity verification (date of birth + last 4 SSN or photo ID)
+   - Informed consent for telehealth (annual, documented in chart)
+   - Technology check (video/audio confirmed working)
+   - Patient location confirmed (must be in state where provider is licensed)
+
+3. DOCUMENTATION REQUIREMENTS
+   Every telehealth visit must include:
+   - Chief complaint and history of present illness
+   - Review of systems (relevant to chief complaint)
+   - Assessment and plan
+   - Patient education provided
+   - Follow-up plan and timeline
+   - Notation: "Visit conducted via telehealth video platform"
+   - Technology note: "Audio and video connection adequate" or note any issues
+
+4. PRESCRIBING VIA TELEHEALTH
+   Allowed:
+   - Refills of established medications
+   - New non-controlled substances based on clinical assessment
+   - Schedule III-V controlled substances (with established patient relationship)
+
+   Not Allowed:
+   - Schedule II controlled substances (opioids, stimulants) for new patients
+   - Medications requiring in-person examination (certain dermatologics)
+
+5. EMERGENCY PROTOCOLS
+   If patient appears to be in emergency during telehealth visit:
+   - Obtain patient's current physical location
+   - Call 911 for patient's location
+   - Stay on video call until EMS arrives
+   - Document in chart with timestamp of 911 activation

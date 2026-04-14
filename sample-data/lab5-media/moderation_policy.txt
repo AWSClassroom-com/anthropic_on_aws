@@ -1,0 +1,36 @@
+StreamVault — Content Moderation Policy
+Effective: January 2025
+
+1. USER-GENERATED CONTENT RULES
+   Prohibited:
+   - Hate speech, harassment, or threats
+   - Spam or commercial solicitation
+   - Spoilers without spoiler tags (enforced for 30 days after release)
+   - Links to piracy or illegal streaming sites
+   - Personal information of others (doxxing)
+   - Impersonation of StreamVault staff or content creators
+
+   Allowed:
+   - Honest reviews and ratings (including negative ones)
+   - Discussion of content themes and quality
+   - Recommendations to other users
+   - Constructive criticism of platform features
+
+2. AUTOMATED MODERATION TIERS
+   Tier 1 (Automatic block): Piracy links, phone numbers, credit cards, hate speech keywords
+   Tier 2 (Queue for review): Potential spoilers, borderline language, reported content
+   Tier 3 (Community flagging): User reports reviewed within 24 hours
+
+3. ESCALATION PROCEDURES
+   - Tier 1 violations: automatic removal, user warning (first offense)
+   - Repeated Tier 1: 7-day suspension
+   - Tier 2 confirmed: content removed, user notified
+   - Severe violations (threats, doxxing): immediate account suspension, legal review
+
+4. AI ASSISTANT RULES
+   The StreamVault AI assistant must:
+   - Never recommend piracy or illegal streaming alternatives
+   - Never reveal major plot spoilers without explicit user consent
+   - Never direct users to competing streaming platforms
+   - Always respect age rating restrictions for user profiles
+   - Report piracy-related queries to the security team
