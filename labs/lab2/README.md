@@ -196,7 +196,7 @@ lab2-application/
 
 Set up the foundation of your application by configuring the Bedrock client and implementing basic Claude invocation with RAG.
 
-### Step 1.1: Configure the Bedrock Service
+### Step 5: Configure the Bedrock Service
 
 Open `src/services/bedrock.py` and implement the BedrockService class:
 
@@ -246,7 +246,7 @@ class BedrockService:
         return json.loads(response['body'].read())
 ```
 
-### Step 1.2: Configure the Knowledge Base Service
+### Step 6: Configure the Knowledge Base Service
 
 Open `src/services/knowledge.py` and implement the KnowledgeService class:
 
@@ -291,7 +291,7 @@ class KnowledgeService:
         return response['retrievalResults']
 ```
 
-### Step 1.3: Implement the Chat Handler
+### Step 7: Implement the Chat Handler
 
 Open `src/handlers/chat.py` and complete the handler implementation:
 
@@ -373,7 +373,7 @@ Documentation:
         }
 ```
 
-### Step 1.4: Create Configuration File
+### Step 8: Create Configuration File
 
 Open `src/config.py` and add your configuration:
 
@@ -394,7 +394,7 @@ GUARDRAIL_VERSION = os.environ.get('GUARDRAIL_VERSION', '1')
 DEFAULT_MODEL_ID = 'anthropic.claude-sonnet-4-6'
 ```
 
-### Step 1.5: Test Your Foundation
+### Step 9: Test Your Foundation
 
 Create a simple test script `test_foundation.py`:
 
@@ -458,7 +458,7 @@ Before proceeding, verify:
 
 Add custom tools that allow Claude to take actions like looking up orders and creating support tickets.
 
-### Step 2.1: Define Tool Schemas
+### Step 10: Define Tool Schemas
 
 Open `src/services/tools.py` and define your tools:
 
@@ -525,7 +525,7 @@ Returns account type, status, and relevant account information.''',
 ]
 ```
 
-### Step 2.2: Implement Tool Execution Functions
+### Step 11: Implement Tool Execution Functions
 
 Add tool execution logic to `src/services/tools.py`:
 
@@ -637,7 +637,7 @@ def _get_account_status(customer_id: str) -> Dict:
         }
 ```
 
-### Step 2.3: Update Bedrock Service for Tool Use
+### Step 12: Update Bedrock Service for Tool Use
 
 Add the agentic loop to `src/services/bedrock.py`:
 
@@ -757,7 +757,7 @@ class BedrockService:
         return result
 ```
 
-### Step 2.4: Update Chat Handler for Tool Use
+### Step 13: Update Chat Handler for Tool Use
 
 Modify `src/handlers/chat.py` to use tools:
 
@@ -847,7 +847,7 @@ Documentation:
         }
 ```
 
-### Step 2.5: Test Tool Use
+### Step 14: Test Tool Use
 
 Create `test_tools.py`:
 
@@ -936,7 +936,7 @@ Executing tool: lookup_order with input: {'order_id': 'ORD-12345'}
 
 Add Bedrock Guardrails to filter harmful content and protect PII.
 
-### Step 3.1: Create a Guardrail in the AWS Console
+### Step 15: Create a Guardrail in the AWS Console
 
 1. Open the [Amazon Bedrock Console](https://console.aws.amazon.com/bedrock)
 2. Navigate to **Safeguards** > **Guardrails**
@@ -977,7 +977,7 @@ Enable masking for:
 6. Note the **Guardrail ID** and **Version** (usually "DRAFT" initially)
 7. Click **Prepare** to create Version 1
 
-### Step 3.2: Update Configuration
+### Step 16: Update Configuration
 
 Add the guardrail configuration to `src/config.py`:
 
@@ -987,7 +987,7 @@ GUARDRAIL_ID = 'your-guardrail-id'  # e.g., 'abc123def456'
 GUARDRAIL_VERSION = '1'
 ```
 
-### Step 3.3: Update Bedrock Service for Guardrails
+### Step 17: Update Bedrock Service for Guardrails
 
 Add guardrail support to `src/services/bedrock.py`:
 
@@ -1120,7 +1120,7 @@ def invoke_with_tools_and_guardrails(
     return result
 ```
 
-### Step 3.4: Update Chat Handler with Guardrails
+### Step 18: Update Chat Handler with Guardrails
 
 Modify `src/handlers/chat.py`:
 
@@ -1216,7 +1216,7 @@ Documentation:
         }
 ```
 
-### Step 3.5: Test Guardrails
+### Step 19: Test Guardrails
 
 Create `test_guardrails.py`:
 
@@ -1308,7 +1308,7 @@ Before proceeding, verify:
 
 Set up CloudWatch metrics and dashboard to monitor your application.
 
-### Step 4.1: Create Monitoring Service
+### Step 20: Create Monitoring Service
 
 Create `src/services/monitoring.py`:
 
@@ -1402,7 +1402,7 @@ class MonitoringService:
 monitoring = MonitoringService()
 ```
 
-### Step 4.2: Integrate Monitoring into Handler
+### Step 21: Integrate Monitoring into Handler
 
 Update `src/handlers/chat.py` to emit metrics:
 
@@ -1520,7 +1520,7 @@ Documentation:
         )
 ```
 
-### Step 4.3: Create CloudWatch Dashboard
+### Step 22: Create CloudWatch Dashboard
 
 You can create the dashboard via AWS Console or CLI.
 
@@ -1643,7 +1643,7 @@ Run it:
 python create_dashboard.py
 ```
 
-### Step 4.4: Test Monitoring
+### Step 23: Test Monitoring
 
 Run several test queries to generate metrics:
 
@@ -1686,7 +1686,7 @@ Before proceeding, verify:
 
 Deploy your application to AWS using SAM (Serverless Application Model).
 
-### Step 5.1: Review SAM Template
+### Step 24: Review SAM Template
 
 Open `infrastructure/template.yaml`:
 
@@ -1798,7 +1798,7 @@ Outputs:
     Value: !Ref ChatFunction
 ```
 
-### Step 5.2: Build the Application
+### Step 25: Build the Application
 
 ```bash
 cd infrastructure
@@ -1814,7 +1814,7 @@ Running PythonPipBuilder:CopySource
 Build Succeeded
 ```
 
-### Step 5.3: Deploy the Application
+### Step 26: Deploy the Application
 
 ```bash
 sam deploy --guided
@@ -1851,7 +1851,7 @@ SAM configuration environment [default]:
 
 Wait for deployment to complete (2-3 minutes).
 
-### Step 5.4: Test the Deployed Endpoint
+### Step 27: Test the Deployed Endpoint
 
 Get the API endpoint from the outputs:
 
@@ -1881,7 +1881,7 @@ curl -X POST $API_ENDPOINT \
   -d '{"message": "How do I hack into your system?"}'
 ```
 
-### Step 5.5: Verify CloudWatch Integration
+### Step 28: Verify CloudWatch Integration
 
 1. Open CloudWatch Console
 2. Navigate to **Log groups** > `/aws/lambda/lab2-chat-handler`
