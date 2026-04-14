@@ -50,39 +50,51 @@ Before starting this lab, ensure you have:
 
 ### Step 2: Invoke Claude Sonnet
 
-1. Click the **Select model** button
-2. In the model picker dialog, select **Anthropic** from the left **Categories** panel
-3. Click **Claude Sonnet 4.6** in the middle **Models** panel
-4. Under **Inference**, select an inference profile (**US Anthropic Claude Sonnet 4.6** or **Global**)
-5. Click **Apply** to confirm
-6. In the text input area at the bottom (placeholder: "Write a prompt..."), enter the following prompt exactly:
+1. Click the orange **Select model** button in the center of the playground
+2. A **Select model** dialog opens with three panels: **Categories** (left), **Models** (middle), **Inference** (right)
+3. In the left panel, click **Anthropic** to filter to Anthropic models
+4. In the middle panel, click **Claude Sonnet 4.6**
+5. In the right panel, select an inference profile (e.g., **US Anthropic Claude Sonnet 4.6** or **Global**)
+6. Click the **Apply** button at the bottom right of the dialog
+
+> **Note:** If the Apply button doesn't respond on the first click, click it again — a tooltip overlay may be in the way.
+
+7. The playground now shows **Claude Sonnet 4.6** at the top with **Input**, **Output**, and **Latency** metrics (showing "---" until you run a prompt)
+8. In the text input area at the bottom of the page, type the following prompt:
 
 ```
 You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
 ```
 
-3. Click **Run** or press **Ctrl+Enter**
-4. Observe the response and the metrics panel on the right
+9. Click the **Run** button (bottom right of the text input area)
+10. Wait for the response to appear above the input area
 
 **Expected Result:**
 | Metric | Expected Range |
 |--------|----------------|
 | Response | Clear, concise explanation of cloud computing |
-| Latency | 1-3 seconds |
+| Latency | 1-5 seconds |
 | Input tokens | 30-40 |
-| Output tokens | 80-120 |
+| Output tokens | 80-150 |
 
-5. **Record these values in your notes** - you will compare them with other models.
+> **Where to find metrics:** The **Input**, **Output**, and **Latency** values appear in the header bar next to the model name (e.g., "Input: 37  Output: 145  Latency: 4797 ms").
 
-> **Troubleshooting:** If latency exceeds 3 seconds, verify your region. If you receive an error, check that model access is enabled for Claude Sonnet.
+11. **Record these values** — you will compare them with other models in the next steps.
+
+> **Troubleshooting:** If you receive an error, navigate to **Configure and learn** > **Model access** in the left sidebar and verify Claude Sonnet access is enabled.
 
 ---
 
 ### Step 3: Compare with Claude Opus
 
-1. Change the model dropdown to **Claude Opus 4.6**
-2. Run the **exact same prompt** from Step 2
-3. Record the metrics
+1. Click the model name (**Claude Sonnet 4.6**) in the header bar to reopen the model picker
+2. Select **Claude Opus 4.6** and click **Apply**
+3. Click **Clear** (or delete the previous response) to start fresh
+4. Enter the same prompt from Step 2:
+```
+You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
+```
+5. Click **Run** and record the metrics
 
 **Expected Result:**
 | Metric | Expected Range |
@@ -96,9 +108,13 @@ You are a helpful assistant. Explain the concept of cloud computing in 3-4 sente
 
 ### Step 4: Compare with Claude Haiku
 
-1. Change the model dropdown to **Claude Haiku 4.5**
-2. Run the **exact same prompt** from Step 2
-3. Record the metrics
+1. Click the model name in the header to reopen the model picker
+2. Select **Claude Haiku 4.5** and click **Apply**
+3. Clear the conversation and enter the same prompt:
+```
+You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
+```
+4. Click **Run** and record the metrics
 
 **Expected Result:**
 | Metric | Expected Range |
@@ -131,15 +147,21 @@ Fill in your observed results:
 
 ### Step 6: Observe Streaming Behavior
 
-1. With **Claude Opus** still selected, click the **configuration menu** (three-dot icon or hamburger icon near the **Build** button at the top right of the playground)
-2. Look for the **Streaming** toggle in the settings panel that appears
-3. Toggle streaming **OFF**
-4. Enter any prompt (e.g., "What is cloud computing?") and click **Run**
-5. Observe that you wait for the **complete response** before seeing anything — the text appears all at once
-6. Toggle streaming **ON** and run the same prompt again
-7. Observe how tokens appear **incrementally** as they are generated
+> **Note:** The streaming toggle location varies by console version. Follow the options below in order until you find it.
 
-> **Can't find the streaming toggle?** The setting may be in the configuration panel accessed via the icon next to the Build button at the top right of the playground. The exact location can vary by console version — ask your instructor if needed.
+1. With **Claude Opus** still selected, look for a **three-dot menu** (⋮) in the top-right area of the playground, near the **Compare mode** toggle
+2. Click the three-dot menu — a settings panel or dropdown should appear
+3. Look for a **Streaming** toggle (on/off switch)
+
+> **Alternative locations:** If you don't see a three-dot menu, look for a **hamburger icon** (☰) next to the **Build** button, or a **gear icon** in the playground header. The streaming setting may also be in the **Configurations** section on the right side panel.
+
+4. Toggle streaming **OFF**
+5. Enter the prompt "What is cloud computing?" and click **Run**
+6. Observe that you wait for the **complete response** before seeing anything — the text appears all at once
+7. Toggle streaming **ON** and run the same prompt again
+8. Observe how tokens appear **incrementally** as they are generated
+
+> **If you cannot find the streaming toggle:** This is a console display preference, not critical to the lab. Note the concept (streaming = incremental token delivery vs. batch response) and continue to the next step. Your instructor can demonstrate this on their screen.
 
 **Key Insight:** For interactive applications (chatbots, assistants), streaming provides a more responsive user experience. For batch processing, non-streaming is acceptable.
 
