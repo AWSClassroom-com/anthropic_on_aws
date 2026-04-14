@@ -24,7 +24,7 @@ By completing this mini-lab, you will:
 - [ ] AWS credentials configured (`aws configure` done)
 - [ ] Node.js 18+ installed (check: `node --version`)
 
-**Course Repository:** [github.com/AWSClassroom-com/anthropic_on_aws](https://github.com/AWSClassroom-com/anthropic_on_aws)
+**Course Repository:** **https://github.com/AWSClassroom-com/anthropic_on_aws**
 
 ---
 

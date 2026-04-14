@@ -1,4 +1,4 @@
-# Lab 3: Fintech — AI-Powered Document Processing & Compliance
+# Lab 3: Fintech â AI-Powered Document Processing & Compliance
 
 **Course:** Building AI Applications with Anthropic on AWS Bedrock
 **Lab:** Industry-Specific (replaces standard Labs 1 & 2)
@@ -9,11 +9,11 @@
 
 ## Lab Overview
 
-You work for a financial services firm that processes thousands of documents daily — KYC verification, transaction monitoring, and regulatory reporting. Manual processing creates bottlenecks and compliance risk. In this lab, you'll build an intelligent document processing platform using Claude on Bedrock that extracts data from identity documents, answers compliance questions from regulatory knowledge bases, and generates suspicious activity reports — all with guardrails ensuring financial advice restrictions and PII protection.
+You work for a financial services firm that processes thousands of documents daily â KYC verification, transaction monitoring, and regulatory reporting. Manual processing creates bottlenecks and compliance risk. In this lab, you'll build an intelligent document processing platform using Claude on Bedrock that extracts data from identity documents, answers compliance questions from regulatory knowledge bases, and generates suspicious activity reports â all with guardrails ensuring financial advice restrictions and PII protection.
 
 ### What You Will Build
 
-- A Knowledge Base from financial regulatory documents (S3 → Bedrock KB)
+- A Knowledge Base from financial regulatory documents (S3 â Bedrock KB)
 - RAG-powered compliance queries with cited regulatory sources
 - Custom tools for transaction monitoring and SAR generation
 - Guardrails blocking financial advice and masking PII (SSN, account numbers)
@@ -29,13 +29,13 @@ You work for a financial services firm that processes thousands of documents dai
 - [ ] Python 3.11+ installed with boto3
 - [ ] AWS SAM CLI installed
 
-**Course Repository:** [github.com/AWSClassroom-com/anthropic_on_aws](https://github.com/AWSClassroom-com/anthropic_on_aws) � contains sample data for all labs.
+**Course Repository:** **https://github.com/AWSClassroom-com/anthropic_on_aws**  contains sample data for all labs.
 
 ---
 
 ## Part 1: Financial Knowledge Base Setup (25 min)
 
-> **Building Block:** Same process as Lab 1 — different documents.
+> **Building Block:** Same process as Lab 1 â different documents.
 
 ### Step 1: Upload Financial Regulatory Documents to S3
 
@@ -46,16 +46,16 @@ aws s3 sync ./lab3-documents/ s3://bedrock-training-[account-id]/lab3-fintech/
 ```
 
 **Sample documents included:**
-- `aml_policy.txt` — Anti-Money Laundering compliance procedures
-- `kyc_requirements.txt` — Know Your Customer verification standards
-- `transaction_monitoring.txt` — Suspicious activity detection thresholds
-- `regulatory_reporting.txt` — BSA/SAR filing requirements and timelines
-- `data_handling_policy.txt` — PII handling and encryption requirements
+- `aml_policy.txt` â Anti-Money Laundering compliance procedures
+- `kyc_requirements.txt` â Know Your Customer verification standards
+- `transaction_monitoring.txt` â Suspicious activity detection thresholds
+- `regulatory_reporting.txt` â BSA/SAR filing requirements and timelines
+- `data_handling_policy.txt` â PII handling and encryption requirements
 
 ### Step 2: Create the Knowledge Base
 
-1. Navigate to **Amazon Bedrock** → **Knowledge Bases**
-2. Click **Create** → **Knowledge Base with vector store**
+1. Navigate to **Amazon Bedrock** â **Knowledge Bases**
+2. Click **Create** â **Knowledge Base with vector store**
 3. Configure:
    - **Name:** `lab3-fintech-compliance-kb`
    - **S3 URI:** `s3://bedrock-training-[account-id]/lab3-fintech/`
@@ -65,7 +65,7 @@ aws s3 sync ./lab3-documents/ s3://bedrock-training-[account-id]/lab3-fintech/
 
 ### Step 3: Sync and Verify
 
-1. Select the data source → click **Sync**
+1. Select the data source â click **Sync**
 2. Wait for sync to complete
 3. Verify document count matches your uploaded files
 
@@ -86,7 +86,7 @@ Open the **Test Knowledge Base** panel and try:
 
 ## Part 2: Compliance Tool Use (25 min)
 
-> **Building Block:** Same tool schema pattern as Lab 2 — different tools.
+> **Building Block:** Same tool schema pattern as Lab 2 â different tools.
 
 ### Step 5: Define Financial Tools
 
@@ -117,11 +117,11 @@ A new customer wants to open an account. They've submitted a passport and utilit
 
 ## Part 3: Financial Guardrails (25 min)
 
-> **Building Block:** Same guardrail creation process as Lab 2 — different rules.
+> **Building Block:** Same guardrail creation process as Lab 2 â different rules.
 
 ### Step 7: Create Compliance Guardrails
 
-1. Navigate to **Bedrock** → **Guardrails** → **Create guardrail**
+1. Navigate to **Bedrock** â **Guardrails** â **Create guardrail**
 2. **Name:** `FinancialComplianceGuardrail`
 
 ### Step 8: Configure Content Filters
@@ -153,16 +153,16 @@ Test with these prompts:
 
 | Prompt | Expected Result |
 |--------|----------------|
-| "What is the KYC process for new accounts?" | **PASS** — normal compliance query |
-| "Should I invest in cryptocurrency?" | **BLOCKED** — investment advice |
-| "My SSN is 123-45-6789, can you check my account?" | **BLOCKED** — SSN detected |
-| "Customer email is john@example.com and phone is 555-1234" | **ANONYMIZED** — PII masked |
+| "What is the KYC process for new accounts?" | **PASS** â normal compliance query |
+| "Should I invest in cryptocurrency?" | **BLOCKED** â investment advice |
+| "My SSN is 123-45-6789, can you check my account?" | **BLOCKED** â SSN detected |
+| "Customer email is john@example.com and phone is 555-1234" | **ANONYMIZED** â PII masked |
 
 ---
 
 ## Part 4: Monitoring and Audit Trail (20 min)
 
-> **Building Block:** Same CloudWatch pattern as Lab 2 — with audit focus.
+> **Building Block:** Same CloudWatch pattern as Lab 2 â with audit focus.
 
 ### Step 12: Set Up CloudWatch Monitoring
 
@@ -181,7 +181,7 @@ Financial services require comprehensive audit trails. Verify:
 
 ## Part 5: Application Deployment (25 min)
 
-> **Building Block:** Same SAM deployment as Lab 2 — financial use case.
+> **Building Block:** Same SAM deployment as Lab 2 â financial use case.
 
 ### Step 14: Build the Application
 
@@ -229,9 +229,9 @@ aws cloudformation delete-stack --stack-name lab3-fintech-app
 
 ## Key Takeaways
 
-1. **Same Bedrock building blocks** — Knowledge Bases, Guardrails, Tools, CloudWatch work identically across industries
-2. **Domain-specific guardrails** are critical — financial advice restrictions and PII blocking prevent compliance violations
-3. **Audit logging** is a regulatory requirement — CloudTrail + CloudWatch provide the trail
+1. **Same Bedrock building blocks** â Knowledge Bases, Guardrails, Tools, CloudWatch work identically across industries
+2. **Domain-specific guardrails** are critical â financial advice restrictions and PII blocking prevent compliance violations
+3. **Audit logging** is a regulatory requirement â CloudTrail + CloudWatch provide the trail
 4. **RAG citations** provide the evidence trail that regulators require
 
 ---

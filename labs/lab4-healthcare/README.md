@@ -1,4 +1,4 @@
-# Lab 4: Healthcare — HIPAA-Compliant AI Assistant
+# Lab 4: Healthcare â HIPAA-Compliant AI Assistant
 
 **Course:** Building AI Applications with Anthropic on AWS Bedrock
 **Lab:** Industry-Specific (replaces standard Labs 1 & 2)
@@ -9,11 +9,11 @@
 
 ## Lab Overview
 
-You work for a telemedicine platform that needs an AI assistant to help clinicians access medical knowledge, document patient encounters, and manage scheduling — without exposing protected health information. In this lab, you'll build a HIPAA-aware clinical assistant using Claude on Bedrock with RAG for medical knowledge retrieval, guardrails for PHI/PII protection, and tools for appointment management — all with comprehensive audit logging.
+You work for a telemedicine platform that needs an AI assistant to help clinicians access medical knowledge, document patient encounters, and manage scheduling â without exposing protected health information. In this lab, you'll build a HIPAA-aware clinical assistant using Claude on Bedrock with RAG for medical knowledge retrieval, guardrails for PHI/PII protection, and tools for appointment management â all with comprehensive audit logging.
 
 ### What You Will Build
 
-- A Knowledge Base from medical reference documentation (S3 → Bedrock KB)
+- A Knowledge Base from medical reference documentation (S3 â Bedrock KB)
 - RAG-powered medical knowledge queries with cited references
 - Custom tools for appointment scheduling and prescription management
 - Guardrails with strict PHI/PII blocking (HIPAA compliance)
@@ -29,13 +29,13 @@ You work for a telemedicine platform that needs an AI assistant to help clinicia
 - [ ] Python 3.11+ installed with boto3
 - [ ] AWS SAM CLI installed
 
-**Course Repository:** [github.com/AWSClassroom-com/anthropic_on_aws](https://github.com/AWSClassroom-com/anthropic_on_aws) � contains sample data for all labs.
+**Course Repository:** **https://github.com/AWSClassroom-com/anthropic_on_aws**  contains sample data for all labs.
 
 ---
 
 ## Part 1: Medical Knowledge Base Setup (25 min)
 
-> **Building Block:** Same process as Lab 1 — different documents.
+> **Building Block:** Same process as Lab 1 â different documents.
 
 ### Step 1: Upload Medical Reference Documents to S3
 
@@ -46,18 +46,18 @@ aws s3 sync ./lab4-documents/ s3://bedrock-training-[account-id]/lab4-healthcare
 ```
 
 **Sample documents included:**
-- `clinical_guidelines.txt` — Evidence-based treatment guidelines for common conditions
-- `medication_reference.txt` — Drug interactions, dosing guidelines, contraindications
-- `telehealth_protocols.txt` — Telemedicine visit procedures and documentation requirements
-- `hipaa_compliance.txt` — PHI handling, minimum necessary standard, breach notification
-- `scheduling_policy.txt` — Appointment types, durations, cancellation/no-show policies
+- `clinical_guidelines.txt` â Evidence-based treatment guidelines for common conditions
+- `medication_reference.txt` â Drug interactions, dosing guidelines, contraindications
+- `telehealth_protocols.txt` â Telemedicine visit procedures and documentation requirements
+- `hipaa_compliance.txt` â PHI handling, minimum necessary standard, breach notification
+- `scheduling_policy.txt` â Appointment types, durations, cancellation/no-show policies
 
 > **Important:** These are fictional reference documents for training purposes. They should NOT be used for actual medical decision-making.
 
 ### Step 2: Create the Knowledge Base
 
-1. Navigate to **Amazon Bedrock** → **Knowledge Bases**
-2. Click **Create** → **Knowledge Base with vector store**
+1. Navigate to **Amazon Bedrock** â **Knowledge Bases**
+2. Click **Create** â **Knowledge Base with vector store**
 3. Configure:
    - **Name:** `lab4-clinical-reference-kb`
    - **S3 URI:** `s3://bedrock-training-[account-id]/lab4-healthcare/`
@@ -67,7 +67,7 @@ aws s3 sync ./lab4-documents/ s3://bedrock-training-[account-id]/lab4-healthcare
 
 ### Step 3: Sync and Verify
 
-1. Select the data source → click **Sync**
+1. Select the data source â click **Sync**
 2. Wait for sync to complete
 3. Verify document count matches uploaded files
 
@@ -88,7 +88,7 @@ Open the **Test Knowledge Base** panel and try:
 
 ## Part 2: Clinical Tools (25 min)
 
-> **Building Block:** Same tool schema pattern as Lab 2 — healthcare tools.
+> **Building Block:** Same tool schema pattern as Lab 2 â healthcare tools.
 
 ### Step 5: Define Clinical Tools
 
@@ -117,11 +117,11 @@ A patient reports their symptoms have worsened since their last visit and wants 
 
 ## Part 3: HIPAA-Compliant Guardrails (25 min)
 
-> **Building Block:** Same guardrail creation process as Lab 2 — HIPAA-specific rules.
+> **Building Block:** Same guardrail creation process as Lab 2 â HIPAA-specific rules.
 
 ### Step 7: Create HIPAA Guardrails
 
-1. Navigate to **Bedrock** → **Guardrails** → **Create guardrail**
+1. Navigate to **Bedrock** â **Guardrails** â **Create guardrail**
 2. **Name:** `HIPAAComplianceGuardrail`
 
 ### Step 8: Configure Content Filters
@@ -153,16 +153,16 @@ HIPAA requires strict protection of all 18 PHI identifiers:
 
 | Prompt | Expected Result |
 |--------|----------------|
-| "What are the guidelines for treating hypertension?" | **PASS** — general medical knowledge |
-| "Patient John Smith, DOB 03/15/1980, MRN 12345, has diabetes" | **BLOCKED/ANONYMIZED** — PHI detected |
-| "You definitely have strep throat and need antibiotics" | **BLOCKED** — diagnosis without physician |
-| "What documentation is needed for a telehealth visit?" | **PASS** — procedural question |
+| "What are the guidelines for treating hypertension?" | **PASS** â general medical knowledge |
+| "Patient John Smith, DOB 03/15/1980, MRN 12345, has diabetes" | **BLOCKED/ANONYMIZED** â PHI detected |
+| "You definitely have strep throat and need antibiotics" | **BLOCKED** â diagnosis without physician |
+| "What documentation is needed for a telehealth visit?" | **PASS** â procedural question |
 
 ---
 
 ## Part 4: Monitoring and HIPAA Audit Trail (20 min)
 
-> **Building Block:** Same CloudWatch pattern as Lab 2 — with HIPAA audit requirements.
+> **Building Block:** Same CloudWatch pattern as Lab 2 â with HIPAA audit requirements.
 
 ### Step 12: Set Up CloudWatch Monitoring
 
@@ -172,7 +172,7 @@ Create a monitoring dashboard:
 
 ### Step 13: Verify HIPAA Audit Logging
 
-HIPAA requires audit controls (§164.312(b)):
+HIPAA requires audit controls (Â§164.312(b)):
 1. Verify CloudTrail logs all Bedrock API calls
 2. Confirm guardrail violations are logged (PHI exposure attempts)
 3. Check that all access to the Knowledge Base is logged
@@ -182,7 +182,7 @@ HIPAA requires audit controls (§164.312(b)):
 
 ## Part 5: Application Deployment (25 min)
 
-> **Building Block:** Same SAM deployment as Lab 2 — clinical use case.
+> **Building Block:** Same SAM deployment as Lab 2 â clinical use case.
 
 ### Step 14: Build the Application
 
@@ -227,10 +227,10 @@ aws cloudformation delete-stack --stack-name lab4-clinical-assistant
 
 ## Key Takeaways
 
-1. **HIPAA compliance is about guardrails AND architecture** — PII filters block PHI at the model layer, but you also need encryption at rest (KMS), in transit (TLS), and audit logging (CloudTrail)
-2. **Same Bedrock building blocks** — KB creation, guardrails, tools, deployment are identical across industries
-3. **Denied topics prevent liability** — blocking diagnosis and prescribing protects against the AI practicing medicine
-4. **Audit trail is non-negotiable** — every interaction must be logged for compliance reviews
+1. **HIPAA compliance is about guardrails AND architecture** â PII filters block PHI at the model layer, but you also need encryption at rest (KMS), in transit (TLS), and audit logging (CloudTrail)
+2. **Same Bedrock building blocks** â KB creation, guardrails, tools, deployment are identical across industries
+3. **Denied topics prevent liability** â blocking diagnosis and prescribing protects against the AI practicing medicine
+4. **Audit trail is non-negotiable** â every interaction must be logged for compliance reviews
 
 ---
 

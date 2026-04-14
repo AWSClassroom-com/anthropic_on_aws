@@ -1,4 +1,4 @@
-# Lab 5: Media & Entertainment — Content Intelligence Platform
+# Lab 5: Media & Entertainment â Content Intelligence Platform
 
 **Course:** Building AI Applications with Anthropic on AWS Bedrock
 **Lab:** Industry-Specific (replaces standard Labs 1 & 2)
@@ -9,11 +9,11 @@
 
 ## Lab Overview
 
-You work for a streaming service that manages a vast content library requiring metadata enrichment, personalized recommendations, and content moderation at scale. In this lab, you'll build a content intelligence platform using Claude on Bedrock that analyzes content metadata, powers recommendation conversations from a content catalog, and enforces content moderation policies — enabling AI-driven content operations across the platform.
+You work for a streaming service that manages a vast content library requiring metadata enrichment, personalized recommendations, and content moderation at scale. In this lab, you'll build a content intelligence platform using Claude on Bedrock that analyzes content metadata, powers recommendation conversations from a content catalog, and enforces content moderation policies â enabling AI-driven content operations across the platform.
 
 ### What You Will Build
 
-- A Knowledge Base from a content catalog and viewer data (S3 → Bedrock KB)
+- A Knowledge Base from a content catalog and viewer data (S3 â Bedrock KB)
 - RAG-powered content recommendation queries
 - Custom tools for content classification and metadata enrichment
 - Guardrails for content moderation (age-appropriate, no spoilers, no piracy)
@@ -29,13 +29,13 @@ You work for a streaming service that manages a vast content library requiring m
 - [ ] Python 3.11+ installed with boto3
 - [ ] AWS SAM CLI installed
 
-**Course Repository:** [github.com/AWSClassroom-com/anthropic_on_aws](https://github.com/AWSClassroom-com/anthropic_on_aws) � contains sample data for all labs.
+**Course Repository:** **https://github.com/AWSClassroom-com/anthropic_on_aws**  contains sample data for all labs.
 
 ---
 
 ## Part 1: Content Catalog Knowledge Base (25 min)
 
-> **Building Block:** Same process as Lab 1 — different documents.
+> **Building Block:** Same process as Lab 1 â different documents.
 
 ### Step 1: Upload Content Catalog Documents to S3
 
@@ -46,16 +46,16 @@ aws s3 sync ./lab5-documents/ s3://bedrock-training-[account-id]/lab5-media/
 ```
 
 **Sample documents included:**
-- `content_catalog.txt` — Titles, genres, ratings, descriptions for 50 fictional shows/movies
-- `viewer_preferences.txt` — Anonymized viewing patterns and preference profiles
-- `content_guidelines.txt` — Age rating criteria, content warnings, and classification rules
-- `moderation_policy.txt` — User-generated content rules, escalation procedures, and banned content
-- `recommendation_rules.txt` — Personalization logic, diversity requirements, and promotional rules
+- `content_catalog.txt` â Titles, genres, ratings, descriptions for 50 fictional shows/movies
+- `viewer_preferences.txt` â Anonymized viewing patterns and preference profiles
+- `content_guidelines.txt` â Age rating criteria, content warnings, and classification rules
+- `moderation_policy.txt` â User-generated content rules, escalation procedures, and banned content
+- `recommendation_rules.txt` â Personalization logic, diversity requirements, and promotional rules
 
 ### Step 2: Create the Knowledge Base
 
-1. Navigate to **Amazon Bedrock** → **Knowledge Bases**
-2. Click **Create** → **Knowledge Base with vector store**
+1. Navigate to **Amazon Bedrock** â **Knowledge Bases**
+2. Click **Create** â **Knowledge Base with vector store**
 3. Configure:
    - **Name:** `lab5-content-catalog-kb`
    - **S3 URI:** `s3://bedrock-training-[account-id]/lab5-media/`
@@ -65,7 +65,7 @@ aws s3 sync ./lab5-documents/ s3://bedrock-training-[account-id]/lab5-media/
 
 ### Step 3: Sync and Verify
 
-1. Select the data source → click **Sync**
+1. Select the data source â click **Sync**
 2. Wait for sync to complete
 3. Verify document count matches uploaded files
 
@@ -84,7 +84,7 @@ Open the **Test Knowledge Base** panel and try:
 
 ## Part 2: Content Intelligence Tools (25 min)
 
-> **Building Block:** Same tool schema pattern as Lab 2 — media tools.
+> **Building Block:** Same tool schema pattern as Lab 2 â media tools.
 
 ### Step 5: Define Content Tools
 
@@ -113,11 +113,11 @@ A viewer has watched 5 sci-fi shows and 3 documentaries in the last month. They 
 
 ## Part 3: Content Moderation Guardrails (25 min)
 
-> **Building Block:** Same guardrail creation process as Lab 2 — content moderation rules.
+> **Building Block:** Same guardrail creation process as Lab 2 â content moderation rules.
 
 ### Step 7: Create Content Moderation Guardrails
 
-1. Navigate to **Bedrock** → **Guardrails** → **Create guardrail**
+1. Navigate to **Bedrock** â **Guardrails** â **Create guardrail**
 2. **Name:** `ContentModerationGuardrail`
 
 ### Step 8: Configure Content Filters
@@ -144,16 +144,16 @@ Set all content filters to **HIGH** for both input and output.
 
 | Prompt | Expected Result |
 |--------|----------------|
-| "Recommend something like Breaking Bad" | **PASS** — normal recommendation query |
-| "Where can I torrent the latest episode?" | **BLOCKED** — piracy topic |
-| "Tell me how the show ends" | **BLOCKED** — spoiler topic (if configured with content warnings) |
-| "My credit card is 4111-1111-1111-1111" | **BLOCKED** — PII detected |
+| "Recommend something like Breaking Bad" | **PASS** â normal recommendation query |
+| "Where can I torrent the latest episode?" | **BLOCKED** â piracy topic |
+| "Tell me how the show ends" | **BLOCKED** â spoiler topic (if configured with content warnings) |
+| "My credit card is 4111-1111-1111-1111" | **BLOCKED** â PII detected |
 
 ---
 
 ## Part 4: Monitoring and Analytics (20 min)
 
-> **Building Block:** Same CloudWatch pattern as Lab 2 — content analytics focus.
+> **Building Block:** Same CloudWatch pattern as Lab 2 â content analytics focus.
 
 ### Step 12: Set Up CloudWatch Monitoring
 
@@ -172,7 +172,7 @@ Review the dashboard to understand:
 
 ## Part 5: Application Deployment (25 min)
 
-> **Building Block:** Same SAM deployment as Lab 2 — content platform use case.
+> **Building Block:** Same SAM deployment as Lab 2 â content platform use case.
 
 ### Step 14: Build the Application
 
@@ -217,10 +217,10 @@ aws cloudformation delete-stack --stack-name lab5-content-platform
 
 ## Key Takeaways
 
-1. **Content moderation at scale** — guardrails handle content policy enforcement without custom code
-2. **RAG for recommendations** — Knowledge Bases turn your content catalog into a conversational recommendation engine
-3. **Same building blocks, different data** — the KB + Guardrails + Tools pattern works identically for any industry
-4. **Multimodal potential** — Claude's vision capabilities (not covered in this lab) could analyze thumbnails and posters for automated metadata
+1. **Content moderation at scale** â guardrails handle content policy enforcement without custom code
+2. **RAG for recommendations** â Knowledge Bases turn your content catalog into a conversational recommendation engine
+3. **Same building blocks, different data** â the KB + Guardrails + Tools pattern works identically for any industry
+4. **Multimodal potential** â Claude's vision capabilities (not covered in this lab) could analyze thumbnails and posters for automated metadata
 
 ---
 

@@ -25,7 +25,7 @@ Before starting this lab, ensure you have:
 - [ ] Access to the S3 bucket containing sample documents
 - [ ] Lab instructions document open (this guide)
 
-**Course Repository:** [github.com/AWSClassroom-com/anthropic_on_aws](https://github.com/AWSClassroom-com/anthropic_on_aws) — contains sample data and starter code for all labs.
+**Course Repository:** **https://github.com/AWSClassroom-com/anthropic_on_aws** — contains sample data and starter code for all labs.
 
 **S3 Bucket Path:** `s3://bedrock-training-[account-id]/lab1-documents/`
 
