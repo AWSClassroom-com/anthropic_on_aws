@@ -33,22 +33,29 @@ Before starting this lab, ensure you have:
 
 ---
 
-## Part 1: Model Invocation and Comparison (10 min)
+## Part 1: Model Invocation and Comparison
 
-### Step 1: Open the Bedrock Text Playground
+### Step 1: Open the Bedrock Playground
 
 1. Sign in to the AWS Management Console
 2. Navigate to **Amazon Bedrock** service
-3. In the left sidebar, select **Playgrounds** > **Text**
+3. In the left sidebar under **Test**, click **Playground**
+4. If prompted to accept cookies, click **Accept**
 
-**Expected Result:** The text playground interface loads with a model dropdown and text input area.
+**Expected Result:** The playground page loads showing "Select a model to get started" with a **Select model** button.
+
+> **Note:** If the sidebar is collapsed, click the hamburger menu icon (three lines) at the top left to expand it.
 
 ---
 
 ### Step 2: Invoke Claude Sonnet
 
-1. From the model dropdown, select **Claude Sonnet 4.6** (model ID: `anthropic.claude-sonnet-4-6`)
-2. In the text input area, enter the following prompt exactly:
+1. Click the **Select model** button
+2. In the model picker dialog, select **Anthropic** from the left **Categories** panel
+3. Click **Claude Sonnet 4.6** in the middle **Models** panel
+4. Under **Inference**, select an inference profile (**US Anthropic Claude Sonnet 4.6** or **Global**)
+5. Click **Apply** to confirm
+6. In the text input area at the bottom (placeholder: "Write a prompt..."), enter the following prompt exactly:
 
 ```
 You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
@@ -124,23 +131,27 @@ Fill in your observed results:
 
 ### Step 6: Observe Streaming Behavior
 
-1. Locate the **streaming toggle** in the playground settings
-2. With **Claude Opus** selected, toggle streaming **OFF**
-3. Run any prompt and observe - you wait for the complete response before seeing anything
-4. Toggle streaming **ON** and run the same prompt
-5. Observe how tokens appear as they are generated
+1. With **Claude Opus** still selected, click the **configuration menu** (three-dot icon or hamburger icon near the **Build** button at the top right of the playground)
+2. Look for the **Streaming** toggle in the settings panel that appears
+3. Toggle streaming **OFF**
+4. Enter any prompt (e.g., "What is cloud computing?") and click **Run**
+5. Observe that you wait for the **complete response** before seeing anything — the text appears all at once
+6. Toggle streaming **ON** and run the same prompt again
+7. Observe how tokens appear **incrementally** as they are generated
+
+> **Can't find the streaming toggle?** The setting may be in the configuration panel accessed via the icon next to the Build button at the top right of the playground. The exact location can vary by console version — ask your instructor if needed.
 
 **Key Insight:** For interactive applications (chatbots, assistants), streaming provides a more responsive user experience. For batch processing, non-streaming is acceptable.
 
 ---
 
-## Part 2: Token Usage and Latency Measurement (5 min)
+## Part 2: Token Usage and Latency Measurement
 
 ### Step 7: Measure with Different Prompt Complexities
 
-Switch back to **Claude Sonnet 4.6** for consistent baseline measurements.
-
-Run these three prompts in sequence and record the metrics for each:
+1. Click the model name at the top of the playground to change models
+2. Select **Claude Sonnet 4.6** (follow the same model picker steps from Step 2)
+3. Run these three prompts in sequence and record the metrics for each:
 
 **Prompt 1 (Simple):**
 ```
@@ -161,6 +172,17 @@ You are a cloud architect. Design a high-level architecture for a web applicatio
 
 ### Step 8: Record Your Results
 
+Record your actual results from Step 7 in this table (the values below are approximate — your results will vary):
+
+| Prompt | Input Tokens | Output Tokens | Latency |
+|--------|--------------|---------------|---------|
+| Simple | _____ | _____ | _____ |
+| Moderate | _____ | _____ | _____ |
+| Complex | _____ | _____ | _____ |
+
+> **Where to find metrics:** After each prompt runs, the metrics (Input, Output, Latency) are displayed in the header area above the response, next to the model name.
+
+**Typical ranges:**
 | Prompt | Input Tokens | Output Tokens | Latency |
 |--------|--------------|---------------|---------|
 | Simple | ~10 | 50-100 | < 1 sec |
@@ -194,12 +216,13 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ---
 
-## Part 3: Creating a Knowledge Base (8 min)
+## Part 3: Creating a Knowledge Base
 
 ### Step 10: Navigate to Knowledge Bases
 
-1. In the Bedrock console left sidebar, select **Knowledge bases**
-2. Click **Create knowledge base**
+1. In the Bedrock console left sidebar under **Build**, click **Knowledge Bases**
+2. Click the **Create** button (orange, with dropdown arrow)
+3. Select **Knowledge Base with vector store** from the dropdown menu
 
 ---
 
@@ -213,62 +236,65 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ### Step 12: Configure Data Source
 
-1. **Data source type:** Select **Amazon S3**
-2. **S3 URI:** Enter the bucket path from your lab instructions:
+1. Click **Next** to proceed to the data source configuration step
+2. In the **S3 URI** field, enter the bucket path from your lab instructions:
    ```
    s3://bedrock-training-[account-id]/lab1-documents/
    ```
 3. **Chunking strategy:** Keep the default settings
+4. Click **Next** to proceed
 
 ---
 
 ### Step 13: Configure Embedding Model
 
-1. **Embedding model:** Select **Amazon Titan Embeddings V2**
+1. Click the **Select model** button in the Embeddings model section
+2. In the model picker, select **Amazon** as the provider
+3. Select **Titan Embeddings G1 - Text** (or **Titan Embeddings V2** if available)
+4. Click **Apply** to confirm the selection
 
 ---
 
-### Step 14: Configure Vector Store
+### Step 14: Configure Vector Store and Create
 
-1. **Vector store:** Select **Quick create a new vector store**
-   - This provisions an Amazon OpenSearch Serverless collection
+1. Ensure **Quick create a new vector store - Recommended** is selected
+2. From the **Select a vector store** dropdown, choose **Amazon OpenSearch Serverless**
+3. Click **Next** to proceed to the review page
+4. Scroll to the bottom of the review page
+5. Click the orange **Create Knowledge Base** button
 
-2. Review your settings and click **Create knowledge base**
+**Expected Result:** A blue banner appears: "Preparing vector database in Amazon OpenSearch Serverless. This process may take several minutes to complete." The status will change to **Active** after 2-5 minutes.
 
-**Expected Result:** Status shows "Creating" - this typically takes 2-5 minutes.
-
-> **Troubleshooting:** If creation takes more than 10 minutes, notify your instructor.
+> **Troubleshooting:** If creation takes more than 10 minutes, notify your instructor. Do not navigate away from the page during provisioning.
 
 ---
 
 ### Step 15: Sync the Data Source
 
-1. Wait for knowledge base status to show **Active**
-2. Click on your knowledge base name to open it
-3. Navigate to the **Data source** section
-4. Select your S3 data source
-5. Click **Sync**
-
-**What happens during sync:**
-1. Bedrock reads documents from S3
-2. Documents are chunked according to your settings
-3. Each chunk is passed through the embedding model
-4. Resulting vectors are stored in OpenSearch
+1. Wait for the knowledge base status to show **Active** (2-5 minutes after creation)
+2. Once Active, you should see the knowledge base detail page with a **Data source** section
+3. In the Data source table, select the radio button next to your S3 data source
+4. Click the **Sync** button
+5. Wait for the sync status to show **Available** (typically 1-2 minutes)
 
 **Expected Result:**
-- Sync status: Complete
+- Sync status: **Available**
 - Document count: Shows number of processed files (typically 5 for sample docs)
-- Duration: 1-2 minutes for sample documents
 
-> **Common Pitfall:** Forgetting to trigger sync results in empty query results. The knowledge base being "Active" only means infrastructure is ready - you must sync to process documents.
+> **What happens during sync:** Bedrock reads documents from S3, chunks them, passes each chunk through the embedding model, and stores the resulting vectors in OpenSearch. This is all handled automatically.
+
+> **Common Pitfall:** Forgetting to trigger sync results in empty query results. The knowledge base being "Active" only means infrastructure is ready — you must sync to process documents.
 
 ---
 
-## Part 4: Testing RAG Queries (7 min)
+## Part 4: Testing RAG Queries
 
 ### Step 16: Open the Test Interface
 
-1. In your knowledge base, click **Test knowledge base** or navigate to the **Test** tab
+1. On the knowledge base detail page, click the **Test Knowledge Base** button (top right, next to the **Delete** button)
+2. A test panel opens on the right side of the page with a text input area
+
+> **Note:** If you see a message "One or more data sources need to be synced," go back to Step 15 and ensure sync completed successfully.
 
 ---
 
@@ -291,11 +317,11 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ### Step 18: Verify Citation Accuracy
 
-1. Click on one of the source citations
-2. Read the actual text from the document chunk
-3. Compare the answer Claude provided to the source text
+1. In the test panel response, look for **source citations** displayed below the answer (shown as expandable sections or document references)
+2. Click on one of the citations to expand it
+3. Review the source text and compare it to Claude's answer
 
-**Verification questions:**
+**Ask yourself:**
 - Is the answer supported by the source text?
 - Did Claude add information not in the document?
 - Are there any misinterpretations?
@@ -304,11 +330,12 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ### Step 19: Test Another Query
 
-1. Run this query:
+1. In the test panel input, clear the previous query and type:
    ```
    What warranty coverage is included with the premium product tier?
    ```
-2. Examine the citations and verify they support the answer
+2. Click **Run** to submit the query
+3. Review the response and citations — verify the answer is supported by the source documents
 
 ---
 
