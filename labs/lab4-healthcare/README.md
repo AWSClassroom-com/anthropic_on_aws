@@ -2,7 +2,7 @@
 
 **Course:** Building AI Applications with Anthropic on AWS Bedrock
 **Lab:** Industry-Specific (replaces standard Labs 1 & 2)
-**Duration:** 120 minutes
+**Duration:** 60 minutes
 **Level:** Intermediate
 
 ---
@@ -28,6 +28,8 @@ You work for a telemedicine platform that needs an AI assistant to help clinicia
 - [ ] S3 bucket: `s3://bedrock-training-[account-id]/lab4-healthcare/`
 - [ ] Python 3.11+ installed with boto3
 - [ ] AWS SAM CLI installed
+
+**Course Repository:** [github.com/AWSClassroom-com/anthropic_on_aws](https://github.com/AWSClassroom-com/anthropic_on_aws) — contains sample data for all labs.
 
 ---
 

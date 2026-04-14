@@ -25,6 +25,8 @@ Before starting this lab, ensure you have:
 - [ ] Access to the S3 bucket containing sample documents
 - [ ] Lab instructions document open (this guide)
 
+**Course Repository:** [github.com/AWSClassroom-com/anthropic_on_aws](https://github.com/AWSClassroom-com/anthropic_on_aws) — contains sample data and starter code for all labs.
+
 **S3 Bucket Path:** `s3://bedrock-training-[account-id]/lab1-documents/`
 
 > **How to find your Account ID:** In the AWS Console, click your username in the top-right corner. Your 12-digit Account ID is displayed in the dropdown. Replace `[account-id]` with this number (no dashes). Example: `s3://bedrock-training-123456789012/lab1-documents/`
