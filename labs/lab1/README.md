@@ -9,10 +9,10 @@
 
 By completing this lab, you will:
 
-1. Select and invoke different Claude models (Opus, Sonnet, Haiku) via the Bedrock console
-2. Measure latency and token usage for text-generation prompts
-3. Create a knowledge base from sample documents stored in S3
-4. Test RAG queries and verify citation accuracy
+* Select and invoke different Claude models (Opus, Sonnet, Haiku) via the Bedrock console.
+* Measure latency and token usage for text-generation prompts.
+* Create a knowledge base from sample documents stored in S3.
+* Test RAG queries and verify citation accuracy.
 
 ---
 
@@ -37,12 +37,12 @@ Before starting this lab, ensure you have:
 
 ## Part 1: Model Invocation and Comparison
 
-### Step 1: Open the Bedrock Playground
+### Task 1: Open the Bedrock Playground
 
-1. Sign in to the AWS Management Console
-2. Navigate to **Amazon Bedrock** service
-3. In the left sidebar under **Test**, click **Playground**
-4. If prompted to accept cookies, click **Accept**
+1. Sign in to the AWS Management Console.
+2. Navigate to **Amazon Bedrock** service.
+3. In the left sidebar under **Test**, click **Playground**.
+4. If prompted to accept cookies, click **Accept**.
 
 **Expected Result:** The playground page loads showing "Select a model to get started" with a **Select model** button.
 
@@ -50,26 +50,26 @@ Before starting this lab, ensure you have:
 
 ---
 
-### Step 2: Invoke Claude Sonnet
+### Task 2: Invoke Claude Sonnet
 
-1. Click the orange **Select model** button in the center of the playground
-2. A **Select model** dialog opens with three panels: **Categories** (left), **Models** (middle), **Inference** (right)
-3. In the left panel, click **Anthropic** to filter to Anthropic models
-4. In the middle panel, click **Claude Sonnet 4.6**
-5. In the right panel, select an inference profile (e.g., **US Anthropic Claude Sonnet 4.6** or **Global**)
-6. Click the **Apply** button at the bottom right of the dialog
+5. Click the orange **Select model** button in the center of the playground.
+6. A **Select model** dialog opens with three panels: **Categories** (left), **Models** (middle), **Inference** (right).
+7. In the left panel, click **Anthropic** to filter to Anthropic models.
+8. In the middle panel, click **Claude Sonnet 4.6**.
+9. In the right panel, select an inference profile (e.g., **US Anthropic Claude Sonnet 4.6** or **Global**).
+10. Click the **Apply** button at the bottom right of the dialog.
 
-> **Note:** If the Apply button doesn't respond on the first click, click it again — a tooltip overlay may be in the way.
+> **Note:** If the Apply button doesn't respond on the first click, click it again—a tooltip overlay may be in the way.
 
-7. The playground now shows **Claude Sonnet 4.6** at the top with **Input**, **Output**, and **Latency** metrics (showing "---" until you run a prompt)
-8. In the text input area at the bottom of the page, type the following prompt:
+11. The playground now shows **Claude Sonnet 4.6** at the top with **Input**, **Output**, and **Latency** metrics (showing "---" until you run a prompt).
+12. In the text input area at the bottom of the page, type the following prompt:
 
 ```
 You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
 ```
 
-9. Click the **Run** button (bottom right of the text input area)
-10. Wait for the response to appear above the input area
+13. Click the **Run** button (bottom right of the text input area).
+14. Wait for the response to appear above the input area.
 
 **Expected Result:**
 | Metric | Expected Range |
@@ -81,22 +81,22 @@ You are a helpful assistant. Explain the concept of cloud computing in 3-4 sente
 
 > **Where to find metrics:** The **Input**, **Output**, and **Latency** values appear in the header bar next to the model name (e.g., "Input: 37  Output: 145  Latency: 4797 ms").
 
-11. **Record these values** — you will compare them with other models in the next steps.
+15. **Record these values** — you will compare them with other models in the next steps.
 
 > **Troubleshooting:** If you receive an error, navigate to **Configure and learn** > **Model access** in the left sidebar and verify Claude Sonnet access is enabled.
 
 ---
 
-### Step 3: Compare with Claude Opus
+### Task 3: Compare with Claude Opus
 
-1. Click the model name (**Claude Sonnet 4.6**) in the header bar to reopen the model picker
-2. Select **Claude Opus 4.6** and click **Apply**
-3. Click **Clear** (or delete the previous response) to start fresh
-4. Enter the same prompt from Step 2:
+16. Click the model name (**Claude Sonnet 4.6**) in the header bar to reopen the model picker.
+17. Select **Claude Opus 4.6** and click **Apply**.
+18. Click **Clear** (or delete the previous response) to start fresh.
+19. Enter the same prompt from Step 2:
 ```
 You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
 ```
-5. Click **Run** and record the metrics
+20. Click **Run** and record the metrics.
 
 **Expected Result:**
 | Metric | Expected Range |
@@ -108,15 +108,15 @@ You are a helpful assistant. Explain the concept of cloud computing in 3-4 sente
 
 ---
 
-### Step 4: Compare with Claude Haiku
+### Task 4: Compare with Claude Haiku
 
-1. Click the model name in the header to reopen the model picker
-2. Select **Claude Haiku 4.5** and click **Apply**
-3. Clear the conversation and enter the same prompt:
+21. Click the model name in the header to reopen the model picker
+22. Select **Claude Haiku 4.5** and click **Apply**
+23. Clear the conversation and enter the same prompt:
 ```
 You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
 ```
-4. Click **Run** and record the metrics
+24. Click **Run** and record the metrics.
 
 **Expected Result:**
 | Metric | Expected Range |
@@ -128,7 +128,7 @@ You are a helpful assistant. Explain the concept of cloud computing in 3-4 sente
 
 ---
 
-### Step 5: Model Comparison Summary
+### Task 5: Model Comparison Summary
 
 Fill in your observed results:
 
@@ -147,21 +147,21 @@ Fill in your observed results:
 
 ---
 
-### Step 6: Observe Streaming Behavior
+### Task 6: Observe Streaming Behavior
 
 > **Note:** The streaming toggle location varies by console version. Follow the options below in order until you find it.
 
-1. With **Claude Opus** still selected, look for a **three-dot menu** (⋮) in the top-right area of the playground, near the **Compare mode** toggle
-2. Click the three-dot menu — a settings panel or dropdown should appear
-3. Look for a **Streaming** toggle (on/off switch)
+25. With **Claude Opus** still selected, look for a **three-dot menu** (⋮) in the top-right area of the playground, near the **Compare mode** toggle.
+26. Click the three-dot menu—a settings panel or dropdown should appear.
+27. Look for a **Streaming** toggle (on/off switch).
 
 > **Alternative locations:** If you don't see a three-dot menu, look for a **hamburger icon** (☰) next to the **Build** button, or a **gear icon** in the playground header. The streaming setting may also be in the **Configurations** section on the right side panel.
 
-4. Toggle streaming **OFF**
-5. Enter the prompt "What is cloud computing?" and click **Run**
-6. Observe that you wait for the **complete response** before seeing anything — the text appears all at once
-7. Toggle streaming **ON** and run the same prompt again
-8. Observe how tokens appear **incrementally** as they are generated
+28. Toggle streaming **OFF**.
+29. Enter the prompt "What is cloud computing?" and click **Run**.
+30. Observe that you wait for the **complete response** before seeing anything—the text appears all at once.
+31. Toggle streaming **ON** and run the same prompt again.
+32. Observe how tokens appear **incrementally** as they are generated.
 
 > **If you cannot find the streaming toggle:** This is a console display preference, not critical to the lab. Note the concept (streaming = incremental token delivery vs. batch response) and continue to the next step. Your instructor can demonstrate this on their screen.
 
@@ -171,11 +171,11 @@ Fill in your observed results:
 
 ## Part 2: Token Usage and Latency Measurement
 
-### Step 7: Measure with Different Prompt Complexities
+### Task 7: Measure with Different Prompt Complexities
 
-1. Click the model name at the top of the playground to change models
-2. Select **Claude Sonnet 4.6** (follow the same model picker steps from Step 2)
-3. Run these three prompts in sequence and record the metrics for each:
+33. Click the model name at the top of the playground to change models.
+34. Select **Claude Sonnet 4.6** (follow the same model picker steps from Step 2).
+35. Run these three prompts in sequence and record the metrics for each:
 
 **Prompt 1 (Simple):**
 ```
@@ -194,7 +194,7 @@ You are a cloud architect. Design a high-level architecture for a web applicatio
 
 ---
 
-### Step 8: Record Your Results
+### Task 8: Record Your Results
 
 Record your actual results from Step 7 in this table (the values below are approximate — your results will vary):
 
@@ -242,50 +242,50 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ## Part 3: Creating a Knowledge Base
 
-### Step 10: Navigate to Knowledge Bases
+### Task 10: Navigate to Knowledge Bases
 
-1. In the Bedrock console left sidebar under **Build**, click **Knowledge Bases**
-2. Click the **Create** button (orange, with dropdown arrow)
-3. Select **Knowledge Base with vector store** from the dropdown menu
-
----
-
-### Step 11: Configure Basic Settings
-
-1. **Name:** `lab1-[your-initials]-kb` (e.g., `lab1-jd-kb`)
-2. **Description:** `Lab 1 knowledge base for product documentation`
-3. **IAM role:** Select **Create and use a new service role**
+36. In the Bedrock console left sidebar under **Build**, click **Knowledge Bases**.
+37. Click the **Create** button (orange, with dropdown arrow).
+38. Select **Knowledge Base with vector store** from the dropdown menu.
 
 ---
 
-### Step 12: Configure Data Source
+### Task 11: Configure Basic Settings
 
-1. Click **Next** to proceed to the data source configuration step
-2. In the **S3 URI** field, enter the bucket path from your lab instructions:
+39. **Name:** `lab1-[your-initials]-kb` (e.g., `lab1-jd-kb`).
+40. **Description:** `Lab 1 knowledge base for product documentation`.
+41. **IAM role:** Select **Create and use a new service role**.
+
+---
+
+### Task 12: Configure Data Source
+
+42. Click **Next** to proceed to the data source configuration step.
+43. In the **S3 URI** field, enter the bucket path from your lab instructions:
    ```
    s3://bedrock-training-[account-id]/lab1-documents/
    ```
-3. **Chunking strategy:** Keep the default settings
-4. Click **Next** to proceed
+44. **Chunking strategy:** Keep the default settings.
+45. Click **Next** to proceed.
 
 ---
 
-### Step 13: Configure Embedding Model
+### Task 13: Configure Embedding Model
 
-1. Click the **Select model** button in the Embeddings model section
-2. In the model picker, select **Amazon** as the provider
-3. Select **Titan Embeddings G1 - Text** (or **Titan Embeddings V2** if available)
-4. Click **Apply** to confirm the selection
+46. Click the **Select model** button in the Embeddings model section.
+47. In the model picker, select **Amazon** as the provider.
+48. Select **Titan Embeddings G1 - Text** (or **Titan Embeddings V2** if available).
+49. Click **Apply** to confirm the selection.
 
 ---
 
-### Step 14: Configure Vector Store and Create
+### Task 14: Configure Vector Store and Create
 
-1. Ensure **Quick create a new vector store - Recommended** is selected
-2. From the **Select a vector store** dropdown, choose **Amazon OpenSearch Serverless**
-3. Click **Next** to proceed to the review page
-4. Scroll to the bottom of the review page
-5. Click the orange **Create Knowledge Base** button
+50. Ensure **Quick create a new vector store - Recommended** is selected.
+51. From the **Select a vector store** dropdown, choose **Amazon OpenSearch Serverless**.
+52. Click **Next** to proceed to the review page.
+53. Scroll to the bottom of the review page.
+54. Click the orange **Create Knowledge Base** button.
 
 **Expected Result:** A blue banner appears: "Preparing vector database in Amazon OpenSearch Serverless. This process may take several minutes to complete." The status will change to **Active** after 2-5 minutes.
 
@@ -293,13 +293,13 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ---
 
-### Step 15: Sync the Data Source
+### Task 15: Sync the Data Source
 
-1. Wait for the knowledge base status to show **Active** (2-5 minutes after creation)
-2. Once Active, you should see the knowledge base detail page with a **Data source** section
-3. In the Data source table, select the radio button next to your S3 data source
-4. Click the **Sync** button
-5. Wait for the sync status to show **Available** (typically 1-2 minutes)
+55. Wait for the knowledge base status to show **Active** (2-5 minutes after creation).
+56. Once Active, you should see the knowledge base detail page with a **Data source** section.
+57. In the Data source table, select the radio button next to your S3 data source.
+58. Click the **Sync** button.
+59. Wait for the sync status to show **Available** (typically 1-2 minutes).
 
 **Expected Result:**
 - Sync status: **Available**
@@ -313,22 +313,22 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ## Part 4: Testing RAG Queries
 
-### Step 16: Open the Test Interface
+### Task 16: Open the Test Interface
 
-1. On the knowledge base detail page, click the **Test Knowledge Base** button (top right, next to the **Delete** button)
-2. A test panel opens on the right side of the page with a text input area
+60. On the knowledge base detail page, click the **Test Knowledge Base** button (top right, next to the **Delete** button).
+61. A test panel opens on the right side of the page with a text input area.
 
 > **Note:** If you see a message "One or more data sources need to be synced," go back to Step 15 and ensure sync completed successfully.
 
 ---
 
-### Step 17: Run Your First RAG Query
+### Task 17: Run Your First RAG Query
 
-1. In the query input, type:
+62. In the query input, type:
    ```
    What is the return policy for damaged products?
    ```
-2. Press Enter or click the submit button
+63. Press ENTER or click the submit button.
 
 **Expected Result:**
 - A natural language answer about return policies
@@ -339,11 +339,11 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ---
 
-### Step 18: Verify Citation Accuracy
+### Task 18: Verify Citation Accuracy
 
-1. In the test panel response, look for **source citations** displayed below the answer (shown as expandable sections or document references)
-2. Click on one of the citations to expand it
-3. Review the source text and compare it to Claude's answer
+64. In the test panel response, look for **source citations** displayed below the answer (shown as expandable sections or document references).
+65. Click on one of the citations to expand it.
+66. Review the source text and compare it to Claude's answer.
 
 **Ask yourself:**
 - Is the answer supported by the source text?
@@ -352,20 +352,20 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ---
 
-### Step 19: Test Another Query
+### Task 19: Test Another Query
 
-1. In the test panel input, clear the previous query and type:
+67. In the test panel input, clear the previous query and type:
    ```
    What warranty coverage is included with the premium product tier?
    ```
-2. Click **Run** to submit the query
-3. Review the response and citations — verify the answer is supported by the source documents
+68. Click **Run** to submit the query.
+69. Review the response and citations—verify the answer is supported by the source documents.
 
 ---
 
-### Step 20: Test for Hallucinations
+### Task 20: Test for Hallucinations
 
-1. Run a query about something NOT in the documents:
+70. Run a query about something NOT in the documents:
    ```
    What is the CEO's favorite color?
    ```
@@ -376,7 +376,7 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ---
 
-### Step 21: Observe Query Phrasing Effects
+### Task 21: Observe Query Phrasing Effects
 
 Run these two queries about the same topic:
 
@@ -418,13 +418,13 @@ Before finishing, confirm you have completed:
 
 In this 30-minute lab, you:
 
-1. **Experienced model trade-offs firsthand** - Opus is more capable but slower, Haiku is fast but less elaborate, Sonnet provides balance
+*  **Experienced model trade-offs firsthand**: Opus is more capable but slower, Haiku is fast but less elaborate, Sonnet provides balance
 
-2. **Understood token economics** - You calculated actual costs and observed how prompt complexity impacts performance and price
+*  **Understood token economics**: You calculated actual costs and observed how prompt complexity impacts performance and price
 
-3. **Built your first knowledge base** - From raw documents in S3 to a queryable RAG system with vector search
+*  **Built your first knowledge base**: From raw documents in S3 to a queryable RAG system with vector search
 
-4. **Verified RAG quality** - You checked citations, tested edge cases, and saw how query phrasing affects results
+*  **Verified RAG quality**: You checked citations, tested edge cases, and saw how query phrasing affects results
 
 ---
 
@@ -574,7 +574,7 @@ In **Lab 2** this afternoon, you will:
 - Set up CloudWatch monitoring
 - Integrate the knowledge base you created today into a complete application
 
-**Keep your lab environment open** - you will continue using the knowledge base in Lab 2.
+**Keep your lab environment open**—you will continue using the knowledge base in Lab 2.
 
 ---
 
