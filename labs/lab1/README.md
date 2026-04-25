@@ -1,7 +1,7 @@
 # Lab 1: Claude on Bedrock with RAG
 
+**Course:** Anthropic Models on Amazon Bedrock
 **Duration:** 30 minutes
-**Course:** Building AI Applications with Anthropic on AWS Bedrock
 
 ---
 
