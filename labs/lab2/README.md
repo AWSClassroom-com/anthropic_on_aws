@@ -1,7 +1,7 @@
 # Lab 2: Claude Code on Bedrock
 
 **Course:** Anthropic Models on AWS Bedrock  
-**Duration:** 35 minutes
+**Duration:** 40 minutes
 
 ---
 
@@ -186,7 +186,7 @@ Claude maintains multiple memory settings, which you can prompt Claude to show i
 
 ### Step 10: Interrupt and Steer
 
-Try this: Start typing a request, then change your mind mid-execution. This will take some dexterity as you want to 
+Start typing a request, submit to Claude, then change your mind mid-execution. This will take some dexterity as you want to intentionally interrupt Claude mid-stream, so be sure to perform the following two actions quickly:
 
 ```
 Refactor the invoke_claude function to use async/await
@@ -227,8 +227,8 @@ The invoke_claude function should handle rate limiting from Bedrock.
 When we hit ThrottlingException, it should wait and retry. Can you add this?
 ```
 
-**Expected Result:** Claude:
-1. Reads the function to understand current implementation
+**Expected Result:**
+1. Claude Reads the function to understand current implementation
 2. Searches for boto3 exception handling patterns
 3. Implements retry logic
 4. Tests the implementation
@@ -309,19 +309,12 @@ Are there any missing rules, over-permissive settings, or gaps
 that could expose the host environment?
 ```
 
-Expected Result: Claude Code identifies the flaw — the script whitelists
-specific endpoints but never sets a default DROP rule for unmatched outbound
-traffic. Without it, any traffic that does not match an ACCEPT rule falls
+Expected Result: Claude Code identifies flaws — the script whitelists specific
+endpoints but never sets a default DROP rule for unmatched outbound traffic
+(one example). Without it, any traffic that does not match an ACCEPT rule falls
 through to the system default, which may be ACCEPT rather than DROP.
 
-The fix is one line added at the end of the whitelist rules:
-
-```bash
-# Block all other outbound traffic
-iptables -A OUTPUT -j DROP
-```
-
-> **Key Insight:** Claude Code can function as a security review tool, not just a code generator. Asking it to audit infrastructure config before committing to git catches gaps a manual review might miss.
+> **Key Insight:** Claude Code can function as a security review tool, not just a code generator. Asking it to audit infrastructure config before committing to git catches gaps that a manual review might miss.
 
 ---
 
