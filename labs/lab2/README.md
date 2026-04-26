@@ -26,7 +26,6 @@ By completing this lab, you will:
 **Course Repository:** **https://github.com/AWSClassroom-com/anthropic_on_aws**
 
 ---
-
 ## Part 1: Setup and Connect to Bedrock
 
 ### Before beginning this lab, verify if you already have Claude Code installed on your device. Open your terminal and run:
@@ -45,36 +44,35 @@ Open your terminal and run:
 npm install -g @anthropic-ai/claude-code
 ```
 
-> **Already installed?** Skip to Step 2. Your instructor may have pre-installed this on training workstations.
+> **Already installed?** Skip to Step 2.
 
-### Step 2: Configure Bedrock Backend
-
-Set these environment variables to route Claude Code through your AWS Bedrock account:
-
-**macOS/Linux:**
-```bash
-export CLAUDE_CODE_USE_BEDROCK=1
-export AWS_REGION=us-east-1
-```
-
-**Windows (PowerShell):**
-```powershell
-$env:CLAUDE_CODE_USE_BEDROCK=1
-$env:AWS_REGION="us-east-1"
-```
-
-> **Note:** `AWS_REGION` is required. Claude Code does not read from `.aws/config` for this setting.
-
-### Step 3: Launch Claude Code
+### Step 2: Launch Claude Code
 
 ```bash
 mkdir claude-code-lab && cd claude-code-lab
 claude
 ```
 
-**Expected Result:** Claude Code starts and shows a prompt. Type `/status` to verify Bedrock connection.
+**Expected Result:** Claude Code starts and shows a prompt.
 
-> **Troubleshooting:** If you see an authentication error, verify `aws sts get-caller-identity` returns your training account. Ask your instructor for help.
+### Step 2:Configure the Amazon Bedrock Backend
+
+From Claude Code, set these environment variables to route Claude Code through your AWS Bedrock account:
+
+```
+set CLAUDE_CODE_USE_BEDROCK=1
+set AWS_REGION=us-east-1
+```
+
+> **Note:** Claude will prompt you for your preferred settings update session variables. Choose your preferences and proceed.
+
+### Step 3:Verify the API Provider is now Amazon Bedrock
+
+```
+/status
+```
+
+> **Note:** Ensure your API provider is now: Amazon Bedrock. The next status line should show the AWS region is us-east-1.
 
 ---
 
@@ -143,7 +141,7 @@ Add a function called query_bedrock that takes a prompt string and model_id,
 returns the response using boto3 bedrock-runtime client.
 ```
 
-**Expected Result:** Claude Code reads your existing `invoke_claude` function and creates a complementary `query_bedrock` function that matches the same patterns — same error handling, same style, same imports.
+**Expected Result:** Claude Code reads your existing `invoke_claude` function and creates a complementary `query_bedrock` function that matches the same patterns — same error handling, same style, same imports. At this point your CLI is getting busy, consider resizing the window, zooming in out out, and scrolling through the results at will.
 
 > **Key Observation:** Claude Code didn't just generate a snippet — it read your existing code and matched its patterns. That's the agentic difference.
 
@@ -160,6 +158,8 @@ Write unit tests for both functions. Mock the boto3 client.
 ## Part 4: Explore Features
 
 ### Step 8: Check Memory
+
+Claude maintains multiple memory settings, which you can prompt Claude to show in your default text editor via the /memory command:
 
 ```
 /memory
@@ -178,12 +178,7 @@ Write unit tests for both functions. Mock the boto3 client.
 - CLAUDE.md = Shared team standards (commit to git)
 - Auto memory = Personal workflow preferences (stays local)
 
-### Step 9: Check Permissions
-
-Press `Shift+Tab` to cycle through permission modes:
-- **Default** → Claude asks before editing files
-- **Auto-accept edits** → Claude edits without asking
-- **Plan mode** → Claude plans without executing
+### Step 9: Close any open memory files to return to Claude Code
 
 ---
 
@@ -191,7 +186,7 @@ Press `Shift+Tab` to cycle through permission modes:
 
 ### Step 10: Interrupt and Steer
 
-Try this: Start typing a request, then change your mind mid-execution.
+Try this: Start typing a request, then change your mind mid-execution. This will take some dexterity as you want to 
 
 ```
 Refactor the invoke_claude function to use async/await
@@ -205,7 +200,7 @@ Actually, keep it synchronous but add retry logic with exponential backoff
 
 **Expected Result:** Claude stops its current approach mid-execution and pivots to your new direction.
 
-> **Key Point:** Interrupting isn't rude — it's how you collaborate efficiently. Course-correct in real-time.
+> **Key Point:** Interrupting Claude isn't rude, it's how you collaborate efficiently. Feel free to course-correct in real-time.
 
 ### Step 11: Provide Verification Criteria
 
@@ -225,7 +220,7 @@ Run tests after implementing.
 
 ### Step 12: Delegate, Don't Dictate
 
-Trust Claude to figure out implementation details.
+Trust Claude to figure out implementation details. You may be asked to install common python utilities like pip, and take note of how Claude will always ask about your installation preferences to ensure there are no surprises.
 
 ```
 The invoke_claude function should handle rate limiting from Bedrock.
@@ -263,87 +258,91 @@ A devcontainer runs Claude Code in an isolated sandbox with:
 2. **Credential isolation** → Mount only sandbox AWS credentials (not production)
 3. **Reproducible environments** → Everyone gets identical setup
 
-**Key Architecture:**
-
-```
-.devcontainer/
-├── devcontainer.json    # Container configuration
-├── Dockerfile           # Image definition with Claude Code installed
-└── init-firewall.sh     # Network security rules (whitelist only)
-```
-
-**Why This Matters:**
-
-The firewall + sandboxed credentials make it safe to run `claude --dangerously-skip-permissions`, which enables:
-- Faster development (no permission prompts)
-- Claude Code in CI/CD pipelines
-- Team onboarding (5-minute setup)
-- Multi-client isolation (separate containers per client)
-
-### When to Use Devcontainers
-
-**Use devcontainers when:**
-- Team deployments requiring consistency
-- CI/CD automation
-- Untrusted repositories
-- Multi-tenancy / client isolation
-- Regulated environments (SOC 2, HIPAA, FedRAMP)
-
-**Don't need devcontainers when:**
-- Solo developer on trusted personal projects
-- Quick experiments or learning (like this lab)
-- Already using VM-based sandboxing
-
-### Production Readiness Checklist
-
-Before deploying Claude Code + Bedrock to production:
-
-- [ ] Devcontainer with firewall configured
-- [ ] Sandbox AWS credentials (not production)
-- [ ] CLAUDE.md with team standards checked into git
-- [ ] CloudWatch monitoring + cost alerts
-- [ ] Bedrock Guardrails configured
+The .devcontainer/ folder in the course repo has a pre-built example.
+In the next three steps you will use Claude Code to inspect it, investigate
+a firewall rule, and audit it for security issues.
 
 ---
 
-## What You Built
+### Step 13: Inspect the Devcontainer Config
 
-In 35 minutes, you:
+Ask Claude Code to read and explain the provided configuration:
 
-**Technical Skills:**
-- Configured Claude Code to route through Amazon Bedrock
-- Created CLAUDE.md with project-wide coding AND writing standards
-- Scaffolded Bedrock API integration using natural language
-- Generated and ran tests with automatic error fixing
-- Understood two memory systems (CLAUDE.md vs auto memory)
+```bash
+Read the files in .devcontainer/ and explain what each one does
+and why it matters for a production Claude Code deployment.
+```
 
-**Collaboration Skills:**
-- Learned to interrupt and steer Claude in real-time
-- Used verification criteria (test cases) to improve first-attempt quality
-- Delegated implementation details instead of micromanaging
+Expected Result: Claude Code reads devcontainer.json and init-firewall.sh
+and explains each setting — the sandboxed AWS credential mount, the
+environment variables, and the firewall initialisation script.
 
-**Production Skills:**
-- Understood the devcontainer architecture for safe deployment
-- Learned when devcontainers enable safe `--dangerously-skip-permissions` usage
-- Created a production readiness checklist
+> **Key Insight:** Notice the mounts entry in devcontainer.json. It points to ~/.aws/sandbox rather than ~/.aws. This means the container gets sandbox credentials only — not your production AWS account.
 
-**Key Insights:**
+---
 
-1. **CLAUDE.md is persistent team memory** → Coding standards that survive across sessions and can be committed to git
-2. **Claude Code is conversational and agentic** → Treat it like a capable colleague, not a rigid tool
-3. **Devcontainers enable safe automation** → Firewall + sandboxed credentials = production-ready
+### Step 14: Investigate the Firewall Rule
 
-Everything you built manually in Labs 1 and 2 — Claude Code can help you build faster **with the same quality and governance**.
+Point Claude Code at a specific section of the firewall script and ask it to explain:
+
+```bash
+Read the files in .devcontaLook at the ALLOW rules in .devcontainer/init-firewall.sh.
+Pick one rule and explain it in plain English. What traffic does
+it allow? What would happen if it were removed?
+```
+
+Expected Result: Claude Code explains the selected rule — for example,
+the Bedrock rule allows outbound HTTPS only to the Bedrock endpoint in
+us-east-1. Without it, Claude Code could not call the model at all.
+
+> **Key Insight:** Each ACCEPT rule is intentional and minimal. This is why --dangerously-skip-permissions becomes safe inside a devcontainer. Claude Code can edit files freely, but it cannot reach arbitrary internet endpoints even if it tried.
+
+---
+
+### Step 15: Validate the Environment Security
+
+Now ask Claude Code to audit the full configuration for security issues:
+
+```bash
+Review .devcontainer/init-firewall.sh for security issues.
+Are there any missing rules, over-permissive settings, or gaps
+that could expose the host environment?
+```
+
+Expected Result: Claude Code identifies the flaw — the script whitelists
+specific endpoints but never sets a default DROP rule for unmatched outbound
+traffic. Without it, any traffic that does not match an ACCEPT rule falls
+through to the system default, which may be ACCEPT rather than DROP.
+
+The fix is one line added at the end of the whitelist rules:
+
+```bash
+# Block all other outbound traffic
+iptables -A OUTPUT -j DROP
+```
+
+> **Key Insight:** Claude Code can function as a security review tool, not just a code generator. Asking it to audit infrastructure config before committing to git catches gaps a manual review might miss.
+
+---
+
+When to Use Devcontainers
+Use devcontainers when:
+
+Team deployments requiring consistency.
+CI/CD automation with Claude Code.
+Untrusted or shared repositories.
+Regulated environments (SOC 2, HIPAA, FedRAMP).
+
+Not required when:
+
+Solo development on personal trusted projects.
+Quick experiments (like this lab).
 
 ---
 
 ## Cleanup
 
-No AWS resources were created in this mini-lab. You can delete the project directory:
-
-```bash
-cd .. && rm -rf claude-code-lab
-```
+No AWS resources were created in this. You can safely delete the project folder.
 
 ---
 
