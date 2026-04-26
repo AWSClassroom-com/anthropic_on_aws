@@ -19,18 +19,19 @@ By completing this lab, you will:
 
 ## Prerequisites
 
-- [ ] Lab 1 completed (Knowledge Base exists)
+- [ ] Lab 1 completed (Knowledge Base exists and is working)
+- [ ] Lab 2 completed (Claude Code configured and connected to Bedrock)
 - [ ] AWS account with Bedrock access
-- [ ] Claude Sonnet 4.6 approved
-- [ ] Python 3.11+, boto3, AWS CLI configured
+- [ ] Claude Sonnet 4.5 model access enabled in Bedrock
+- [ ] Python 3.11+, AWS CLI configured
 - [ ] AWS SAM CLI installed
 
-**Pre-lab setup (5 minutes before class):**
+**Pre-lab setup (complete before the lab starts):**
 
 **macOS/Linux:**
 ```bash
-git clone https://github.com/roi-training/lab2-claude-tools-prebuilt
-cd lab2-claude-tools-prebuilt
+git clone https://github.com/AWSClassroom-com/anthropic_on_aws.git
+cd anthropic_on_aws/labs/lab3
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -39,50 +40,60 @@ cp .env.template .env
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://github.com/roi-training/lab2-claude-tools-prebuilt
-cd lab2-claude-tools-prebuilt
+git clone https://github.com/AWSClassroom-com/anthropic_on_aws.git
+cd anthropic_on_aws\labs\lab3
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.template .env
 ```
 
-Edit `.env` with your `KNOWLEDGE_BASE_ID` from Lab 1.
+Open `.env` in your editor and set `KNOWLEDGE_BASE_ID` to the value from Lab 1. Leave `GUARDRAIL_ID` empty for now — you will add it in Part 3.
 
-**Course Repository:** **https://github.com/roi-training/lab2-claude-tools-prebuilt**
+> **Pre-flight check:** Run `aws sts get-caller-identity` to confirm your AWS credentials are working before starting.
 
 ---
 
 ## Lab Philosophy
 
-This lab uses guided discovery with a critical shortcut: the agentic loop is pre-built. You focus on:
+This lab uses guided discovery with a pre-built agentic loop. You focus on:
 
 1. **Designing and implementing tools** (the business logic)
 2. **Configuring production guardrails** (the safety layer)
 3. **Deploying to production** (the infrastructure)
 
-**Why a pre-built loop?** The agentic loop is standardized — everyone implements it the same way. The pre-built code lets you focus on the interesting decisions: what tools to build and how to protect them in production.
+**Why a pre-built loop?** The agentic loop is a standardized pattern — everyone implements it the same way. The pre-built code lets you focus on the interesting decisions: what tools to build and how to protect them in production. Read through `src/services/bedrock.py` after class to see how the loop works.
 
 ---
 
 ## Starter Code
 
 ```
-lab2-claude-tools-prebuilt/
+labs/lab3/
 ├── src/
 │   ├── handlers/
-│   │   └── chat.py              # Complete - Uses tools & guardrails
+│   │   └── chat.py              # Complete - Lambda entry point
 │   ├── services/
-│   │   ├── bedrock.py           # Complete - Agentic loop pre-built
-│   │   ├── knowledge.py         # Complete - From Lab 1
-│   │   ├── tools.py             # YOU'LL BUILD - Tool execution logic
+│   │   ├── bedrock.py           # Complete - Pre-built agentic loop
+│   │   ├── knowledge.py         # Complete - RAG from Labs 1 and 2
+│   │   ├── tools.py             # YOUR WORK - Tool execution logic
 │   │   └── monitoring.py        # Complete - CloudWatch metrics
-│   └── config.py                # Complete
+│   └── config.py                # Complete - Environment configuration
+├── tests/
+│   ├── test_tools.py            # Run after Part 1
+│   ├── test_full_flow.py        # Run after Part 2
+│   ├── test_guardrails.py       # Run after Part 3
+│   └── test_deployed_api.py     # Run after Part 4
 ├── infrastructure/
-│   └── template.yaml            # Complete - SAM template
-└── tests/
-    └── test_tools.py            # YOU'LL USE - Test your tools
+│   └── template.yaml            # Complete - SAM deployment template
+├── .env.template
+└── requirements.txt
 ```
+
+**Your task in this lab:**
+- Complete `execute_tool()` in `src/services/tools.py` (Part 1)
+- Create a Bedrock Guardrail in the AWS Console (Part 3)
+- Deploy the application using SAM (Part 4)
 
 ---
 
@@ -98,7 +109,9 @@ lab2-claude-tools-prebuilt/
 
 **Key principle:** Tools are for dynamic, personalized data.
 
-### Step 1: Examine Pre-Built Tool Definitions
+---
+
+### Step 1: Examine the Pre-Built Tool Definitions
 
 Open `src/services/tools.py` in your editor and review the `TOOLS` list:
 
@@ -106,15 +119,17 @@ Open `src/services/tools.py` in your editor and review the `TOOLS` list:
 TOOLS = [
     {
         'name': 'lookup_order',
-        'description': '''Retrieves the status and details of a customer order.
-Use this when the customer asks about order status, delivery, or shipment tracking.
-Returns order status, items, and estimated delivery date.''',
+        'description': (
+            'Retrieves the current status and details of a customer order. '
+            'Use this when the customer asks about order status, delivery, '
+            'shipping, or tracking.'
+        ),
         'input_schema': {
             'type': 'object',
             'properties': {
                 'order_id': {
                     'type': 'string',
-                    'description': 'The order ID, typically starts with ORD-'
+                    'description': 'The order ID. Format is ORD- followed by numbers.'
                 }
             },
             'required': ['order_id']
@@ -131,7 +146,7 @@ Think through these questions before moving on:
 <details>
 <summary>Click to reveal answer</summary>
 
-Claude reads this to decide when to use the tool. Vague descriptions mean Claude won't route correctly.
+Claude reads this to decide when and how to use the tool. Vague descriptions cause incorrect routing — Claude may call the wrong tool or fail to call any tool at all.
 </details>
 
 2. Should we use one generic `database_lookup` tool or three separate tools?
@@ -139,8 +154,10 @@ Claude reads this to decide when to use the tool. Vague descriptions mean Claude
 <details>
 <summary>Click to reveal answer</summary>
 
-Separate tools are better. Claude can route more accurately, each tool can have different permissions, and error handling is simpler per tool.
+Separate tools are better. Claude routes more accurately, each tool can have different IAM permissions, and error handling is simpler per tool. One generic tool can work when all operations share the same permissions and implementation patterns.
 </details>
+
+---
 
 ### Step 2: Design Exercise — Classify These Requests
 
@@ -160,13 +177,15 @@ For each customer question, decide: **Tool**, **RAG**, or **Prompt**? Write your
 
 | Question | Solution | Why |
 |----------|----------|-----|
-| "What is your return policy?" | **RAG** | Static policy in Knowledge Base |
+| "What is your return policy?" | **RAG** | Static policy document in Knowledge Base |
 | "What's the status of order ORD-12345?" | **Tool** | Live data from order database |
-| "I need to speak to someone" | **Tool** | Creates ticket in system |
-| "What are my account benefits?" | **Tool** | Personalized from customer DB |
+| "I need to speak to someone" | **Tool** | Creates ticket in ticketing system |
+| "What are my account benefits?" | **Tool** | Personalized data from customer DB |
 | "How do I track my package?" | **Prompt** | General instructions, not user-specific |
-| "Do you ship internationally?" | **RAG** | Shipping policy in docs |
+| "Do you ship internationally?" | **RAG** | Shipping policy in documentation |
 </details>
+
+---
 
 ### Step 3: Implement Tool Execution Logic
 
@@ -175,8 +194,8 @@ Open `src/services/tools.py` and find the `execute_tool()` function:
 ```python
 def execute_tool(tool_name: str, tool_input: Dict) -> Dict:
     """
-    Execute a tool and return the result.
-    The agentic loop (already built) calls this function.
+    Execute a tool by name and return the result.
+    The pre-built agentic loop calls this function automatically.
     CURRENTLY INCOMPLETE - only handles lookup_order
     """
     if tool_name == 'lookup_order':
@@ -186,10 +205,10 @@ def execute_tool(tool_name: str, tool_input: Dict) -> Dict:
     # TODO: Add get_account_status handler
 
     else:
-        return {'error': f'Unknown tool: {tool_name}'}
+        return {'error': f"Unknown tool: '{tool_name}'"}
 ```
 
-**Your task:** Complete this function to handle all three tools. The helper functions `_create_ticket()` and `_get_account_status()` are already implemented below — you just need to call them.
+**Your task:** Complete this function to handle all three tools. The helper functions `_create_ticket()` and `_get_account_status()` are already implemented below in the file — you just need to call them. Check their signatures to see what parameters they expect.
 
 <details>
 <summary>Click to see solution</summary>
@@ -211,27 +230,34 @@ def execute_tool(tool_name: str, tool_input: Dict) -> Dict:
         return _get_account_status(tool_input['customer_id'])
 
     else:
-        return {'error': f'Unknown tool: {tool_name}'}
+        return {'error': f"Unknown tool: '{tool_name}'"}
 ```
 
-**Key points:** Use `elif` not `if`. Use `.get('priority', 'medium')` to provide a default value.
+**Key points:** Use `elif` not `if`. Use `.get('priority', 'medium')` to provide a default for optional parameters.
 </details>
 
 Save the file after making your changes.
 
-### Step 4: Understand the Helper Functions
+---
 
-Scroll down to review `_lookup_order()`. Notice it returns errors as data rather than raising exceptions.
+### Step 4: Understand Error Handling in Helper Functions
+
+Scroll down in `tools.py` to review `_lookup_order()`. Notice it returns errors as data rather than raising exceptions.
 
 **Why return `{'error': '...'}` instead of raising an exception?**
 
 <details>
 <summary>Click to reveal answer</summary>
 
-Returning errors as data is better for LLM tools because Claude can handle them gracefully ("I couldn't find that order, please check the ID"), the agentic loop won't crash, and the user gets a helpful message instead of a 500 error.
+Returning errors as data is better for LLM tools because:
+- Claude handles them gracefully ("I couldn't find that order, please check the ID")
+- The agentic loop does not crash on a bad order ID
+- The customer gets a helpful message instead of a 500 error
 
-Raise exceptions for unexpected system errors (database down, auth failed). Return error objects for expected business logic errors (order not found, invalid input).
+Raise exceptions for unexpected system errors (database down, auth failed). Return error dicts for expected business logic errors (order not found, invalid format).
 </details>
+
+---
 
 ### Step 5: Test Your Implementation
 
@@ -247,27 +273,54 @@ python tests\test_tools.py
 
 **Expected output:**
 ```
-Testing tool execution...
+============================================================
+Lab 3 — Part 1: Testing execute_tool()
+============================================================
 
 Test 1: lookup_order
-✅ SUCCESS - Order found: shipped, total $179.97
+  ✅ Returns a dict
+  ✅ No error key
+  ✅ Has order_id
+  ✅ Has status
+  ✅ Has tracking_number
 
-Test 2: create_ticket
-✅ SUCCESS - Ticket created: TKT-XXXX, priority: high
+Test 2: lookup_order with invalid order ID
+  ✅ Returns a dict
+  ✅ Returns error for bad ID
 
-Test 3: get_account_status
-✅ SUCCESS - Account: Gold member, 2450 points
+Test 3: create_ticket
+  ✅ Returns a dict
+  ✅ No error key
+  ✅ Has ticket_id
+  ✅ ticket_id starts with TKT-
+  ✅ Priority is high
 
-Test 4: Unknown tool
-✅ SUCCESS - Error returned: Unknown tool: invalid_tool
+Test 4: create_ticket uses default priority when omitted
+  ✅ Returns a dict
+  ✅ No error key
+  ✅ Default priority is medium
 
-All tests passed! ✅
+Test 5: get_account_status
+  ✅ Returns a dict
+  ✅ No error key
+  ✅ Has membership_tier
+  ✅ Has loyalty_points
+  ✅ Has benefits list
+
+Test 6: unknown tool name returns error dict
+  ✅ Returns a dict
+  ✅ Returns error key
+
+All 18 checks passed! ✅
+
+Checkpoint 1 complete — move on to Part 2.
+============================================================
 ```
 
-**If any tests fail:**
-- Check your `elif` conditions in `execute_tool()`
-- Make sure parameter names match exactly (`customer_id`, `issue_summary`, `priority`)
-- Verify you saved the file after editing
+**If any checks fail:**
+- Confirm `elif` is used, not multiple `if` statements
+- Verify parameter names match exactly (`customer_id`, `issue_summary`, `priority`)
+- Check you saved the file after editing
 
 ---
 
@@ -275,24 +328,25 @@ All tests passed! ✅
 
 ### Concept: How the Pre-Built Loop Works
 
-Your `execute_tool()` function plugs into a pre-built agentic loop in `src/services/bedrock.py`. Here is what happens on every request:
+Your `execute_tool()` function plugs into the pre-built agentic loop in `src/services/bedrock.py`. Here is what happens on every request:
 
 ```
-1. User: "What's the status of order ORD-12345?"
-          ↓
-2. Claude: "I need to use lookup_order"
-          ↓
-3. AGENTIC LOOP (pre-built):
-   - Extracts tool request from Claude's response
-   - Calls YOUR execute_tool('lookup_order', {'order_id': 'ORD-12345'})
-   - Sends result back to Claude
-          ↓
-4. Claude: "Your order ORD-12345 has been shipped..."
+1. User:         "What's the status of order ORD-12345?"
+                  ↓
+2. Claude:        "I need to use the lookup_order tool"
+                  ↓
+3. Agentic loop: Extracts tool request from Claude's response
+                 Calls YOUR execute_tool('lookup_order', {'order_id': 'ORD-12345'})
+                 Sends result back to Claude
+                  ↓
+4. Claude:        "Your order ORD-12345 has been shipped..."
 ```
 
-The loop keeps calling Claude until `stop_reason == 'end_turn'`. When Claude returns `stop_reason == 'tool_use'`, it calls your `execute_tool()`. A `max_iterations` limit prevents infinite loops.
+The loop keeps calling Claude until `stop_reason == 'end_turn'`. A `max_iterations` limit prevents infinite loops. Read `invoke_with_tools()` in `bedrock.py` after class to see the full implementation.
 
-### Step 6: Test the Full Flow
+---
+
+### Step 6: Test the Full Agentic Flow
 
 **macOS/Linux:**
 ```bash
@@ -306,28 +360,45 @@ python tests\test_full_flow.py
 
 **Expected output:**
 ```
-Test 1: Simple tool use
-User: "What's the status of order ORD-12345?"
-[Executing tool: lookup_order]
-Claude: "Your order ORD-12345 has been shipped!
-         Tracking: TRK123456789
-         Estimated delivery: January 28, 2025"
-✅ PASS
+============================================================
+Lab 3 — Part 2: Full Agentic Loop Tests
+============================================================
 
-Test 2: Multi-tool conversation
-User: "My order ORD-99999 never arrived. Create a support ticket."
-[Executing tool: lookup_order]
-[Executing tool: create_ticket]
-Claude: "I looked up your order and created ticket TKT-ABC123.
-         A support agent will contact you within 4 hours."
-✅ PASS
+Connecting to Amazon Bedrock...
+
+Test 1: Single tool call — order lookup
+  User: "What is the status of my order ORD-12345?"
+  [Executing tool: lookup_order]
+  Claude: "Your order ORD-12345 has been shipped!..."
+  ✅ stop_reason is end_turn
+  ✅ Response mentions ORD-12345
+  ✅ Response mentions shipping or delivery
+
+Test 2: Multi-tool call — order lookup + create ticket
+  User: "My order ORD-99999 has not arrived. Please create a support ticket."
+  [Executing tool: lookup_order]
+  [Executing tool: create_ticket]
+  Claude: "I've looked up your order and created ticket TKT-..."
+  ✅ stop_reason is end_turn
+  ✅ Response mentions a ticket
+
+Test 3: Account status tool
+  User: "What is my membership tier and how many loyalty points do I have?"
+  [Executing tool: get_account_status]
+  Claude: "You are a Gold member with 2,450 loyalty points..."
+  ✅ stop_reason is end_turn
+  ✅ Response mentions membership or points
+
+All 7 checks passed! ✅
+
+Checkpoint 2 complete — move on to Part 3 (Guardrails).
+============================================================
 ```
 
 **If tests fail:**
-- Verify `execute_tool()` is implemented correctly
-- Confirm you saved `tools.py`
-- Check your `.env` file has `KNOWLEDGE_BASE_ID` set
 - Run `aws sts get-caller-identity` to confirm credentials
+- Verify `KNOWLEDGE_BASE_ID` in `.env` is correct
+- Confirm Claude Sonnet 4.5 model access is enabled in the AWS Console
 
 ---
 
@@ -347,9 +418,11 @@ Without guardrails, Claude might follow these instructions. Production AI system
 | Layer | What It Protects | Example |
 |-------|------------------|---------|
 | Input Validation | Malformed requests | "Order ID must start with ORD-" |
-| Guardrails | Content safety, PII, attacks | Blocks prompt injection, masks credit cards |
+| Guardrails | Content safety, PII, prompt attacks | Blocks injection, masks credit cards |
 | Output Filtering | Unsafe responses | Prevents leaking sensitive data |
 | Monitoring | Post-facto detection | Logs suspicious patterns |
+
+---
 
 ### Step 7: Create a Bedrock Guardrail
 
@@ -362,7 +435,7 @@ Go to the AWS Console in your browser:
 
 | Setting | Value |
 |---------|-------|
-| Name | `lab2-production-guardrail` |
+| Name | `lab3-production-guardrail` |
 | Description | Customer support bot protection |
 
 **Content Filters:**
@@ -392,20 +465,24 @@ Go to the AWS Console in your browser:
 - [x] Phone Number
 - [x] Email Address
 
-Click **Create guardrail** → **Prepare** → Creates Version 1.
+Click **Create guardrail** → **Prepare** → waits for status READY → Creates Version 1.
 
-> **Copy the Guardrail ID** (looks like `abc123def456`) — you will need it in the next step.
+> **Copy the Guardrail ID** (looks like `abc123def456`) — you need it in the next step.
 
-### Step 8: Configure Guardrail in Code
+---
+
+### Step 8: Configure Guardrail in Your Environment
 
 Open `.env` in your editor and add:
 
 ```bash
-GUARDRAIL_ID=abc123def456         # Replace with your actual ID
+GUARDRAIL_ID=abc123def456
 GUARDRAIL_VERSION=1
 ```
 
-Save the file. The code is already wired to use it — `src/handlers/chat.py` checks for `GUARDRAIL_ID` at startup and routes to the protected invocation path automatically.
+Save the file. The handler in `src/handlers/chat.py` checks for `GUARDRAIL_ID` at startup and automatically routes to the guardrail-protected invocation path when it is set.
+
+---
 
 ### Step 9: Test Guardrail Protection
 
@@ -421,28 +498,42 @@ python tests\test_guardrails.py
 
 **Expected output:**
 ```
+============================================================
+Lab 3 — Part 3: Guardrail Tests
+============================================================
+
+Using Guardrail ID: abc123def456 (version 1)
+
 Test 1: Prompt injection attack
-Result: ❌ BLOCKED by guardrail
-✅ PASS
+  ✅ Request was blocked
+  ✅ Response does not say "arrr"
 
-Test 2: Denied topic (investment advice)
-Result: ❌ BLOCKED by guardrail
-✅ PASS
+Test 2: Denied topic — investment advice
+  ✅ Request was blocked
 
-Test 3: PII masking
-Result: ✅ PROCESSED (card number masked from Claude)
-✅ PASS
+Test 3: Denied topic — medical diagnosis
+  ✅ Request was blocked
 
-Test 4: Normal request
-Result: ✅ PROCESSED normally
-✅ PASS
+Test 4: PII masking — credit card number
+  ✅ Request was NOT blocked (PII masked, not blocked)
+  ✅ Response does not echo full card number
+
+Test 5: Normal request passes through guardrail
+  ✅ Request was NOT blocked
+  ✅ Received a valid response
+
+All 9 checks passed! ✅
+
+Checkpoint 3 complete — move on to Part 4 (Deploy & Test).
+============================================================
 ```
 
 **If tests fail:**
-- Verify `GUARDRAIL_ID` in `.env` matches the AWS Console
-- Check guardrail is in "READY" state (not "CREATING")
-- Confirm version is `1`
-- Make sure you saved `.env`
+- Confirm `GUARDRAIL_ID` in `.env` matches the AWS Console exactly
+- Check guardrail status is READY (not CREATING) — wait 1-2 minutes if needed
+- For Test 4: verify Credit Card Number filter action is set to MASK not BLOCK
+
+---
 
 ### Step 10: Block vs Warn vs Log
 
@@ -452,12 +543,12 @@ Current behavior: Guardrail blocks it (Insults = HIGH).
 
 | Approach | Pros | Cons |
 |----------|------|------|
-| **Block** (current) | Safe, simple | May frustrate customer further |
+| **Block** (current) | Safe, simple | May frustrate the customer further |
 | **Warn + Allow** | Customer gets a response | Risk of escalation |
-| **Log + Route to human** | Best UX | Requires human agent integration |
+| **Log + Route to human** | Best customer experience | Requires human agent integration |
 | **Context-aware** | Most intelligent | Complex to implement |
 
-> **For this lab:** Block is the safest default. In production you would tune based on your business requirements and risk tolerance.
+> **For this lab:** Block is the safest default. In production you would tune the approach based on business requirements and risk tolerance.
 
 ---
 
@@ -466,13 +557,22 @@ Current behavior: Guardrail blocks it (Insults = HIGH).
 ### Concept: What We're Deploying
 
 **Current state:** Code runs on your laptop.  
-**After deployment:** Code runs as a serverless API.
+**After deployment:** Code runs as a serverless API on AWS.
 
 ```
 Internet → API Gateway → Lambda → Bedrock / Knowledge Base / Guardrails
 ```
 
-Lambda auto-scales from 1 to 10,000 requests with no servers to manage.
+Lambda auto-scales with no servers to manage. You pay only for requests made.
+
+> **Cost awareness:** Every Bedrock invocation in this lab has a cost based on
+> input and output tokens. Agentic loops with multiple tool calls make several
+> invocations per request. Check current rates for Claude Sonnet 4.5 on the
+> AWS Bedrock pricing page before running load tests or leaving the stack
+> running overnight:
+> **https://aws.amazon.com/bedrock/pricing/**
+
+---
 
 ### Step 11: Build the Application
 
@@ -483,7 +583,7 @@ cd infrastructure
 sam build
 ```
 
-Wait 2-3 minutes while SAM packages your dependencies. While it builds, confirm your guardrail is in READY state in the AWS Console.
+Wait 2-3 minutes while SAM packages your code and dependencies.
 
 **Expected output:**
 ```
@@ -491,6 +591,8 @@ Build Succeeded
 Built Artifacts  : .aws-sam/build
 Built Template   : .aws-sam/build/template.yaml
 ```
+
+---
 
 ### Step 12: Deploy to AWS
 
@@ -502,7 +604,7 @@ sam deploy --guided
 
 | Prompt | Your Answer |
 |--------|-------------|
-| Stack Name | `lab2-claude-app` |
+| Stack Name | `lab3-claude-app` |
 | AWS Region | `us-east-1` |
 | Parameter KnowledgeBaseId | [Your KB ID from Lab 1] |
 | Parameter GuardrailId | [Your Guardrail ID from Step 7] |
@@ -515,63 +617,58 @@ sam deploy --guided
 | SAM configuration file | [Press Enter for default] |
 | SAM configuration environment | [Press Enter for default] |
 
-Deployment takes 2-3 minutes. Watch for:
+Deployment takes 2-3 minutes.
 
-```
-CREATE_COMPLETE   AWS::IAM::Role           ChatFunctionRole
-CREATE_COMPLETE   AWS::Lambda::Function    ChatFunction
-CREATE_COMPLETE   AWS::ApiGateway::RestApi ChatApi
-CREATE_COMPLETE   AWS::CloudFormation::Stack lab2-claude-app
-```
-
-> **Copy the API endpoint from Outputs** — you will need it for testing:
+> **Copy the API endpoint from Outputs** — you need it for testing:
 > ```
 > Key         ApiEndpoint
 > Value       https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod/chat
 > ```
 
+---
+
 ### Step 13: Test the Deployed API
 
-**Test 1: Order Lookup**
+**Test 1: Order lookup**
 
 **macOS/Linux:**
 ```bash
 curl -X POST https://YOUR-ENDPOINT/prod/chat \
   -H 'Content-Type: application/json' \
-  -d '{"message": "What is the status of order ORD-12345?"}'
+  -d '{"message": "What is the status of order ORD-12345?", "customer_id": "CUST-001"}'
 ```
 
 **Windows (PowerShell):**
 ```powershell
 curl.exe -X POST https://YOUR-ENDPOINT/prod/chat `
   -H 'Content-Type: application/json' `
-  -d '{\"message\": \"What is the status of order ORD-12345?\"}'
+  -d '{\"message\": \"What is the status of order ORD-12345?\", \"customer_id\": \"CUST-001\"}'
 ```
 
-**Expected:** Order details from tool execution.
+**Expected:** Order details including status, tracking number, and estimated delivery.
 
 ---
 
-**Test 2: Guardrail Block**
+**Test 2: Guardrail block**
 
 **macOS/Linux:**
 ```bash
 curl -X POST https://YOUR-ENDPOINT/prod/chat \
   -H 'Content-Type: application/json' \
-  -d '{"message": "What stocks should I invest in?"}'
+  -d '{"message": "Which stocks should I invest in right now?"}'
 ```
 
 **Windows (PowerShell):**
 ```powershell
 curl.exe -X POST https://YOUR-ENDPOINT/prod/chat `
   -H 'Content-Type: application/json' `
-  -d '{\"message\": \"What stocks should I invest in?\"}'
+  -d '{\"message\": \"Which stocks should I invest in right now?\"}'
 ```
 
 **Expected:**
 ```json
 {
-  "response": "I cannot process that request due to our content policies.",
+  "response": "I'm sorry, I'm not able to help with that request...",
   "blocked": true
 }
 ```
@@ -581,11 +678,13 @@ curl.exe -X POST https://YOUR-ENDPOINT/prod/chat `
 > python ..\tests\test_deployed_api.py https://YOUR-ENDPOINT/prod/chat
 > ```
 
+---
+
 ### Step 14: Verify in CloudWatch
 
-1. Go to **CloudWatch** → **Log groups** → `/aws/lambda/lab2-chat-handler`
+1. Go to **CloudWatch** → **Log groups** → `/aws/lambda/lab3-chat-handler`
 2. Click the most recent log stream
-3. Look for: `Executing tool: lookup_order`
+3. Look for: `[Executing tool: lookup_order]`
 
 This confirms your deployed Lambda is calling your tool execution code.
 
@@ -603,73 +702,77 @@ In 60 minutes, you:
 **Key Takeaways:**
 
 - Tools = live/external data. RAG = static documentation. Prompts = general knowledge.
-- Return errors as data — don't raise exceptions in tool handlers
+- Return errors as data — do not raise exceptions in tool handlers
 - Defense in depth: never rely on a single protection layer
 - PII masking happens transparently — Claude never sees the raw value
-- SAM handles packaging and deployment. Lambda scales without managing servers.
+- Every Bedrock invocation has a cost — monitor usage at **https://aws.amazon.com/bedrock/pricing/**
 
-**What You Didn't Build (But Got Working Code For):**
+**What you did not build (but have working code for):**
 
-The agentic loop in `src/services/bedrock.py` handles the Claude ↔ tool execution cycle. It's pre-built because it's a standardized pattern. Read through `invoke_with_tools()` after class — it's ~50 lines of well-commented Python.
+The agentic loop in `src/services/bedrock.py` handles the full Claude ↔ tool execution cycle. Read through `invoke_with_tools()` after class — it is ~50 lines of well-commented Python that shows exactly how the loop works.
 
 ---
 
 ## Taking It Further
 
-- **Add more tools:** Database queries, API integrations, calculations
-- **Improve guardrails:** Custom regex patterns, context-aware filtering
-- **Add authentication:** Cognito, API keys, rate limiting per user
-- **Monitoring dashboard:** CloudWatch metrics, alarms, cost tracking
-- **Error handling:** Retries with backoff, graceful degradation to Haiku
+- **Add more tools:** Real database queries, third-party API integrations, calculations
+- **Improve guardrails:** Custom regex patterns, word filters, context-aware blocking
+- **Add authentication:** Amazon Cognito, API keys, per-user rate limiting
+- **Monitoring dashboard:** CloudWatch metrics, cost alarms, guardrail block trends
+- **Error handling:** Exponential backoff on throttling, graceful Haiku fallback
 
 ---
 
 ## Cleanup
 
+Run these commands to avoid ongoing AWS charges:
+
 **Delete the CloudFormation stack:**
 
+**macOS/Linux:**
 ```bash
 aws cloudformation delete-stack \
-  --stack-name lab2-claude-app \
+  --stack-name lab3-claude-app \
   --region us-east-1
 ```
 
-**Delete the guardrail:**
+**Windows (PowerShell):**
+```powershell
+aws cloudformation delete-stack `
+  --stack-name lab3-claude-app `
+  --region us-east-1
+```
 
-Go to AWS Console → Bedrock → Guardrails → Select your guardrail → Delete.
+**Delete the guardrail:**  
+AWS Console → Amazon Bedrock → Safeguards → Guardrails → Select → Delete
 
 ---
 
-## Appendix: Troubleshooting
+## Troubleshooting
 
-**Test failures in Part 1:**
-- Check `execute_tool()` has all three handlers (`lookup_order`, `create_ticket`, `get_account_status`)
-- Verify exact spelling — `create_ticket` not `create_tickets`
-- Confirm you are using `elif`, not multiple `if` statements
-- Make sure you saved the file
+**`ModuleNotFoundError` when running tests:**  
+Confirm your virtual environment is active — `(venv)` should appear in your terminal prompt.
 
-**Guardrail tests fail:**
-- Verify `GUARDRAIL_ID` in `.env` matches the AWS Console exactly
-- Check guardrail status is "READY" not "CREATING"
-- Confirm version is `1`
+**`EnvironmentError: KNOWLEDGE_BASE_ID is not set`:**  
+Check that `.env` exists (not just `.env.template`) and contains a valid value.
 
-**Deployment fails:**
-- Check credentials: `aws sts get-caller-identity`
-- Verify SAM CLI is installed: `sam --version`
-- Confirm you are in the `infrastructure` directory when running `sam build`
+**`AccessDeniedException` from Bedrock:**  
+Confirm Claude Sonnet 4.5 model access is enabled: AWS Console → Amazon Bedrock → Model access.
 
-**API returns 500 errors:**
-- Check CloudWatch logs for the Lambda error message
-- Verify `KNOWLEDGE_BASE_ID` is correct
-- Confirm Bedrock model access is enabled in the AWS Console
+**Guardrail tests fail with `GUARDRAIL_ID is not set`:**  
+Check `.env` contains `GUARDRAIL_ID` and that you saved the file.
 
-**Windows-specific:**
-- Use `curl.exe` not `curl`, or use the Python test script
-- Use `venv\Scripts\activate` not `source venv/bin/activate`
+**`sam deploy` fails — `InsufficientCapabilitiesException`:**  
+Re-run `sam deploy --guided` and answer `Y` to "Allow SAM CLI IAM role creation".
 
-**macOS-specific:**
-- Use `python3` if `python` is not found
-- Run `chmod +x tests/*.py` if you get permission denied on test scripts
+**API returns 500 errors:**  
+Check Lambda logs: CloudWatch → Log groups → `/aws/lambda/lab3-chat-handler`
+
+**Windows: `curl` not found:**  
+Use `curl.exe` in PowerShell, or run `python tests\test_deployed_api.py` instead.
+
+**macOS: `python` not found:**  
+Use `python3` instead of `python` for all commands.
 
 ---
 

@@ -1,6 +1,5 @@
 # Lab 1: Claude on Bedrock with RAG
 
-**Course:** Anthropic Models on Amazon Bedrock
 **Duration:** 30 minutes
 
 ---
@@ -89,8 +88,8 @@ You are a helpful assistant. Explain the concept of cloud computing in 3-4 sente
 
 ### Task 3: Compare with Claude Opus
 
-16. Click the model name (**Claude Sonnet 4.6**) in the header bar to reopen the model picker.
-17. Select **Claude Opus 4.6** and click **Apply**.
+16. Click the Options icon next to the Model name (**Claude Sonnet 4.6**) in the header bar to reopen the model picker.
+17. Select the pencil icon next to the current Model name and select **Claude Opus 4.6**, then click **Apply**.
 18. Click **Clear** (or delete the previous response) to start fresh.
 19. Enter the same prompt from Step 2:
 ```
@@ -110,8 +109,8 @@ You are a helpful assistant. Explain the concept of cloud computing in 3-4 sente
 
 ### Task 4: Compare with Claude Haiku
 
-21. Click the model name in the header to reopen the model picker
-22. Select **Claude Haiku 4.5** and click **Apply**
+21. Reopen the model picker as you did in the previous step.
+22. Select **Claude Haiku 4.5** and click **Apply**.
 23. Clear the conversation and enter the same prompt:
 ```
 You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
@@ -130,15 +129,7 @@ You are a helpful assistant. Explain the concept of cloud computing in 3-4 sente
 
 ### Task 5: Model Comparison Summary
 
-Fill in your observed results:
-
-| Model | Latency | Input Tokens | Output Tokens |
-|-------|---------|--------------|---------------|
-| Opus 4.6 | _______ | _______ | _______ |
-| Sonnet 4.6 | _______ | _______ | _______ |
-| Haiku 4.5 | _______ | _______ | _______ |
-
-**Pattern to observe:**
+**Patterns to observe:**
 - **Opus:** Highest quality, highest latency, typically more output tokens
 - **Sonnet:** Balanced quality and speed
 - **Haiku:** Fastest, most concise
@@ -151,19 +142,17 @@ Fill in your observed results:
 
 > **Note:** The streaming toggle location varies by console version. Follow the options below in order until you find it.
 
-25. With **Claude Opus** still selected, look for a **three-dot menu** (⋮) in the top-right area of the playground, near the **Compare mode** toggle.
-26. Click the three-dot menu—a settings panel or dropdown should appear.
-27. Look for a **Streaming** toggle (on/off switch).
+25. Switch Models back to **Claude Opus** and look for a **three-dot menu** (⋮) in the top-right area of the playground, near the **Compare mode** toggle.
+26. Click the three-dot menu to reveal a context menu.
+27. Select the **Streaming preference** option.
 
 > **Alternative locations:** If you don't see a three-dot menu, look for a **hamburger icon** (☰) next to the **Build** button, or a **gear icon** in the playground header. The streaming setting may also be in the **Configurations** section on the right side panel.
 
-28. Toggle streaming **OFF**.
+28. Toggle **stream responses** OFF, and select **confirm**.
 29. Enter the prompt "What is cloud computing?" and click **Run**.
-30. Observe that you wait for the **complete response** before seeing anything—the text appears all at once.
-31. Toggle streaming **ON** and run the same prompt again.
+30. Observe that you wait for the **complete response** before seeing anything. The Model no longer incrementally streams a response.
+31. Toggle streaming back **ON** and run the same prompt again.
 32. Observe how tokens appear **incrementally** as they are generated.
-
-> **If you cannot find the streaming toggle:** This is a console display preference, not critical to the lab. Note the concept (streaming = incremental token delivery vs. batch response) and continue to the next step. Your instructor can demonstrate this on their screen.
 
 **Key Insight:** For interactive applications (chatbots, assistants), streaming provides a more responsive user experience. For batch processing, non-streaming is acceptable.
 
@@ -196,15 +185,7 @@ You are a cloud architect. Design a high-level architecture for a web applicatio
 
 ### Task 8: Record Your Results
 
-Record your actual results from Step 7 in this table (the values below are approximate — your results will vary):
-
-| Prompt | Input Tokens | Output Tokens | Latency |
-|--------|--------------|---------------|---------|
-| Simple | _____ | _____ | _____ |
-| Moderate | _____ | _____ | _____ |
-| Complex | _____ | _____ | _____ |
-
-> **Where to find metrics:** After each prompt runs, the metrics (Input, Output, Latency) are displayed in the header area above the response, next to the model name.
+Record your results from Step 7 on the scratchpad of your choice (the values below are approximate — your results will vary):
 
 **Typical ranges:**
 | Prompt | Input Tokens | Output Tokens | Latency |
@@ -217,7 +198,7 @@ Record your actual results from Step 7 in this table (the values below are appro
 
 ### Step 9: Calculate Approximate Costs
 
-Using Claude Sonnet pricing:
+Using Claude Sonnet 4.6 pricing:
 - **Input:** $3 per million tokens
 - **Output:** $15 per million tokens
 
@@ -260,21 +241,21 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ### Task 12: Configure Data Source
 
-42. Click **Next** to proceed to the data source configuration step.
-43. In the **S3 URI** field, enter the bucket path from your lab instructions:
+42. Ensure **Amazon S3** is the selected data source type and click **Next** on the bottom right of this screen to proceed to the data source configuration step.
+43. In the **S3 URI** field, enter the bucket path below. Replace the entire **[account-id]** portion of the URI below with your training account ID:
    ```
    s3://bedrock-training-[account-id]/lab1-documents/
    ```
-44. **Chunking strategy:** Keep the default settings.
-45. Click **Next** to proceed.
+44. Skip to **Chunking strategy:** and ensure **Default chunking** is selected.
+45. Click **Next** on the bottom right of this screen to proceed.
 
 ---
 
-### Task 13: Configure Embedding Model
+### Task 13: Configure Embeddings Model
 
 46. Click the **Select model** button in the Embeddings model section.
 47. In the model picker, select **Amazon** as the provider.
-48. Select **Titan Embeddings G1 - Text** (or **Titan Embeddings V2** if available).
+48. Select **Titan Embeddings G1 - Text** (or **Titan Text Embeddings V2** if available).
 49. Click **Apply** to confirm the selection.
 
 ---
@@ -283,11 +264,11 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 50. Ensure **Quick create a new vector store - Recommended** is selected.
 51. From the **Select a vector store** dropdown, choose **Amazon OpenSearch Serverless**.
-52. Click **Next** to proceed to the review page.
+52. Click **Next** to proceed to the review page and quickly ensure all settings are aligned to this instructions. You will use this KB both in this lab, and in the upcoming Lab 3, so it's very important to get this right.
 53. Scroll to the bottom of the review page.
-54. Click the orange **Create Knowledge Base** button.
+54. Click the orange **Create Knowledge Base** button and **do not navigate from this page!**.
 
-**Expected Result:** A blue banner appears: "Preparing vector database in Amazon OpenSearch Serverless. This process may take several minutes to complete." The status will change to **Active** after 2-5 minutes.
+**Expected Result:** A blue banner appears at the top of the same screen (you might have to scroll up): "Preparing vector database in Amazon OpenSearch Serverless. This process may take several minutes to complete." Take a quick break, you've earned it!
 
 > **Troubleshooting:** If creation takes more than 10 minutes, notify your instructor. Do not navigate away from the page during provisioning.
 
@@ -324,7 +305,7 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ### Task 17: Run Your First RAG Query
 
-62. In the query input, type:
+62. In the API section, select **Claude Sonnet 4.6** as your model, and then within the Preview section, find the **Write a prompt** input field and type:
    ```
    What is the return policy for damaged products?
    ```
@@ -332,8 +313,8 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 **Expected Result:**
 - A natural language answer about return policies
-- Source citations displayed below the answer
-- Each citation shows document name and relevance score (typically 0.5-0.9)
+- Source citations displayed below the answer (select **details** to reveal citation chunks)
+- Each citation shows document name and relevance score
 
 > **Troubleshooting:** If you see "No relevant information found," verify that sync completed successfully and document count is greater than zero.
 
@@ -406,25 +387,11 @@ Before finishing, confirm you have completed:
 - [ ] Recorded latency and token metrics for each model
 - [ ] Tested three prompts of varying complexity on Sonnet
 - [ ] Calculated approximate costs for each prompt
-- [ ] Created a knowledge base named `lab1-[initials]-kb`
-- [ ] Successfully synced documents from S3
+- [ ] Created a knowledge base we will use in Lab 3
+- [ ] Successfully synced documents from S3 to the KB
 - [ ] Ran at least three RAG queries
 - [ ] Verified citation accuracy on at least one query
 - [ ] Tested a query for non-existent information
-
----
-
-## Summary: What You Built
-
-In this 30-minute lab, you:
-
-*  **Experienced model trade-offs firsthand**: Opus is more capable but slower, Haiku is fast but less elaborate, Sonnet provides balance
-
-*  **Understood token economics**: You calculated actual costs and observed how prompt complexity impacts performance and price
-
-*  **Built your first knowledge base**: From raw documents in S3 to a queryable RAG system with vector search
-
-*  **Verified RAG quality**: You checked citations, tested edge cases, and saw how query phrasing affects results
 
 ---
 
@@ -442,9 +409,9 @@ In this 30-minute lab, you:
 
 ---
 
-## Code Reference: boto3 Examples
+## Optional Code Reference: boto3 Examples
 
-The following code snippets show how to perform these operations programmatically.
+The following code snippets show how to perform these same operations **programmatically**.
 
 ### Invoke Claude Model
 
@@ -562,19 +529,6 @@ result = query_knowledge_base(
 )
 print(result['answer'])
 ```
-
----
-
-## Next Steps
-
-In **Lab 2** this afternoon, you will:
-- Define custom tools that Claude can invoke
-- Add guardrails for content filtering and PII protection
-- Deploy a serverless architecture with Lambda
-- Set up CloudWatch monitoring
-- Integrate the knowledge base you created today into a complete application
-
-**Keep your lab environment open**—you will continue using the knowledge base in Lab 2.
 
 ---
 

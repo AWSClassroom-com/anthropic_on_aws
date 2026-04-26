@@ -1,0 +1,28 @@
+{
+  "name": "Claude Code on Bedrock",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    },
+    "ghcr.io/devcontainers/features/aws-cli:1": {}
+  },
+
+  "postCreateCommand": "npm install -g @anthropic-ai/claude-code && pip install boto3 python-dotenv",
+
+  "remoteEnv": {
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "AWS_REGION": "us-east-1"
+  },
+
+  "mounts": [
+    "source=${localEnv:HOME}/.aws/sandbox,target=/root/.aws,type=bind,readonly"
+  ],
+
+  "initializeCommand": ".devcontainer/init-firewall.sh",
+
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash"
+  }
+}

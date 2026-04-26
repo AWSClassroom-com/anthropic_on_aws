@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Lab 3 - Production Tool Use & Guardrails with Claude on Amazon Bedrock.
+  Deploys a customer support chat API with tool use, guardrails, and monitoring.
+
+# ── Parameters ─────────────────────────────────────────────────────────────────
+Parameters:
+  KnowledgeBaseId:
+    Type: String
+    Description: "Bedrock Knowledge Base ID from Lab 1 (e.g. ABCDEF1234)"
+
+  GuardrailId:
+    Type: String
+    Description: "Bedrock Guardrail ID from Lab 3 Part 3 (e.g. abc123def456)"
+
+  GuardrailVersion:
+    Type: String
+    Default: "1"
+    Description: "Guardrail version (default: 1)"
+
+  ModelId:
+    Type: String
+    Default: "anthropic.claude-sonnet-4-5"
+    Description: "Bedrock model ID to use for chat"
+
+# ── Globals ────────────────────────────────────────────────────────────────────
+Globals:
+  Function:
+    Timeout: 60          # Agentic loops with multiple tool calls need up to 60s
+    MemorySize: 512      # boto3 + dependencies require more than the 128MB default
+    Runtime: python3.11
+    Environment:
+      Variables:
+        KNOWLEDGE_BASE_ID: !Ref KnowledgeBaseId
+        GUARDRAIL_ID: !Ref GuardrailId
+        GUARDRAIL_VERSION: !Ref GuardrailVersion
+        MODEL_ID: !Ref ModelId
+        AWS_REGION_NAME: !Ref AWS::Region
+        MAX_ITERATIONS: "10"
+
+# ── Resources ──────────────────────────────────────────────────────────────────
+Resources:
+
+  # API Gateway
+  ChatApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Description: Lab 3 Customer Support Chat API
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization'"
+        AllowMethods: "'POST,OPTIONS'"
+
+  # Lambda Function
+  ChatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lab3-chat-handler
+      CodeUri: ../src/
+      Handler: handlers/chat.handler
+      Description: Lab 3 customer support chat handler with tool use and guardrails
+      Events:
+        ChatPost:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ChatApi
+            Path: /chat
+            Method: POST
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            # Invoke Claude via Bedrock
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource:
+                - !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-*'
+
+            # Query the Knowledge Base
+            - Effect: Allow
+              Action:
+                - bedrock:Retrieve
+                - bedrock:RetrieveAndGenerate
+              Resource:
+                - !Sub 'arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/${KnowledgeBaseId}'
+
+            # Apply the Guardrail
+            - Effect: Allow
+              Action:
+                - bedrock:ApplyGuardrail
+              Resource:
+                - !Sub 'arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:guardrail/${GuardrailId}'
+
+            # Publish CloudWatch metrics
+            - Effect: Allow
+              Action:
+                - cloudwatch:PutMetricData
+              Resource: '*'
+
+  # CloudWatch Log Group (explicit, so it is cleaned up with the stack)
+  ChatFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ChatFunction}'
+      RetentionInDays: 7
+
+# ── Outputs ────────────────────────────────────────────────────────────────────
+Outputs:
+  ApiEndpoint:
+    Description: "HTTPS endpoint for the chat API — use this URL in test_deployed_api.py"
+    Value: !Sub 'https://${ChatApi}.execute-api.${AWS::Region}.amazonaws.com/prod/chat'
+
+  LambdaFunctionName:
+    Description: "Lambda function name — use this to find logs in CloudWatch"
+    Value: !Ref ChatFunction
+
+  CloudWatchLogGroup:
+    Description: "CloudWatch Log Group for Lambda logs"
+    Value: !Ref ChatFunctionLogGroup

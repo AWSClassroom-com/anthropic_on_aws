@@ -1,6 +1,5 @@
 # Lab 2: Claude Code on Bedrock
 
-**Course:** Anthropic Models on AWS Bedrock  
 **Duration:** 40 minutes
 
 ---
@@ -286,7 +285,7 @@ environment variables, and the firewall initialisation script.
 Point Claude Code at a specific section of the firewall script and ask it to explain:
 
 ```bash
-Read the files in .devcontaLook at the ALLOW rules in .devcontainer/init-firewall.sh.
+Look at the ALLOW rules in .devcontainer/init-firewall.sh.
 Pick one rule and explain it in plain English. What traffic does
 it allow? What would happen if it were removed?
 ```
@@ -321,15 +320,15 @@ through to the system default, which may be ACCEPT rather than DROP.
 When to Use Devcontainers
 Use devcontainers when:
 
-Team deployments requiring consistency.
-CI/CD automation with Claude Code.
-Untrusted or shared repositories.
-Regulated environments (SOC 2, HIPAA, FedRAMP).
+1. Team deployments requiring consistency
+2. CI/CD automation with Claude Code
+3. Untrusted or shared repositories
+4. Regulated environments (SOC 2, HIPAA, FedRAMP)
 
 Not required when:
 
-Solo development on personal trusted projects.
-Quick experiments (like this lab).
+1. Solo development on personal trusted projects
+2. Quick experiments (like this lab)
 
 ---
 
