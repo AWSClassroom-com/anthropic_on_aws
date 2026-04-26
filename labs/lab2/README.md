@@ -19,7 +19,6 @@ By completing this lab, you will:
 
 ## Prerequisites
 
-- [ ] Module 8 lecture completed
 - [ ] Terminal / command line access on your workstation
 - [ ] AWS credentials configured (`aws configure` done)
 - [ ] Node.js 18+ installed (check: `node --version`)
@@ -27,6 +26,13 @@ By completing this lab, you will:
 **Course Repository:** **https://github.com/AWSClassroom-com/anthropic_on_aws**
 
 ---
+## Before beginning this lab, verify if you already have Claude Code installed on your device. Open your terminal and run:
+
+```bash
+claude --version
+```
+
+If Claude responds with a version number like 2.1.116 (Claude Code), you can skip to Step 2. Otherwise, proceed to Step 1.
 
 ## Part 1: Setup and Connect to Bedrock
 
@@ -340,4 +346,4 @@ cd .. && rm -rf claude-code-lab
 
 ---
 
-*Mini-Lab Complete*
+*Lab 2 Complete*
