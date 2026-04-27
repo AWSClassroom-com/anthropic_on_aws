@@ -233,7 +233,9 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 ### Task 11: Configure Basic Settings
 
-39. **Name:** `lab1-[your-initials]-kb` (e.g., `lab1-jd-kb`).
+You are sharing an AWS account with your fellow students. Please add a random color to your initials when creating the KB Name below. This will allow you to quickly identify your own KB later.
+
+39. **Name:** `lab1-[your-initials-random-color]-kb` (e.g., `lab1-jd-kb`).
 40. **Description:** `Lab 1 knowledge base for product documentation`.
 41. **IAM role:** Select **Create and use a new service role**.
 
