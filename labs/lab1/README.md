@@ -26,6 +26,8 @@ Before starting this lab, ensure you have:
 
 **Course Repository:** **https://github.com/AWSClassroom-com/anthropic_on_aws** — contains sample data and starter code for all labs.
 
+Obtain your AWS training account ID from your Instructor, which you will use in this lab to append to an S3 bucket name per the following example:
+
 **S3 Bucket Path:** `s3://bedrock-training-[account-id]/lab1-documents/`
 
 > **How to find your Account ID:** In the AWS Console, click your username in the top-right corner. Your 12-digit Account ID is displayed in the dropdown. Replace `[account-id]` with this number (no dashes). Example: `s3://bedrock-training-123456789012/lab1-documents/`
@@ -37,6 +39,8 @@ Before starting this lab, ensure you have:
 ## Part 1: Model Invocation and Comparison
 
 ### Task 1: Open the Bedrock Playground
+
+Ensure you are using the N. Virginia (us-east-1) region! This region contains the sample files S3 bucket.
 
 1. Sign in to the AWS Management Console.
 2. Navigate to **Amazon Bedrock** service.
@@ -235,7 +239,7 @@ Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
 
 You are sharing an AWS account with your fellow students. Please add a random color to your initials when creating the KB Name below. This will allow you to quickly identify your own KB later.
 
-39. **Name:** `lab1-[your-initials-random-color]-kb` (e.g., `lab1-jd-kb`).
+39. **Name:** `lab1-[your-initials-random-color]-kb` (e.g., `lab1-jd-silver-kb`).
 40. **Description:** `Lab 1 knowledge base for product documentation`.
 41. **IAM role:** Select **Create and use a new service role**.
 
@@ -244,7 +248,7 @@ You are sharing an AWS account with your fellow students. Please add a random co
 ### Task 12: Configure Data Source
 
 42. Ensure **Amazon S3** is the selected data source type and click **Next** on the bottom right of this screen to proceed to the data source configuration step.
-43. In the **S3 URI** field, enter the bucket path below. Replace the entire **[account-id]** portion of the URI below with your training account ID:
+43. In the **S3 URI** field, enter the bucket path below. Replace the entire **[account-id]** portion of the URI below with your training account ID, which your instructor has pasted into meeting chat:
    ```
    s3://bedrock-training-[account-id]/lab1-documents/
    ```
