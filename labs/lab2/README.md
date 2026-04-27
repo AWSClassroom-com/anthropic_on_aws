@@ -56,11 +56,12 @@ claude
 
 ### Step 2:Configure the Amazon Bedrock Backend
 
-From Claude Code, set these environment variables to route Claude Code through your AWS Bedrock account:
+From Claude Code, set these environment variables to route Claude Code through your AWS Bedrock account, making sure to grab the API key from Zoom chat!:
 
 ```
 set CLAUDE_CODE_USE_BEDROCK=1
 set AWS_REGION=us-east-1
+set ANTHROPIC_API_KEY=[obtain from Zoom chat log!]
 ```
 
 > **Note:** Claude will prompt you for your preferred settings update session variables. Choose your preferences and proceed.
