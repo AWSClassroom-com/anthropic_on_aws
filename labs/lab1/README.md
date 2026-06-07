@@ -1,540 +1,592 @@
 # Lab 1: Claude on Bedrock with RAG
 
-**Duration:** 30 minutes
-
----
-
-## Objectives
-
-By completing this lab, you will:
-
-* Select and invoke different Claude models (Opus, Sonnet, Haiku) via the Bedrock console.
-* Measure latency and token usage for text-generation prompts.
-* Create a knowledge base from sample documents stored in S3.
-* Test RAG queries and verify citation accuracy.
+**Course:** Anthropic Models on AWS Bedrock
+**Duration:** 45 minutes
 
 ---
 
 ## Prerequisites
 
-Before starting this lab, ensure you have:
-
-- [ ] Access to the AWS Bedrock console in your training account
-- [ ] Model access enabled for Claude models (Opus 4.6, Sonnet 4.6, Haiku 4.5)
-- [ ] Access to the S3 bucket containing sample documents
-- [ ] Lab instructions document open (this guide)
-
-**Course Repository:** **https://github.com/AWSClassroom-com/anthropic_on_aws** — contains sample data and starter code for all labs.
-
-Obtain your AWS training account ID from your Instructor, which you will use in this lab to append to an S3 bucket name per the following example:
-
-**S3 Bucket Path:** `s3://bedrock-training-[account-id]/lab1-documents/`
-
-> **How to find your Account ID:** In the AWS Console, click your username in the top-right corner. Your 12-digit Account ID is displayed in the dropdown. Replace `[account-id]` with this number (no dashes). Example: `s3://bedrock-training-123456789012/lab1-documents/`
-
-> **Note:** The S3 bucket contains fictional product documentation files (product manuals, FAQs, return policies, warranty terms, support guides) that you will use to build your knowledge base.
+- [ ] Modules 1 and 2 lecture completed
+- [ ] ROI Virtual Classroom VM available and running (Ask your instructor for your access credentials for RVC)
+- [ ] AWS credentials received from your instructor
 
 ---
 
-## Part 1: Model Invocation and Comparison
+## Part 1: Setup
 
-### Task 1: Open the Bedrock Playground
+### Step 1: Log In to AWS
 
-Ensure you are using the N. Virginia (us-east-1) region! This region contains the sample files S3 bucket.
+Your instructor has shared AWS credentials in the course chat. Use them to log in now.
 
-1. Sign in to the AWS Management Console.
-2. Navigate to **Amazon Bedrock** service.
+Run the following command in your terminal (Windows Command Prompt):
+
+```bash
+aws login
+```
+
+A browser window opens. Enter the username and password your instructor provided and complete the login.
+
+If the browser does not open automatically, the terminal will display a URL and a code. Open the URL manually, enter the code, and complete the login with your instructor credentials. If there is a delay of more than 2-3 seconds during authentication, refresh the browser screen (just the local VM browser, not the entire VM session browser!) and you should see a successful authrntication message.
+
+Once login is complete, return to your terminal and verify the connection:
+
+```bash
+aws sts get-caller-identity
+```
+
+**Expected result:**
+```json
+{
+    "UserId": "AIDA...",
+    "Account": "your-acct-num-here",
+    "Arn": "arn:aws:iam::your-acct-num-here:user/your-username"
+}
+```
+
+> **Login failed or browser did not open?** Ask your instructor for assistance before continuing. Every step in this lab requires valid AWS credentials.
+
+---
+
+### Step 2: Clone the Course Repository
+
+The course repository contains the starter scripts and sample data for all three labs. Clone it now and navigate to the Lab 1 directory. From this point, instruction are provided for Mac and Windows environments. If you wish to run these labs locally on your own machine, you may do so, but your instructor can only support running labs on RVC VMs, which run on Windows (follow the PowerShell instructions for RVC).
+
+**macOS/Linux:**
+```bash
+git clone https://github.com/AWSClassroom-com/anthropic_on_aws.git ~/anthropic_on_aws
+cd ~/anthropic_on_aws/labs/lab1
+```
+
+**Windows (PowerShell):**
+```powershell
+git clone https://github.com/AWSClassroom-com/anthropic_on_aws.git C:\anthropic_on_aws
+cd C:\anthropic_on_aws\labs\lab1
+```
+
+> **Keep note of this path.** Labs 2 and 3 reference files from this repository. The full path on macOS/Linux is `~/anthropic_on_aws/` and on Windows is `C:\anthropic_on_aws\`.
+
+---
+
+### Step 3: Verify Python
+
+This lab requires Python 3.11 or higher. The RVC VM has Python pre-installed. Confirm the version:
+
+```bash
+python --version
+```
+
+**Expected result:** `Python 3.11.x` or higher.
+
+> **Wrong version or command not found?** Try `python3 --version` on macOS/Linux. If neither works, ask your instructor.
+
+---
+
+### Step 4: Install Dependencies
+
+The lab uses several Python packages. Install them now from the requirements file included in the lab 1 repository at C:\anthropic_on_aws\labs\lab1:
+
+**macOS/Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Windows (PowerShell):**
+```powershell
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Confirm `(venv)` appears in your terminal prompt before continuing. All subsequent Python commands in this lab run inside this virtual environment.
+
+**What you just installed -- boto3:**
+
+The most important package in `requirements.txt` is **boto3**, the AWS SDK for Python. boto3 is how Python applications talk to AWS services. Instead of making raw HTTP requests to AWS APIs, boto3 gives you a clean Python interface:
+
+```python
+# Without boto3 -- raw HTTP, authentication headers, request signing
+# Complex, error-prone, hundreds of lines
+
+# With boto3 -- clean Python
+import boto3
+client = boto3.client('bedrock-runtime', region_name='us-east-1')
+response = client.invoke_model(modelId='...', body='...')
+```
+
+boto3 handles authentication, request signing, retries, and error parsing automatically. In this lab you will use it to invoke Claude models directly and to query your Knowledge Base. In Lab 3 you will use it to deploy a serverless API. It is the foundation of nearly every Python application built on AWS.
+
+> **Verify boto3 installed correctly:**
+> ```bash
+> pip show boto3
+> ```
+> Expected: `Name: boto3` with a version number.
+
+---
+
+### Step 5: Confirm the S3 Documents Are Available
+
+Your instructor has pre-loaded sample e-commerce documents into a shared S3 bucket. Confirm you can access them:
+
+```bash
+python scripts/check_setup.py
+```
+
+**Expected result:** (version numbers may vary)
+```
+=======================================================
+  Lab 1 Setup Verification
+  Anthropic Models on AWS Bedrock
+=======================================================
+
+  Python version...                        OK  (3.14.4)
+  boto3 installed...                       OK  (1.43.24)
+  python-dotenv installed...               OK
+  AWS credentials...                       OK  (user01)
+  S3 bucket access...                      OK  (s3://bedrock-training-your-acct-num-here)
+  Sample documents...                      OK  (5 documents found)
+
+=======================================================
+  Setup complete. Ready to start Lab 1.
+=======================================================
+```
+
+> **S3 access denied?** Your IAM user may be missing S3 read permissions. Ask your instructor.
+> **0 documents found?** The S3 bucket path may differ from the script default. Ask your instructor for the correct bucket name and prefix.
+
+---
+
+## Part 1: Bedrock Console Orientation (For those new to Bedrock, otherwise, skip to Part 2)
+
+Before writing code, spend a few minutes in the Bedrock console. This gives you a visual reference for what your Python scripts are doing under the hood.
+
+### Step 1: Open the Playground
+
+1. Sign in to the AWS Management Console and navigate to **Amazon Bedrock**.
+2. Confirm you are in the **us-east-1 (N. Virginia)** region. Check the region selector in the top-right corner.
 3. In the left sidebar under **Test**, click **Playground**.
-4. If prompted to accept cookies, click **Accept**.
+4. Click the orange **Select model** button.
+5. In the model picker, select **Anthropic**, then **Claude Sonnet 4.6**, then choose the **US** inference profile.
+6. Click **Apply**.
 
-**Expected Result:** The playground page loads showing "Select a model to get started" with a **Select model** button.
+### Step 2: Run One Prompt and Observe
 
-> **Note:** If the sidebar is collapsed, click the hamburger menu icon (three lines) at the top left to expand it.
-
----
-
-### Task 2: Invoke Claude Sonnet
-
-5. Click the orange **Select model** button in the center of the playground.
-6. A **Select model** dialog opens with three panels: **Categories** (left), **Models** (middle), **Inference** (right).
-7. In the left panel, click **Anthropic** to filter to Anthropic models.
-8. In the middle panel, click **Claude Sonnet 4.6**.
-9. In the right panel, select an inference profile (e.g., **US Anthropic Claude Sonnet 4.6** or **Global**).
-10. Click the **Apply** button at the bottom right of the dialog.
-
-> **Note:** If the Apply button doesn't respond on the first click, click it again—a tooltip overlay may be in the way.
-
-11. The playground now shows **Claude Sonnet 4.6** at the top with **Input**, **Output**, and **Latency** metrics (showing "---" until you run a prompt).
-12. In the text input area at the bottom of the page, type the following prompt:
+7. Paste this prompt into the input area:
 
 ```
-You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
+A customer says: "I ordered three items two weeks ago and only two arrived.
+The third item shows as delivered but it is not here. I want a refund
+for the missing item immediately and I am very frustrated."
+
+Classify this ticket: sentiment, priority, recommended action.
+Respond in JSON only.
 ```
 
-13. Click the **Run** button (bottom right of the text input area).
-14. Wait for the response to appear above the input area.
+8. Click **Run** and observe the response.
+9. Note the **Input**, **Output**, and **Latency** values in the header bar next to the model name.
 
-**Expected Result:**
-| Metric | Expected Range |
-|--------|----------------|
-| Response | Clear, concise explanation of cloud computing |
-| Latency | 1-5 seconds |
-| Input tokens | 30-40 |
-| Output tokens | 80-150 |
-
-> **Where to find metrics:** The **Input**, **Output**, and **Latency** values appear in the header bar next to the model name (e.g., "Input: 37  Output: 145  Latency: 4797 ms").
-
-15. **Record these values** — you will compare them with other models in the next steps.
-
-> **Troubleshooting:** If you receive an error, navigate to **Configure and learn** > **Model access** in the left sidebar and verify Claude Sonnet access is enabled.
+> **What you are looking at:** The console is a wrapper around the same API your Python code will call. The Input and Output values are token counts. The Latency is total round-trip time. In Step 5 you will extract these same values programmatically.
 
 ---
 
-### Task 3: Compare with Claude Opus
+## Part 2: Model Invocation and Comparison
 
-16. Click the Options icon next to the Model name (**Claude Sonnet 4.6**) in the header bar to reopen the model picker.
-17. Select the pencil icon next to the current Model name and select **Claude Opus 4.6**, then click **Apply**.
-18. Click **Clear** (or delete the previous response) to start fresh.
-19. Enter the same prompt from Step 2:
-```
-You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
-```
-20. Click **Run** and record the metrics.
+Now you will do the same thing in code across all three Claude models and capture structured output for comparison.
 
-**Expected Result:**
-| Metric | Expected Range |
-|--------|----------------|
-| Latency | 3-5+ seconds (slower than Sonnet) |
-| Response quality | More detailed, more nuanced |
-| Input tokens | Similar to Sonnet |
-| Output tokens | May vary |
+### Step 3: Open the Comparison Script
 
----
+Open `scripts/compare_models.py` from the lab directory in your text editor of choice. The script is partially complete. You will find two clearly marked sections to fill in.
 
-### Task 4: Compare with Claude Haiku
-
-21. Reopen the model picker as you did in the previous step.
-22. Select **Claude Haiku 4.5** and click **Apply**.
-23. Clear the conversation and enter the same prompt:
-```
-You are a helpful assistant. Explain the concept of cloud computing in 3-4 sentences for someone who has never heard of it before.
-```
-24. Click **Run** and record the metrics.
-
-**Expected Result:**
-| Metric | Expected Range |
-|--------|----------------|
-| Latency | Under 1 second (fastest) |
-| Response quality | Shorter, more direct, still accurate |
-| Input tokens | Similar to other models |
-| Output tokens | Typically fewer |
-
----
-
-### Task 5: Model Comparison Summary
-
-**Patterns to observe:**
-- **Opus:** Highest quality, highest latency, typically more output tokens
-- **Sonnet:** Balanced quality and speed
-- **Haiku:** Fastest, most concise
-
-> **Common Pitfall:** Running different prompts on different models makes comparison invalid. Always use the identical prompt for fair comparison.
-
----
-
-### Task 6: Observe Streaming Behavior
-
-> **Note:** The streaming toggle location varies by console version. Follow the options below in order until you find it.
-
-25. Switch Models back to **Claude Opus** and look for a **three-dot menu** (⋮) in the top-right area of the playground, near the **Compare mode** toggle.
-26. Click the three-dot menu to reveal a context menu.
-27. Select the **Streaming preference** option.
-
-> **Alternative locations:** If you don't see a three-dot menu, look for a **hamburger icon** (☰) next to the **Build** button, or a **gear icon** in the playground header. The streaming setting may also be in the **Configurations** section on the right side panel.
-
-28. Toggle **stream responses** OFF, and select **confirm**.
-29. Enter the prompt "What is cloud computing?" and click **Run**.
-30. Observe that you wait for the **complete response** before seeing anything. The Model no longer incrementally streams a response.
-31. Toggle streaming back **ON** and run the same prompt again.
-32. Observe how tokens appear **incrementally** as they are generated.
-
-**Key Insight:** For interactive applications (chatbots, assistants), streaming provides a more responsive user experience. For batch processing, non-streaming is acceptable.
-
----
-
-## Part 2: Token Usage and Latency Measurement
-
-### Task 7: Measure with Different Prompt Complexities
-
-33. Click the model name at the top of the playground to change models.
-34. Select **Claude Sonnet 4.6** (follow the same model picker steps from Step 2).
-35. Run these three prompts in sequence and record the metrics for each:
-
-**Prompt 1 (Simple):**
-```
-What is AWS?
-```
-
-**Prompt 2 (Moderate):**
-```
-Explain the difference between IaaS, PaaS, and SaaS. Include one example of each.
-```
-
-**Prompt 3 (Complex):**
-```
-You are a cloud architect. Design a high-level architecture for a web application that needs to handle 1 million daily active users, requires high availability across multiple regions, and must comply with GDPR. List the key AWS services you would use and explain why.
-```
-
----
-
-### Task 8: Record Your Results
-
-Record your results from Step 7 on the scratchpad of your choice (the values below are approximate — your results will vary):
-
-**Typical ranges:**
-| Prompt | Input Tokens | Output Tokens | Latency |
-|--------|--------------|---------------|---------|
-| Simple | ~10 | 50-100 | < 1 sec |
-| Moderate | ~25 | 150-250 | 1-2 sec |
-| Complex | ~60 | 400-600 | 3-5 sec |
-
----
-
-### Step 9: Calculate Approximate Costs
-
-Using Claude Sonnet 4.6 pricing:
-- **Input:** $3 per million tokens
-- **Output:** $15 per million tokens
-
-Calculate the cost for each prompt:
-
-**Formula:**
-```
-Cost = (input_tokens × $3 / 1,000,000) + (output_tokens × $15 / 1,000,000)
-```
-
-| Prompt | Approximate Cost |
-|--------|------------------|
-| Simple | ~$0.00015 |
-| Moderate | ~$0.004 |
-| Complex | ~$0.01 |
-
-**Key Insight:** Individual requests are inexpensive, but costs multiply at scale. Understanding token economics is critical for production applications.
-
-> **Troubleshooting:** If complex prompts produce truncated responses, check your **max_tokens** setting. Ensure it is set to at least 1000 for these exercises.
-
----
-
-## Part 3: Creating a Knowledge Base
-
-### Task 10: Navigate to Knowledge Bases
-
-36. In the Bedrock console left sidebar under **Build**, click **Knowledge Bases**.
-37. Click the **Create** button (orange, with dropdown arrow).
-38. Select **Knowledge Base with vector store** from the dropdown menu.
-
----
-
-### Task 11: Configure Basic Settings
-
-You are sharing an AWS account with your fellow students. Please add a random color to your initials when creating the KB Name below. This will allow you to quickly identify your own KB later.
-
-39. **Name:** `lab1-[your-initials-random-color]-kb` (e.g., `lab1-jd-silver-kb`).
-40. **Description:** `Lab 1 knowledge base for product documentation`.
-41. **IAM role:** Select **Create and use a new service role**.
-
----
-
-### Task 12: Configure Data Source
-
-42. Ensure **Amazon S3** is the selected data source type and click **Next** on the bottom right of this screen to proceed to the data source configuration step.
-43. In the **S3 URI** field, enter the bucket path below. Replace the entire **[account-id]** portion of the URI below with your training account ID, which your instructor has pasted into meeting chat:
-   ```
-   s3://bedrock-training-[account-id]/lab1-documents/
-   ```
-44. Skip to **Chunking strategy:** and ensure **Default chunking** is selected.
-45. Click **Next** on the bottom right of this screen to proceed.
-
----
-
-### Task 13: Configure Embeddings Model
-
-46. Click the **Select model** button in the Embeddings model section.
-47. In the model picker, select **Amazon** as the provider.
-48. Select **Titan Embeddings G1 - Text** (or **Titan Text Embeddings V2** if available).
-49. Click **Apply** to confirm the selection.
-
----
-
-### Task 14: Configure Vector Store and Create
-
-50. Ensure **Quick create a new vector store - Recommended** is selected.
-51. From the **Select a vector store** dropdown, choose **Amazon OpenSearch Serverless**.
-52. Click **Next** to proceed to the review page and quickly ensure all settings are aligned to this instructions. You will use this KB both in this lab, and in the upcoming Lab 3, so it's very important to get this right.
-53. Scroll to the bottom of the review page.
-54. Click the orange **Create Knowledge Base** button and **do not navigate from this page!**.
-
-**Expected Result:** A blue banner appears at the top of the same screen (you might have to scroll up): "Preparing vector database in Amazon OpenSearch Serverless. This process may take several minutes to complete." Take a quick break, you've earned it!
-
-> **Troubleshooting:** If creation takes more than 10 minutes, notify your instructor. Do not navigate away from the page during provisioning.
-
----
-
-### Task 15: Sync the Data Source
-
-55. Wait for the knowledge base status to show **Active** (2-5 minutes after creation).
-56. Once Active, you should see the knowledge base detail page with a **Data source** section.
-57. In the Data source table, select the radio button next to your S3 data source.
-58. Click the **Sync** button.
-59. Wait for the sync status to show **Available** (typically 1-2 minutes).
-
-**Expected Result:**
-- Sync status: **Available**
-- Document count: Shows number of processed files (typically 5 for sample docs)
-
-> **What happens during sync:** Bedrock reads documents from S3, chunks them, passes each chunk through the embedding model, and stores the resulting vectors in OpenSearch. This is all handled automatically.
-
-> **Common Pitfall:** Forgetting to trigger sync results in empty query results. The knowledge base being "Active" only means infrastructure is ready — you must sync to process documents.
-
----
-
-## Part 4: Testing RAG Queries
-
-### Task 16: Open the Test Interface
-
-60. On the knowledge base detail page, click the **Test Knowledge Base** button (top right, next to the **Delete** button).
-61. A test panel opens on the right side of the page with a text input area.
-
-> **Note:** If you see a message "One or more data sources need to be synced," go back to Step 15 and ensure sync completed successfully.
-
----
-
-### Task 17: Run Your First RAG Query
-
-62. In the API section, select **Claude Sonnet 4.6** as your model, and then within the Preview section, find the **Write a prompt** input field and type:
-   ```
-   What is the return policy for damaged products?
-   ```
-63. Press ENTER or click the submit button.
-
-**Expected Result:**
-- A natural language answer about return policies
-- Source citations displayed below the answer (select **details** to reveal citation chunks)
-- Each citation shows document name and relevance score
-
-> **Troubleshooting:** If you see "No relevant information found," verify that sync completed successfully and document count is greater than zero.
-
----
-
-### Task 18: Verify Citation Accuracy
-
-64. In the test panel response, look for **source citations** displayed below the answer (shown as expandable sections or document references).
-65. Click on one of the citations to expand it.
-66. Review the source text and compare it to Claude's answer.
-
-**Ask yourself:**
-- Is the answer supported by the source text?
-- Did Claude add information not in the document?
-- Are there any misinterpretations?
-
----
-
-### Task 19: Test Another Query
-
-67. In the test panel input, clear the previous query and type:
-   ```
-   What warranty coverage is included with the premium product tier?
-   ```
-68. Click **Run** to submit the query.
-69. Review the response and citations—verify the answer is supported by the source documents.
-
----
-
-### Task 20: Test for Hallucinations
-
-70. Run a query about something NOT in the documents:
-   ```
-   What is the CEO's favorite color?
-   ```
-
-**Expected Result:** Claude should indicate it does not have that information, or retrieval should return no relevant chunks.
-
-**Key Insight:** Testing with out-of-scope queries helps you understand how the system behaves when information is not available.
-
----
-
-### Task 21: Observe Query Phrasing Effects
-
-Run these two queries about the same topic:
-
-**Query A (Vague):**
-```
-How do I return something?
-```
-
-**Query B (Specific):**
-```
-What is the step-by-step process for initiating a product return, including any required documentation and timelines?
-```
-
-**Compare the results:**
-- Which query retrieved more targeted chunks?
-- Which answer was more detailed and useful?
-
-**Key Insight:** Specific queries retrieve more targeted chunks and produce better answers. In production applications, you may want to preprocess user queries to expand them or add context.
-
----
-
-## Checkpoint: Verify Your Progress
-
-Before finishing, confirm you have completed:
-
-- [ ] Invoked all three Claude models (Opus, Sonnet, Haiku) with the same prompt
-- [ ] Recorded latency and token metrics for each model
-- [ ] Tested three prompts of varying complexity on Sonnet
-- [ ] Calculated approximate costs for each prompt
-- [ ] Created a knowledge base we will use in Lab 3
-- [ ] Successfully synced documents from S3 to the KB
-- [ ] Ran at least three RAG queries
-- [ ] Verified citation accuracy on at least one query
-- [ ] Tested a query for non-existent information
-
----
-
-## Troubleshooting Reference
-
-| Issue | Symptom | Solution |
-|-------|---------|----------|
-| Model access not enabled | `AccessDeniedException` error | Navigate to Model access, request access for Claude models |
-| S3 bucket access denied | Sync fails with permission error | Verify IAM role has S3 read permissions |
-| Knowledge base stuck creating | Status stays "Creating" > 10 min | Check CloudWatch logs; may need to delete and recreate |
-| Sync returns zero documents | Document count is 0 | Verify S3 prefix is correct; check file formats |
-| RAG queries return no results | "No relevant information found" | Confirm sync completed; verify documents match query topics |
-| High latency on all models | > 10 second response times | Check region; may be networking issue or quota throttling |
-| Truncated responses | Output cuts off mid-sentence | Increase max_tokens setting (set to 1000+) |
-
----
-
-## Optional Code Reference: boto3 Examples
-
-The following code snippets show how to perform these same operations **programmatically**.
-
-### Invoke Claude Model
+The script structure:
 
 ```python
 import boto3
 import json
+import time
 
-bedrock_runtime = boto3.client('bedrock-runtime', region_name='us-east-1')
+MODELS = {
+    # TODO: Add the three model IDs here
+}
 
-def invoke_claude(prompt, model_id='anthropic.claude-sonnet-4-6'):
-    """Invoke a Claude model via Bedrock."""
+PROMPT = """A customer says: "I ordered three items two weeks ago and only two arrived.
+The third item shows as delivered but it is not here. I want a refund
+for the missing item immediately and I am very frustrated."
+
+Classify this ticket: sentiment, priority, recommended action.
+Respond in JSON only."""
+
+def invoke_model(client, model_id: str, prompt: str) -> dict:
     body = json.dumps({
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1024,
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
+        "max_tokens": 512,
+        "messages": [{"role": "user", "content": prompt}]
     })
 
-    response = bedrock_runtime.invoke_model(
+    start = time.time()
+    response = client.invoke_model(
         modelId=model_id,
-        contentType='application/json',
-        accept='application/json',
+        contentType="application/json",
+        accept="application/json",
         body=body
     )
+    latency_ms = round((time.time() - start) * 1000)
 
-    response_body = json.loads(response['body'].read())
-    return response_body
-
-# Example usage
-result = invoke_claude("Explain cloud computing in 3 sentences.")
-print(result['content'][0]['text'])
-print(f"Input tokens: {result['usage']['input_tokens']}")
-print(f"Output tokens: {result['usage']['output_tokens']}")
-```
-
-### Invoke with Streaming
-
-```python
-import boto3
-import json
-
-bedrock_runtime = boto3.client('bedrock-runtime', region_name='us-east-1')
-
-def invoke_claude_streaming(prompt, model_id='anthropic.claude-sonnet-4-6'):
-    """Invoke Claude with streaming response."""
-    body = json.dumps({
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1024,
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-    })
-
-    response = bedrock_runtime.invoke_model_with_response_stream(
-        modelId=model_id,
-        contentType='application/json',
-        accept='application/json',
-        body=body
-    )
-
-    # Process streaming response
-    for event in response['body']:
-        chunk = json.loads(event['chunk']['bytes'].decode())
-        if chunk['type'] == 'content_block_delta':
-            print(chunk['delta']['text'], end='', flush=True)
-    print()  # Newline at end
-
-# Example usage
-invoke_claude_streaming("What is AWS?")
-```
-
-### Query Knowledge Base
-
-```python
-import boto3
-
-bedrock_agent_runtime = boto3.client('bedrock-agent-runtime', region_name='us-east-1')
-
-def query_knowledge_base(query, knowledge_base_id, model_arn):
-    """Query a Bedrock knowledge base with RAG."""
-    response = bedrock_agent_runtime.retrieve_and_generate(
-        input={
-            'text': query
-        },
-        retrieveAndGenerateConfiguration={
-            'type': 'KNOWLEDGE_BASE',
-            'knowledgeBaseConfiguration': {
-                'knowledgeBaseId': knowledge_base_id,
-                'modelArn': model_arn
-            }
-        }
-    )
-
-    # Extract answer and citations
-    answer = response['output']['text']
-    citations = response.get('citations', [])
+    result = json.loads(response["body"].read())
 
     return {
-        'answer': answer,
-        'citations': citations
+        # TODO: Return a dict with model_id, response text, input_tokens,
+        # output_tokens, latency_ms, and cost_usd
+        # Hint: response text is at result["content"][0]["text"]
+        # Hint: token counts are at result["usage"]["input_tokens"] and ["output_tokens"]
+        # Hint: calculate cost using the PRICING dict defined below
     }
-
-# Example usage
-result = query_knowledge_base(
-    query="What is the return policy?",
-    knowledge_base_id="YOUR_KB_ID",
-    model_arn="arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-6"
-)
-print(result['answer'])
 ```
+
+### Step 4: Complete the MODELS Dict
+
+Fill in the `MODELS` dict with the correct inference profile IDs for all three models. Use the format shown below for Sonnet as your guide:
+
+```python
+MODELS = {
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
+    # Add Opus 4.6 and Haiku 4.5 here
+}
+```
+
+> **Why the `us.` prefix matters:** Claude 4 models on Bedrock require cross-region inference profile IDs, not direct model IDs. Using `anthropic.claude-sonnet-4-6` without the prefix returns a `ValidationException`. This is the inference profile format for US regions.
+
+<details>
+<summary>Model IDs for reference</summary>
+
+```python
+MODELS = {
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "Opus 4.6":   "us.anthropic.claude-opus-4-6-v1",
+    "Haiku 4.5":  "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+```
+</details>
+
+### Step 5: Complete the Return Dict
+
+Fill in the `TODO` section inside `invoke_model()`. The function should return a dict containing:
+
+- `model_id` - the model string passed in
+- `response_text` - the text content of Claude's reply
+- `input_tokens` - from `result["usage"]["input_tokens"]`
+- `output_tokens` - from `result["usage"]["output_tokens"]`
+- `latency_ms` - already calculated above
+- `cost_usd` - calculated using the `PRICING` dict already defined in the script
+
+<details>
+<summary>Expected return dict structure</summary>
+
+```python
+return {
+    "model_id":      model_id,
+    "response_text": result["content"][0]["text"],
+    "input_tokens":  result["usage"]["input_tokens"],
+    "output_tokens": result["usage"]["output_tokens"],
+    "latency_ms":    latency_ms,
+    "cost_usd":      (
+        result["usage"]["input_tokens"]  * PRICING[model_id]["input"]  +
+        result["usage"]["output_tokens"] * PRICING[model_id]["output"]
+    ) / 1_000_000
+}
+```
+
+**Why divide by 1,000,000:** Pricing is quoted per million tokens. Dividing converts individual token counts to the fraction of a million you actually used.
+</details>
+
+### Step 6: Run the Comparison
+
+**macOS/Linux:**
+```bash
+python compare_models.py
+```
+
+**Windows (PowerShell):**
+```powershell
+python scripts/compare_models.py
+```
+
+**Expected output:**
+```
+============================================================
+Model Comparison Results (your results may vary)
+============================================================
+
+Sonnet 4.6
+  Response:      {"sentiment": "negative", "priority": "high", ...}
+  Input tokens:  76
+  Output tokens: 179
+  Latency:       3986 ms
+  Cost:          $0.002913
+
+Opus 4.6
+  Response:      {"sentiment": "negative", "priority": "high", ...}
+  Input tokens:  76
+  Output tokens: 67
+  Latency:       2080 ms
+  Cost:          $0.006165
+
+Haiku 4.5
+  Response:      {"sentiment": "negative", "priority": "high", ...}
+  Input tokens:  76
+  Output tokens: 52
+  Latency:       1027 ms
+  Cost:          $0.000269
+
+============================================================
+```
+
+> **Troubleshooting:** If you see `ValidationException`, check that your model IDs use the `us.` prefix. If you see `AccessDeniedException`, verify model access is enabled in the Bedrock console under **Model access**.
+
+### Step 7: Analyze the Results
+
+Look at your output and answer these questions before moving on:
+
+1. Which model produced the most structured, accurate JSON?
+2. Which model had the lowest cost? By how much compared to Sonnet?
+
+
+> **Key insight:** All three returned valid JSON, which is a good baseline, but they are meaningfully different in ways that matter for a production classification system. The prompt asked for three specific fields: sentiment, priority, recommended action. Haiku returned exactly those three fields with clean, machine-readable values. A downstream system can parse this response, route it, and act on it without any additional processing. Sonnet over-engineered it. In a production ticket classifier, unexpected fields in the response schema break parsers, require additional handling, and add cost. Sonnet used 175 output tokens to return data nobody asked for. Opus got the schema right but the value wrong. recommended_action should be a machine-readable code like investigate_and_refund, not a prose paragraph. A downstream routing system cannot act on a sentence. Opus also cost 25x more than Haiku for an inferior result.
+
+---
+
+## Part 3: Cost Calculation
+
+### Step 8: Review the Cost Projections
+
+The script calculated production-scale cost projections from your actual token counts and printed them after the model comparison results. Find the Cost Projections table in your terminal output.
+
+It looks something like this (your numbers may vary):
+
+```
+============================================================
+  Cost Projections -- Production Scale
+============================================================
+
+  Model         Tokens/req    10k/day/mo    100k/day/mo
+  ------------  ----------  ------------  -------------
+  Sonnet 4.6           251       $855.90      $8,559.00
+  Opus 4.6             152     $2,052.00     $20,520.00
+  Haiku 4.5            128        $80.70        $807.00
+
+  Formula: cost_per_request x daily_volume x 30 days
+  Verify current rates: https://aws.amazon.com/bedrock/pricing/
+============================================================
+```
+
+> **Your numbers will differ** from the example above based on the actual token counts in your run. The formula the script used is:
+>
+> `monthly_cost = cost_per_request x daily_volume x 30`
+
+> **Current pricing:** The `PRICING` dict in `compare_models.py` reflects rates at time of writing. Verify at https://aws.amazon.com/bedrock/pricing/ before making production cost decisions.
+
+### Step 9: The Model Selection Decision
+
+Based on your calculations, answer: at 10,000 tickets per day, what is the monthly cost difference between Sonnet and Haiku? Is that difference worth the quality gap you observed in Step 7?
+
+There is no single right answer. The point is that you now have the data to make the decision rather than guessing.
+
+---
+
+## Part 4: Connecting to the Knowledge Base
+
+Your instructor has created a shared Knowledge Base loaded with sample e-commerce product documentation. You do not need to create your own. You connect to the shared KB using an ID your instructor provided in the course chat.
+
+This is the production pattern -- developers consume an existing Knowledge Base rather than provisioning their own infrastructure. Your job is to connect to it and run queries against it.
+
+### Step 10: Add the Knowledge Base ID to Your Environment
+
+Your instructor shared a Knowledge Base ID in the course chat. It is a string of letters and numbers such as `ABCDEF1234`.
+
+Open `.env` in your editor. It is at `anthropic_on_aws/labs/lab1/.env`.
+
+If the file does not exist, create it with the name `.env` within the \lab1 folder.:
+
+Open `.env` and set your Knowledge Base ID:
+
+```
+KNOWLEDGE_BASE_ID=ABCDEF1234
+```
+
+Replace `ABCDEF1234` with the actual ID shared by your instructor in the course chat. Save the file.
+
+---
+
+### Step 11: Verify the Knowledge Base
+
+Confirm you can access the shared Knowledge Base:
+
+**macOS/Linux:**
+```bash
+python scripts/verify_knowledge_base.py
+```
+
+**Windows (PowerShell):**
+```powershell
+python scripts\verify_knowledge_base.py
+```
+
+**Expected output:**
+```
+=======================================================
+  Lab 1: Knowledge Base Verification
+  Anthropic Models on AWS Bedrock
+=======================================================
+
+  Knowledge Base ID:   ABCDEF1234
+  Name:                lab1-shared-kb
+  Status:              ACTIVE
+  Data source:         lab1-documents
+  Sync status:         AVAILABLE
+  Documents synced:    5
+
+=======================================================
+  Knowledge Base is active and ready.
+=======================================================
+```
+
+> **KNOWLEDGE_BASE_ID not found?** Check that `.env` exists and contains the correct ID with no extra spaces.
+
+> **Status shows anything other than ACTIVE?** Ask your instructor -- the shared Knowledge Base may still be provisioning.
+
+> **AccessDeniedException?** Your IAM user may be missing `bedrock-agent-runtime:*` permissions. Ask your instructor.
+
+
+
+## Part 5: Testing RAG Queries
+
+### Step 12: Run Your First Query
+
+With the KB active and documents synced, run a query against it:
+
+**macOS/Linux:**
+```bash
+python scripts/query_knowledge_base.py --query "What is the return policy for damaged products?"
+```
+
+**Windows (PowerShell):**
+```powershell
+python scripts/query_knowledge_base.py --query "What is the return policy for damaged products?"
+```
+
+**Expected output:**
+```
+Query: What is the return policy for damaged products?
+
+Answer:
+## Return Policy for Damaged Products
+
+Based on the ACME Corp Return Policy, here are the details for returning damaged products:
+
+- **Return Window:** Damaged products may be returned within **60 days** of purchase (double the standard 30-day window)
+- **Documentation Required:** You must provide **photo documentation** of the damage
+- **Return Shipping:** ACME Corp **covers the return shipping costs** for damaged items
+- **Replacement Timeline:** Replacements are shipped within **3-5 business days** after the return is received
+
+### How to Initiate a Damaged Product Return:
+1. Log into your account at **acmecorp.com/returns**
+2. Select the order containing the damaged item
+3. Choose the reason for return from the dropdown menu
+4. Print the prepaid shipping label
+5. Ship the item within **7 days** of initiating the return
+6. Refund will be processed within **5-7 business days** after the item is received
+
+For additional assistance, you can contact ACME Corp at **support@acmecorp.com** or call **1-800-ACME-HELP**.
+
+Citations:
+  [1] return-policy.txt (score: 0.45)
+  [2] support-procedures.txt (score: 0.41)
+  [3] warranty-coverage.txt (score: 0.39)
+```
+
+### Step 13: Verify Citation Accuracy
+
+Look at the citations returned. Ask yourself:
+
+- Does Claude's answer reflect what the source document actually says?
+- Did Claude add anything not supported by the citations?
+- Which document scored highest? Does that make sense given the query?
+- Are there any claims in the answer you cannot trace back to a cited source?
+
+Relevance scores range from 0 to 1. Higher scores mean the chunk matched your query more closely. A score below 0.5 often signals a weak retrieval -- the system found something but it may not be directly relevant.
+
+> **Citations are not decoration.** In production applications, especially regulated ones, citations are the audit trail. A high-quality RAG system traces every claim to a source. If you cannot verify a claim against its citation, the system is hallucinating.
+
+### Step 14: Test Query Phrasing
+
+Run the same underlying question two ways and compare results:
+
+**Vague:**
+
+**macOS/Linux:**
+```bash
+python query_knowledge_base.py --query "How do I return something?"
+```
+
+**Windows (PowerShell):**
+```powershell
+python query_knowledge_base.py --query "How do I return something?"
+```
+
+**Specific:**
+
+**macOS/Linux:**
+```bash
+python scripts/query_knowledge_base.py --query "What is the step-by-step process for initiating a product return, including required documentation and timelines?"
+```
+
+**Windows (PowerShell):**
+```powershell
+python scripts/query_knowledge_base.py --query "What is the step-by-step process for initiating a product return, including required documentation and timelines?"
+```
+
+Look at the citation scores for each. The specific query should return higher scores and more targeted chunks.
+
+> **Why this matters in production:** Users ask vague questions. Your application should preprocess or expand queries before sending them to the retrieval layer. You will implement this pattern in Lab 3.
+
+### Step 15: Test the Boundaries
+
+Run a query about something not in the documents:
+
+**macOS/Linux:**
+```bash
+python scripts/query_knowledge_base.py --query "What is the CEO's favorite color?"
+```
+
+**Windows (PowerShell):**
+```powershell
+python scripts/query_knowledge_base.py --query "What is the CEO's favorite color?"
+```
+
+**Expected result:** Claude indicates it does not have that information, or retrieval returns no relevant chunks with scores near zero.
+
+This is correct behavior. A RAG system that answers out-of-scope questions confidently is more dangerous than one that says it does not know.
+
+---
+
+## What You Built
+
+In 45 minutes, you:
+
+- Invoked three Claude models programmatically and compared their output on a real support ticket classification task
+- Extracted token counts and latency from API responses and calculated actual per-invocation cost
+- Scaled those costs to production volumes to make a real model selection decision
+- Created a Knowledge Base from e-commerce product documentation using the Bedrock API
+- Ran RAG queries and evaluated citation accuracy against source documents
+
+**The Knowledge Base ID written to your `.env` file carries forward into Lab 3.** Do not delete it.
+
+---
+
+## Cleanup
+
+The Knowledge Base and its OpenSearch vector store incur ongoing costs when left running. Your instructor will clean up shared resources after class.
 
 ---
 
