@@ -12,8 +12,9 @@ This course teaches developers and cloud practitioners to deploy Anthropic's Cla
 
 | Lab | Name | Duration | Description |
 |-----|------|----------|-------------|
-| Lab 1 | [Claude on Bedrock with RAG](labs/lab1/) | 30 min | Model invocation, Knowledge Base creation, RAG queries |
-| Lab 2 | [Build a Complete Claude Application](labs/lab2/) | 95 min | Tool use, guardrails, CloudWatch, SAM deployment |
+| Lab 1 | [Claude on Bedrock with RAG](labs/lab1/) | 45 min | Model invocation, Knowledge Base connection, RAG queries |
+| Lab 2 | [Claude Code on Bedrock](labs/lab2/) | 65 min | Project Standards, Plan Mode, Model Switching, Agentic Workflows, Skills |
+| Lab 3 | [Build a Complete Claude Application](labs/lab3/) | 95 min | Tool use, guardrails, CloudWatch, SAM deployment |
 
 ### Industry-Specific Labs (Optional — replace standard labs)
 
@@ -25,10 +26,10 @@ This course teaches developers and cloud practitioners to deploy Anthropic's Cla
 
 ## Prerequisites
 
-- AWS account with Amazon Bedrock access enabled
-- Claude model access (Opus 4.6, Sonnet 4.6, Haiku 4.5) approved in Bedrock
-- Python 3.11+ installed
-- AWS CLI configured
+- AWS user with Amazon Bedrock access enabled (provided by Instructor)
+- Claude model access (Opus 4.6, Sonnet 4.6, Haiku 4.5) approved in Bedrock (enabled on provided AWS user)
+- Python 3.11+ installed (pre-installed on RVC)
+- AWS CLI configured (pre-installed on RVC)
 - AWS SAM CLI installed (for Lab 2 deployment)
 
 ## Quick Start
@@ -38,41 +39,6 @@ This course teaches developers and cloud practitioners to deploy Anthropic's Cla
 git clone https://github.com/AWSClassroom-com/anthropic_on_aws.git
 cd anthropic_on_aws
 
-# Upload sample documents for your lab
-# Lab 1 (Standard):
-aws s3 sync sample-data/lab1/ s3://bedrock-training-[YOUR-ACCOUNT-ID]/lab1-documents/
-
-# Lab 3 (Fintech):
-aws s3 sync sample-data/lab3-fintech/ s3://bedrock-training-[YOUR-ACCOUNT-ID]/lab3-fintech/
-```
-
-Replace `[YOUR-ACCOUNT-ID]` with your 12-digit AWS account ID (no dashes).
-
-## Repository Structure
-
-```
-anthropic_on_aws/
-├── README.md                    # This file
-├── labs/
-│   ├── lab1/                    # Lab 1: Claude on Bedrock with RAG
-│   │   └── README.md            # Lab guide
-│   ├── lab2/                    # Lab 2: Complete Claude Application
-│   │   ├── README.md            # Lab guide
-│   │   └── starter/             # Starter code template
-│   ├── lab3-fintech/            # Lab 3: Fintech Compliance
-│   │   └── README.md
-│   ├── lab4-healthcare/         # Lab 4: Healthcare HIPAA
-│   │   └── README.md
-│   └── lab5-media/              # Lab 5: Media Content Intelligence
-│       └── README.md
-├── sample-data/                 # S3 upload documents for each lab
-│   ├── lab1/
-│   ├── lab3-fintech/
-│   ├── lab4-healthcare/
-│   └── lab5-media/
-└── docs/
-    └── student_reference_sheet.md
-```
 
 ## Course Delivery
 
