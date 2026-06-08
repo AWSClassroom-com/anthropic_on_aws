@@ -1,7 +1,7 @@
 # Lab 3: Production Tool Use & Guardrails with Claude
 
 **Course:** Anthropic Models on AWS Bedrock  
-**Duration:** 60 minutes
+**Duration:** 90 minutes
 
 ---
 
