@@ -432,7 +432,7 @@ Without guardrails, Claude might follow these instructions. Production AI system
 
 Go to the AWS Console in your browser:
 
-1. Navigate to **Amazon Bedrock** → **Safeguards** → **Guardrails**
+1. Navigate to **Amazon Bedrock** → **Build** → **Guardrails**
 2. Click **Create guardrail**
 
 **Configuration:**
