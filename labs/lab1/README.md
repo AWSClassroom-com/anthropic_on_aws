@@ -250,7 +250,7 @@ Fill in the `MODELS` dict with the correct inference profile IDs for all three m
 
 ```python
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
     # Add Opus 4.6 and Haiku 4.5 here
 }
 ```
