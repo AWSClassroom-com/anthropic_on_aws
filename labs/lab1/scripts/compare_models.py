@@ -18,9 +18,7 @@ REGION = "us-east-1"
 # TODO: Add the three model IDs here
 # Use inference profile format: us.anthropic.claude-[model]
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    "Opus 4.6":   "us.anthropic.claude-opus-4-6-v1",
-    "Haiku 4.5":  "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+    # TODO: Add the three model IDs here. Use model IDs with known pricing per the PRICING dict below.
 }
  
 PROMPT = """A customer says: "I ordered three items two weeks ago and only two arrived.
