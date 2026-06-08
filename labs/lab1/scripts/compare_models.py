@@ -58,14 +58,8 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
  
     return {
     "model_id":      model_id,
-    "response_text": result["content"][0]["text"],
-    "input_tokens":  result["usage"]["input_tokens"],
-    "output_tokens": result["usage"]["output_tokens"],
-    "latency_ms":    latency_ms,
-    "cost_usd":      (
-        result["usage"]["input_tokens"]  * PRICING[model_id]["input"]  +
-        result["usage"]["output_tokens"] * PRICING[model_id]["output"]
-    ) / 1_000_000
+     # TODO 2
+     # Complete the return DICT
 }
  
  
