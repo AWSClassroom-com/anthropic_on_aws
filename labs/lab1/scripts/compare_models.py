@@ -18,7 +18,8 @@ REGION = "us-east-1"
 # TODO: Add the three model IDs here
 # Use inference profile format: us.anthropic.claude-[model]
 MODELS = {
-    # TODO: Add the three model IDs here. Use model IDs with known pricing per the PRICING dict below.
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    # Add Opus 4.6 and Haiku 4.5 here
 }
  
 PROMPT = """A customer says: "I ordered three items two weeks ago and only two arrived.
@@ -57,9 +58,9 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
     result = json.loads(response["body"].read())
  
     return {
-    "model_id":      model_id,
-     # TODO 2
-     # Complete the return DICT
+    #TODO 2
+    # Add model response return DICT here
+	
 }
  
  
@@ -86,6 +87,52 @@ def parse_json(text: str) -> tuple:
         return parsed, None
     except _json.JSONDecodeError as e:
         return None, str(e)
+ 
+ 
+def cost_projection(results: list) -> None:
+    """Print cost projections at production scale from actual token counts."""
+ 
+    volumes = [10_000, 100_000]
+    days_per_month = 30
+    width = 60
+ 
+    print()
+    print("=" * width)
+    print("  Cost Projections -- Production Scale")
+    print("=" * width)
+    print()
+    print(f"  {'Model':<12}  {'Tokens/req':>10}  {'10k/day/mo':>12}  {'100k/day/mo':>13}")
+    print(f"  {'-'*12}  {'-'*10}  {'-'*12}  {'-'*13}")
+ 
+    for r in results:
+        display_name = next(
+            (k for k, v in MODELS.items() if v == r["model_id"]),
+            r["model_id"]
+        )
+        tokens_per_req = r["input_tokens"] + r["output_tokens"]
+        cost_per_req = r["cost_usd"]
+ 
+        monthly_costs = []
+        for volume in volumes:
+            monthly = cost_per_req * volume * days_per_month
+            monthly_costs.append(f"${monthly:,.2f}")
+ 
+        print(
+            f"  {display_name:<12}  "
+            f"{tokens_per_req:>10,}  "
+            f"{monthly_costs[0]:>12}  "
+            f"{monthly_costs[1]:>13}"
+        )
+ 
+    print()
+    print("  Formula: cost_per_request x daily_volume x 30 days")
+    print("  Verify current rates: https://aws.amazon.com/bedrock/pricing/")
+    print("=" * width)
+    print()
+    print("  Step 9 question: At 10,000 tickets per day, what is the")
+    print("  monthly cost difference between Sonnet and Haiku?")
+    print("  Is that difference worth the quality gap you observed?")
+    print()
  
  
 def print_results(results: list) -> None:
@@ -155,6 +202,7 @@ def main():
             return
  
     print_results(results)
+    cost_projection(results)
  
  
 if __name__ == "__main__":
