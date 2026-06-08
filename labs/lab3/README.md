@@ -19,14 +19,14 @@ By completing this lab, you will:
 
 ## Prerequisites
 
-- [ ] Lab 1 completed (Knowledge Base exists and is working)
+- [ ] Lab 1 completed (Shared Knowledge Base provided by Instructor exists and is working)
 - [ ] Lab 2 completed (Claude Code configured and connected to Bedrock)
 - [ ] AWS account with Bedrock access
-- [ ] Claude Sonnet 4.5 model access enabled in Bedrock
+- [ ] Claude Sonnet 4.6 model access enabled in Bedrock
 - [ ] Python 3.11+, AWS CLI configured
 - [ ] AWS SAM CLI installed
 
-**Pre-lab setup (complete before the lab starts):**
+**Pre-lab setup (complete before Part 1 to ensure you are back in a venv environment in the correct lab folder):**
 
 **macOS/Linux:**
 ```bash
@@ -48,7 +48,7 @@ pip install -r requirements.txt
 copy .env.template .env
 ```
 
-Open `.env` in your editor and set `KNOWLEDGE_BASE_ID` to the value from Lab 1. Leave `GUARDRAIL_ID` empty for now — you will add it in Part 3.
+Open `.env` in your editor and set `KNOWLEDGE_BASE_ID` to the value from Lab 1 (provided by your Instructor). Leave `GUARDRAIL_ID` empty for now — you will add it in Part 3.
 
 > **Pre-flight check:** Run `aws sts get-caller-identity` to confirm your AWS credentials are working before starting.
 
@@ -62,7 +62,11 @@ This lab uses guided discovery with a pre-built agentic loop. You focus on:
 2. **Configuring production guardrails** (the safety layer)
 3. **Deploying to production** (the infrastructure)
 
-**Why a pre-built loop?** The agentic loop is a standardized pattern — everyone implements it the same way. The pre-built code lets you focus on the interesting decisions: what tools to build and how to protect them in production. Read through `src/services/bedrock.py` after class to see how the loop works.
+**Why a pre-built loop?** The agentic loop is a standardized pattern.
+
+How Lab 1 connects to Lab 3: The `knowledge.py` file in the starter code is not new infrastructure -- it is the same Knowledge Base you queried in Lab 1, now integrated directly into the agentic loop. When a customer asks a general question like "what is your return policy?", the loop calls `knowledge.py` which calls the same `retrieve_and_generate` API you used in Lab 1. The Knowledge Base ID in your `.env` file is the same shared ID your instructor provided at the start of Lab 1. Tools handle live personalized data, the Knowledge Base handles static documentation. and the agentic loop decides which to call based on the question.
+
+Remember that each tool invocation adds token overhead. A multi-tool request like the one you will implement makes two Bedrock invocations. Be aware of this before potentially running load and other types of tests back at work.
 
 ---
 
@@ -530,7 +534,7 @@ Checkpoint 3 complete — move on to Part 4 (Deploy & Test).
 
 **If tests fail:**
 - Confirm `GUARDRAIL_ID` in `.env` matches the AWS Console exactly
-- Check guardrail status is READY (not CREATING) — wait 1-2 minutes if needed
+- Check guardrail status is READY (not CREATING) — wait 1-2 minutes if needed (version 1 must be published!)
 - For Test 4: verify Credit Card Number filter action is set to MASK not BLOCK
 
 ---
@@ -578,7 +582,7 @@ Lambda auto-scales with no servers to manage. You pay only for requests made.
 
 Navigate to the infrastructure directory:
 
-```bash
+```
 cd infrastructure
 sam build
 ```
@@ -594,7 +598,7 @@ Built Template   : .aws-sam/build/template.yaml
 
 ---
 
-### Step 12: Deploy to AWS
+### Step 12: Deploy to AWS, staying in the infrastructure folder for the next command:
 
 ```bash
 sam deploy --guided
@@ -617,7 +621,7 @@ sam deploy --guided
 | SAM configuration file | [Press Enter for default] |
 | SAM configuration environment | [Press Enter for default] |
 
-Deployment takes 2-3 minutes.
+Deployment can take up to 5 minutes. Coffee or water break?
 
 > **Copy the API endpoint from Outputs** — you need it for testing:
 > ```
@@ -680,7 +684,7 @@ curl.exe -X POST https://YOUR-ENDPOINT/prod/chat `
 
 ---
 
-### Step 14: Verify in CloudWatch
+### Step 14: Verify in CloudWatch (wait at least 1min for lambda log delivery to complete!)
 
 1. Go to **CloudWatch** → **Log groups** → `/aws/lambda/lab3-chat-handler`
 2. Click the most recent log stream
