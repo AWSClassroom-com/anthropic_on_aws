@@ -696,7 +696,7 @@ This confirms your deployed Lambda is calling your tool execution code.
 
 ## What You Built
 
-In 60 minutes, you:
+In 90 minutes, you:
 
 - Implemented tool execution logic for 3 custom tools (order lookup, ticket creation, account status)
 - Configured production guardrails with content filtering, PII masking, and denied topics
