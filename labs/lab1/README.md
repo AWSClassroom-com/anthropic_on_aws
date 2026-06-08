@@ -406,9 +406,9 @@ Your instructor shared a Knowledge Base ID in the course chat. It is a string of
 
 Open `.env` in your editor. It is at `anthropic_on_aws/labs/lab1/.env`.
 
-If the file does not exist, create it with the name `.env` within the \lab1 folder.:
+If the file does not exist, create it with the name `.env` within the \lab1 folder. In Windows Explorer, choose the VIEW options and select SHOW > FILE NAME EXTENSIONS to ensure your new file does not have a .txt file extension (it should be named `.env`, not `.env.txt`)
 
-Open `.env` and set your Knowledge Base ID:
+Open `.env` and set your Knowledge Base ID by adding the following text string:
 
 ```
 KNOWLEDGE_BASE_ID=ABCDEF1234
