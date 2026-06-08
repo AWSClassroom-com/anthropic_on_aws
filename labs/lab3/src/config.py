@@ -27,7 +27,7 @@ def get_optional(key: str, default: str = "") -> str:
 
 # ── Required ──────────────────────────────────────────────────────────────────
 KNOWLEDGE_BASE_ID: str = get_required("KNOWLEDGE_BASE_ID")
-MODEL_ID: str = get_optional("MODEL_ID", "anthropic.claude-sonnet-4-5")
+MODEL_ID: str = get_optional("MODEL_ID", "us.anthropic.claude-sonnet-4-6")
 AWS_REGION: str = get_optional("AWS_REGION", "us-east-1")
 
 # ── Guardrail (optional until Part 3 of the lab) ──────────────────────────────
