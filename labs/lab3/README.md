@@ -26,12 +26,17 @@ By completing this lab, you will:
 - [ ] Python 3.11+, AWS CLI configured
 - [ ] AWS SAM CLI installed
 
+> ## ⚠️ REGION: us-east-1 (N. Virginia) ONLY
+>
+> Deploy everything in this lab to **us-east-1**. The shared Knowledge Base from Lab 1, your guardrail, and your Lambda deployment all need to be in the same region to work together. When `sam deploy --guided` asks for AWS Region in Step 12, type `us-east-1`, and when you create the guardrail in Step 7, confirm the console's region selector reads **US East (N. Virginia)** first.
+
 **Pre-lab setup (complete before Part 1 to ensure you are back in a venv environment in the correct lab folder):**
+
+> **Use your existing clone from Lab 1.** Do not run `git clone` again. It already exists at `~/anthropic_on_aws` (macOS/Linux) or `C:\anthropic_on_aws` (Windows). Cloning again either fails with "destination path already exists" or creates a second, out-of-sync copy of the repository.
 
 **macOS/Linux:**
 ```bash
-git clone https://github.com/AWSClassroom-com/anthropic_on_aws.git
-cd anthropic_on_aws/labs/lab3
+cd ~/anthropic_on_aws/labs/lab3
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -40,15 +45,14 @@ cp .env.template .env
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://github.com/AWSClassroom-com/anthropic_on_aws.git
-cd anthropic_on_aws\labs\lab3
+cd C:\anthropic_on_aws\labs\lab3
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.template .env
 ```
 
-Open `.env` in your editor and set `KNOWLEDGE_BASE_ID` to the value from Lab 1 (provided by your Instructor). Leave `GUARDRAIL_ID` empty for now — you will add it in Part 3.
+Open `.env` in your editor and set `KNOWLEDGE_BASE_ID` to the value from Lab 1 (provided by your Instructor). Leave `GUARDRAIL_ID` empty for now. You will add it in Part 3.
 
 > **Pre-flight check:** Run `aws sts get-caller-identity` to confirm your AWS credentials are working before starting.
 
@@ -64,7 +68,7 @@ This lab uses guided discovery with a pre-built agentic loop. You focus on:
 
 **Why a pre-built loop?** The agentic loop is a standardized pattern.
 
-How Lab 1 connects to Lab 3: The `knowledge.py` file in the starter code is not new infrastructure -- it is the same Knowledge Base you queried in Lab 1, now integrated directly into the agentic loop. When a customer asks a general question like "what is your return policy?", the loop calls `knowledge.py` which calls the same `retrieve_and_generate` API you used in Lab 1. The Knowledge Base ID in your `.env` file is the same shared ID your instructor provided at the start of Lab 1. Tools handle live personalized data, the Knowledge Base handles static documentation. and the agentic loop decides which to call based on the question.
+How Lab 1 connects to Lab 3: the `knowledge.py` file in the starter code uses the same Knowledge Base you queried in Lab 1, now integrated directly into the agentic loop. When a customer asks a general question like "what is your return policy?", the loop calls `knowledge.py`, which calls the same `retrieve_and_generate` API you used in Lab 1. The Knowledge Base ID in your `.env` file is the same shared ID your instructor provided at the start of Lab 1. Tools handle live, personalized data. The Knowledge Base handles static documentation. The agentic loop decides which to call based on the question.
 
 Remember that each tool invocation adds token overhead. A multi-tool request like the one you will implement makes two Bedrock invocations. Be aware of this before potentially running load and other types of tests back at work.
 
@@ -150,7 +154,7 @@ Think through these questions before moving on:
 <details>
 <summary>Click to reveal answer</summary>
 
-Claude reads this to decide when and how to use the tool. Vague descriptions cause incorrect routing — Claude may call the wrong tool or fail to call any tool at all.
+Claude reads this to decide when and how to use the tool. Vague descriptions cause incorrect routing. Claude may call the wrong tool or fail to call any tool at all.
 </details>
 
 2. Should we use one generic `database_lookup` tool or three separate tools?
@@ -163,7 +167,7 @@ Separate tools are better. Claude routes more accurately, each tool can have dif
 
 ---
 
-### Step 2: Design Exercise — Classify These Requests
+### Step 2: Design Exercise: Classify These Requests
 
 For each customer question, decide: **Tool**, **RAG**, or **Prompt**? Write your answers down, then check below.
 
@@ -212,7 +216,7 @@ def execute_tool(tool_name: str, tool_input: Dict) -> Dict:
         return {'error': f"Unknown tool: '{tool_name}'"}
 ```
 
-**Your task:** Complete this function to handle all three tools. The helper functions `_create_ticket()` and `_get_account_status()` are already implemented below in the file — you just need to call them. Check their signatures to see what parameters they expect.
+**Your task:** Complete this function to handle all three tools. The helper functions `_create_ticket()` and `_get_account_status()` are already implemented below in the file. You just need to call them. Check their signatures to see what parameters they expect.
 
 <details>
 <summary>Click to see solution</summary>
@@ -264,6 +268,13 @@ Raise exceptions for unexpected system errors (database down, auth failed). Retu
 ---
 
 ### Step 5: Test Your Implementation
+
+> ## ⚠️ Windows: set this first, or the test will crash every time
+>
+> `tests/test_tools.py` (and every other test script in this lab) prints ✅/❌ characters directly. The default Windows console codepage cannot print them, so without the fix below the very first test run fails with `UnicodeEncodeError: 'charmap' codec can't encode character`, unrelated to whether your code is correct. Run this once per terminal session, before any `python tests\...` command in this lab:
+> ```powershell
+> $env:PYTHONIOENCODING="utf-8"
+> ```
 
 **macOS/Linux:**
 ```bash
@@ -402,7 +413,7 @@ Checkpoint 2 complete — move on to Part 3 (Guardrails).
 **If tests fail:**
 - Run `aws sts get-caller-identity` to confirm credentials
 - Verify `KNOWLEDGE_BASE_ID` in `.env` is correct
-- Confirm Claude Sonnet 4.5 model access is enabled in the AWS Console
+- Confirm Claude Sonnet 4.6 model access is enabled in the AWS Console
 
 ---
 
@@ -430,7 +441,7 @@ Without guardrails, Claude might follow these instructions. Production AI system
 
 ### Step 7: Create a Bedrock Guardrail
 
-Go to the AWS Console in your browser:
+Go to the AWS Console in your browser. **Confirm the region selector in the top-right corner reads US East (N. Virginia), us-east-1**, before continuing:
 
 1. Navigate to **Amazon Bedrock** → **Build** → **Guardrails**
 2. Click **Create guardrail**
@@ -453,7 +464,7 @@ Go to the AWS Console in your browser:
 | Misconduct | MEDIUM | MEDIUM |
 | Prompt Attack | HIGH | HIGH |
 
-**Denied Topics — Add 2:**
+**Denied Topics (add 2):**
 
 **Topic 1: Investment Advice**
 - Definition: "Financial investment advice including stocks, bonds, cryptocurrency"
@@ -463,15 +474,19 @@ Go to the AWS Console in your browser:
 - Definition: "Medical diagnosis or treatment recommendations"
 - Sample phrases: "Do I have...", "Should I take this medication"
 
-**Sensitive Information Filters — Enable masking for:**
+**Sensitive Information Filters (enable masking for):**
 - [x] Credit Card Number
 - [x] Social Security Number
 - [x] Phone Number
 - [x] Email Address
 
-Click **Create guardrail** → **Prepare** → waits for status READY → Creates Version 1.
+> **Set the action to Mask, not Block.** For each PII type above, the console defaults both the Input action and Output action to **Block**. Change both to **Mask** for each one. If you leave them at the default, the guardrail blocks messages containing this data instead of masking it, and Step 9's PII test will fail.
 
-> **Copy the Guardrail ID** (looks like `abc123def456`) — you need it in the next step.
+Click **Create guardrail**. This creates a working draft with status **Ready**, but no version yet.
+
+Then open the guardrail you just created. In the **Versions** section, click **Create version**. This publishes **Version 1**, which is what your Lambda function actually uses at runtime. There is no separate "Prepare" step. Working draft status "Ready" only means the draft is valid, not that a usable version exists.
+
+> **Copy the Guardrail ID** (looks like `abc123def456`). You need it in the next step, along with the version number you just created.
 
 ---
 
@@ -534,8 +549,9 @@ Checkpoint 3 complete — move on to Part 4 (Deploy & Test).
 
 **If tests fail:**
 - Confirm `GUARDRAIL_ID` in `.env` matches the AWS Console exactly
-- Check guardrail status is READY (not CREATING) — wait 1-2 minutes if needed (version 1 must be published!)
-- For Test 4: verify Credit Card Number filter action is set to MASK not BLOCK
+- Check guardrail status is READY, not CREATING. Wait 1 to 2 minutes if needed.
+- Confirm you completed the separate **Create version** step in Step 7. A working draft alone is not enough. `GUARDRAIL_VERSION` must point to a real published version, such as `1`.
+- For Test 4: verify the Credit Card Number filter's Input and Output actions are both set to Mask, not Block
 
 ---
 
@@ -571,7 +587,7 @@ Lambda auto-scales with no servers to manage. You pay only for requests made.
 
 > **Cost awareness:** Every Bedrock invocation in this lab has a cost based on
 > input and output tokens. Agentic loops with multiple tool calls make several
-> invocations per request. Check current rates for Claude Sonnet 4.5 on the
+> invocations per request. Check current rates for Claude Sonnet 4.6 on the
 > AWS Bedrock pricing page before running load tests or leaving the stack
 > running overnight:
 > **https://aws.amazon.com/bedrock/pricing/**
@@ -608,11 +624,12 @@ sam deploy --guided
 
 | Prompt | Your Answer |
 |--------|-------------|
-| Stack Name | `lab3-claude-app` |
+| Stack Name | `lab3-claude-app-yourname` |
 | AWS Region | `us-east-1` |
 | Parameter KnowledgeBaseId | [Your KB ID from Lab 1] |
 | Parameter GuardrailId | [Your Guardrail ID from Step 7] |
 | Parameter GuardrailVersion | `1` |
+| Parameter ModelId | [Press Enter for default, or your instructor's chosen model ID] |
 | Confirm changes before deploy | `y` |
 | Allow SAM CLI IAM role creation | `Y` |
 | Disable rollback | `N` |
@@ -621,9 +638,11 @@ sam deploy --guided
 | SAM configuration file | [Press Enter for default] |
 | SAM configuration environment | [Press Enter for default] |
 
+> **Sharing an AWS account with classmates?** Replace `yourname` above with your own name or initials, so your stack does not collide with another student's. The Lambda function name is generated automatically from your stack name, so it won't collide with another student's stack either, as long as your stack names differ.
+
 Deployment can take up to 5 minutes. Coffee or water break?
 
-> **Copy the API endpoint from Outputs** — you need it for testing:
+> **Copy the API endpoint from Outputs.** You need it for testing:
 > ```
 > Key         ApiEndpoint
 > Value       https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod/chat
@@ -686,9 +705,10 @@ curl.exe -X POST https://YOUR-ENDPOINT/prod/chat `
 
 ### Step 14: Verify in CloudWatch (wait at least 1min for lambda log delivery to complete!)
 
-1. Go to **CloudWatch** → **Log groups** → `/aws/lambda/lab3-chat-handler`
-2. Click the most recent log stream
-3. Look for: `[Executing tool: lookup_order]`
+1. Find your Lambda function's log group name: it is not the fixed name `/aws/lambda/lab3-chat-handler` shown in older versions of this lab. Look up the `LambdaFunctionName` value in your stack's **Outputs** (Step 12), or check `CloudWatchLogGroup` in the same Outputs list, and use that exact name below.
+2. Go to **CloudWatch** → **Log groups** → the log group from step 1
+3. Click the most recent log stream
+4. Look for: `[Executing tool: lookup_order]`
 
 This confirms your deployed Lambda is calling your tool execution code.
 
@@ -706,14 +726,14 @@ In 90 minutes, you:
 **Key Takeaways:**
 
 - Tools = live/external data. RAG = static documentation. Prompts = general knowledge.
-- Return errors as data — do not raise exceptions in tool handlers
+- Return errors as data. Do not raise exceptions in tool handlers.
 - Defense in depth: never rely on a single protection layer
-- PII masking happens transparently — Claude never sees the raw value
-- Every Bedrock invocation has a cost — monitor usage at **https://aws.amazon.com/bedrock/pricing/**
+- PII masking happens transparently. Claude never sees the raw value.
+- Every Bedrock invocation has a cost. Monitor usage at **https://aws.amazon.com/bedrock/pricing/**
 
 **What you did not build (but have working code for):**
 
-The agentic loop in `src/services/bedrock.py` handles the full Claude ↔ tool execution cycle. Read through `invoke_with_tools()` after class — it is ~50 lines of well-commented Python that shows exactly how the loop works.
+The agentic loop in `src/services/bedrock.py` handles the full Claude to tool execution cycle. Read through `invoke_with_tools()` after class. It is about 50 lines of well-commented Python that shows exactly how the loop works.
 
 ---
 
@@ -731,19 +751,19 @@ The agentic loop in `src/services/bedrock.py` handles the full Claude ↔ tool e
 
 Run these commands to avoid ongoing AWS charges:
 
-**Delete the CloudFormation stack:**
+**Delete the CloudFormation stack.** Use the same stack name you chose in Step 12 (`lab3-claude-app-yourname`, not the literal example below):
 
 **macOS/Linux:**
 ```bash
 aws cloudformation delete-stack \
-  --stack-name lab3-claude-app \
+  --stack-name lab3-claude-app-yourname \
   --region us-east-1
 ```
 
 **Windows (PowerShell):**
 ```powershell
 aws cloudformation delete-stack `
-  --stack-name lab3-claude-app `
+  --stack-name lab3-claude-app-yourname `
   --region us-east-1
 ```
 
@@ -755,22 +775,22 @@ AWS Console → Amazon Bedrock → Safeguards → Guardrails → Select → Dele
 ## Troubleshooting
 
 **`ModuleNotFoundError` when running tests:**  
-Confirm your virtual environment is active — `(venv)` should appear in your terminal prompt.
+Confirm your virtual environment is active. `(venv)` should appear in your terminal prompt.
 
 **`EnvironmentError: KNOWLEDGE_BASE_ID is not set`:**  
 Check that `.env` exists (not just `.env.template`) and contains a valid value.
 
 **`AccessDeniedException` from Bedrock:**  
-Confirm Claude Sonnet 4.5 model access is enabled: AWS Console → Amazon Bedrock → Model access.
+Confirm Claude Sonnet 4.6 model access is enabled: AWS Console → Amazon Bedrock → Model access.
 
 **Guardrail tests fail with `GUARDRAIL_ID is not set`:**  
 Check `.env` contains `GUARDRAIL_ID` and that you saved the file.
 
-**`sam deploy` fails — `InsufficientCapabilitiesException`:**  
+**`sam deploy` fails with `InsufficientCapabilitiesException`:**  
 Re-run `sam deploy --guided` and answer `Y` to "Allow SAM CLI IAM role creation".
 
 **API returns 500 errors:**  
-Check Lambda logs: CloudWatch → Log groups → `/aws/lambda/lab3-chat-handler`
+Check Lambda logs: CloudWatch → Log groups → the log group name from your stack's Outputs (see Step 14), not a fixed name
 
 **Windows: `curl` not found:**  
 Use `curl.exe` in PowerShell, or run `python tests\test_deployed_api.py` instead.

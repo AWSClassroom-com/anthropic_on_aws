@@ -21,8 +21,8 @@ Parameters:
 
   ModelId:
     Type: String
-    Default: "anthropic.claude-sonnet-4-5"
-    Description: "Bedrock model ID to use for chat"
+    Default: "us.anthropic.claude-sonnet-4-6"
+    Description: "Bedrock model ID to use for chat (must be a cross-region inference profile ID, prefixed with us.)"
 
 # ── Globals ────────────────────────────────────────────────────────────────────
 Globals:
@@ -57,9 +57,11 @@ Resources:
   ChatFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: lab3-chat-handler
-      CodeUri: ../src/
-      Handler: handlers/chat.handler
+      # No FunctionName set here on purpose: CloudFormation derives a unique
+      # physical name from the stack name instead. A fixed name here would
+      # collide across students deploying to the same shared AWS account.
+      CodeUri: ../
+      Handler: src.handlers.chat.handler
       Description: Lab 3 customer support chat handler with tool use and guardrails
       Events:
         ChatPost:

@@ -11,6 +11,10 @@
 - [ ] ROI Virtual Classroom VM available and running (Ask your instructor for your access credentials for RVC)
 - [ ] AWS credentials received from your instructor
 
+> ## ⚠️ REGION: us-east-1 (N. Virginia) ONLY
+>
+> This lab, and Labs 2 and 3, only work in **us-east-1**. The shared Knowledge Base your instructor created lives there, and every script in this repo is hardcoded to it. Whenever you open the AWS Console, check the region selector in the top-right corner and confirm it reads **US East (N. Virginia)** before doing anything else. If you switch regions mid-lab, nothing you set up in this lab will be visible anymore.
+
 ---
 
 ## Part 1: Setup
@@ -27,7 +31,7 @@ aws login
 
 A browser window opens. Enter the username and password your instructor provided and complete the login.
 
-If the browser does not open automatically, the terminal will display a URL and a code. Open the URL manually, enter the code, and complete the login with your instructor credentials. If there is a delay of more than 2-3 seconds during authentication, refresh the browser screen (just the local VM browser, not the entire VM session browser!) and you should see a successful authrntication message.
+If the browser does not open automatically, the terminal will display a URL and a code. Open the URL manually, enter the code, and complete the login with your instructor credentials. If there is a delay of more than 2-3 seconds during authentication, refresh the browser screen (just the local VM browser, not the entire VM session browser) and you should see a successful authentication message.
 
 Once login is complete, return to your terminal and verify the connection:
 
@@ -102,15 +106,15 @@ pip install -r requirements.txt
 
 Confirm `(venv)` appears in your terminal prompt before continuing. All subsequent Python commands in this lab run inside this virtual environment.
 
-**What you just installed -- boto3:**
+**What you just installed: boto3**
 
 The most important package in `requirements.txt` is **boto3**, the AWS SDK for Python. boto3 is how Python applications talk to AWS services. Instead of making raw HTTP requests to AWS APIs, boto3 gives you a clean Python interface:
 
 ```python
-# Without boto3 -- raw HTTP, authentication headers, request signing
+# Without boto3: raw HTTP, authentication headers, request signing
 # Complex, error-prone, hundreds of lines
 
-# With boto3 -- clean Python
+# With boto3: less code
 import boto3
 client = boto3.client('bedrock-runtime', region_name='us-east-1')
 response = client.invoke_model(modelId='...', body='...')
@@ -165,7 +169,7 @@ Before writing code, spend a few minutes in the Bedrock console. This gives you 
 ### Step 1: Open the Playground
 
 1. Sign in to the AWS Management Console and navigate to **Amazon Bedrock**.
-2. Confirm you are in the **us-east-1 (N. Virginia)** region. Check the region selector in the top-right corner.
+2. **Confirm you are in the us-east-1 (N. Virginia) region.** Check the region selector in the top-right corner. This is not optional. The shared Knowledge Base and every model you invoke in this lab only exist in this region.
 3. In the left sidebar under **Test**, click **Playground**.
 4. Click the orange **Select model** button.
 5. In the model picker, select **Anthropic**, then **Claude Sonnet 4.6**, then choose the **US** inference profile.
@@ -250,7 +254,7 @@ Fill in the `MODELS` dict with the correct inference profile IDs for all three m
 
 ```python
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
     # Add Opus 4.6 and Haiku 4.5 here
 }
 ```
@@ -262,7 +266,7 @@ MODELS = {
 
 ```python
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
     "Opus 4.6":   "us.anthropic.claude-opus-4-6-v1",
     "Haiku 4.5":  "us.anthropic.claude-haiku-4-5-20251001-v1:0",
 }
@@ -398,7 +402,7 @@ There is no single right answer. The point is that you now have the data to make
 
 Your instructor has created a shared Knowledge Base loaded with sample e-commerce product documentation. You do not need to create your own. You connect to the shared KB using an ID your instructor provided in the course chat.
 
-This is the production pattern -- developers consume an existing Knowledge Base rather than provisioning their own infrastructure. Your job is to connect to it and run queries against it.
+This is the production pattern. Developers consume an existing Knowledge Base rather than provisioning their own infrastructure. Your job is to connect to it and run queries against it.
 
 ### Step 10: Add the Knowledge Base ID to Your Environment
 
@@ -453,13 +457,18 @@ python scripts\verify_knowledge_base.py
 
 > **KNOWLEDGE_BASE_ID not found?** Check that `.env` exists and contains the correct ID with no extra spaces.
 
-> **Status shows anything other than ACTIVE?** Ask your instructor -- the shared Knowledge Base may still be provisioning.
+> **Status shows anything other than ACTIVE?** Ask your instructor. The shared Knowledge Base may still be provisioning.
 
 > **AccessDeniedException?** Your IAM user may be missing `bedrock-agent-runtime:*` permissions. Ask your instructor.
 
 
 
 ## Part 5: Testing RAG Queries
+
+> **Windows: `UnicodeEncodeError: 'charmap' codec can't encode character`?** Claude's answer text can include characters the default Windows console codepage can't print. This does not happen on every query, only when the model's response happens to include one of those characters, so it can appear to work fine and then fail later. Set `$env:PYTHONIOENCODING="utf-8"` once per terminal session before running any `query_knowledge_base.py` command in this part, to avoid it entirely:
+> ```powershell
+> $env:PYTHONIOENCODING="utf-8"
+> ```
 
 ### Step 12: Run Your First Query
 
@@ -514,7 +523,7 @@ Look at the citations returned. Ask yourself:
 - Which document scored highest? Does that make sense given the query?
 - Are there any claims in the answer you cannot trace back to a cited source?
 
-Relevance scores range from 0 to 1. Higher scores mean the chunk matched your query more closely. A score below 0.5 often signals a weak retrieval -- the system found something but it may not be directly relevant.
+Relevance scores range from 0 to 1. Higher scores mean the chunk matched your query more closely. A score below 0.5 often signals weak retrieval. The system found something, but it may not be directly relevant.
 
 > **Citations are not decoration.** In production applications, especially regulated ones, citations are the audit trail. A high-quality RAG system traces every claim to a source. If you cannot verify a claim against its citation, the system is hallucinating.
 
@@ -577,7 +586,7 @@ In 45 minutes, you:
 - Invoked three Claude models programmatically and compared their output on a real support ticket classification task
 - Extracted token counts and latency from API responses and calculated actual per-invocation cost
 - Scaled those costs to production volumes to make a real model selection decision
-- Created a Knowledge Base from e-commerce product documentation using the Bedrock API
+- Connected to a shared Knowledge Base of e-commerce product documentation and queried it using the Bedrock API
 - Ran RAG queries and evaluated citation accuracy against source documents
 
 **The Knowledge Base ID written to your `.env` file carries forward into Lab 3.** Do not delete it.

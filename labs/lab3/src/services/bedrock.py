@@ -18,6 +18,24 @@ from src.services.tools import execute_tool
 logger = logging.getLogger(__name__)
 
 
+def _guardrail_trace_shows_block(result: Dict[str, Any]) -> bool:
+    """
+    Determine whether a guardrail-enabled InvokeModel response was actually
+    blocked, as opposed to merely intervened on (e.g. PII masking).
+
+    "amazon-bedrock-guardrailAction": "INTERVENED" fires for both cases, so
+    it can't tell them apart on its own. The trace's "actionReason" can:
+    Bedrock returns "Guardrail blocked." when a policy blocked the request,
+    and "Guardrail masked.\\nNo action." when it only anonymized PII.
+    """
+    action_reason = (
+        result.get('amazon-bedrock-trace', {})
+        .get('guardrail', {})
+        .get('actionReason', '')
+    )
+    return 'blocked' in action_reason.lower()
+
+
 class BedrockService:
     """Handles all Claude invocations via Amazon Bedrock."""
 
@@ -226,18 +244,26 @@ class BedrockService:
                     modelId=self.model_id,
                     body=json.dumps(body),
                     guardrailIdentifier=guardrail_id,
-                    guardrailVersion=guardrail_version
+                    guardrailVersion=guardrail_version,
+                    trace='ENABLED'
                 )
 
             except ClientError as e:
                 logger.error('Bedrock guardrail invocation failed: %s', e)
                 raise
 
-            # Check if the guardrail blocked this request
-            headers = response.get('ResponseMetadata', {}).get('HTTPHeaders', {})
-            guardrail_action = headers.get('x-amzn-bedrock-guardrail-action', '')
+            result = json.loads(response['body'].read())
 
-            if guardrail_action == 'BLOCKED':
+            # Bedrock reports guardrail activity in the response body under
+            # "amazon-bedrock-guardrailAction", not in an HTTP header. That
+            # flag alone isn't enough: it also fires for PII masking, which
+            # should let the conversation continue rather than stop it. The
+            # trace (enabled above) breaks down each policy's action, so we
+            # only treat the request as blocked when some policy actually
+            # BLOCKED it, not merely ANONYMIZED (masked) it.
+            was_actually_blocked = _guardrail_trace_shows_block(result)
+
+            if was_actually_blocked:
                 logger.info('Request blocked by guardrail %s', guardrail_id)
                 return {
                     'content': [{
@@ -251,7 +277,6 @@ class BedrockService:
                     'was_blocked': True
                 }
 
-            result = json.loads(response['body'].read())
             stop_reason = result.get('stop_reason', '')
 
             if stop_reason == 'end_turn':

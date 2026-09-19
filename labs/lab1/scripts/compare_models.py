@@ -18,7 +18,7 @@ REGION = "us-east-1"
 # TODO: Add the three model IDs here
 # Use inference profile format: us.anthropic.claude-[model]
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
     # Add Opus 4.6 and Haiku 4.5 here
 }
  
@@ -31,7 +31,7 @@ Respond in JSON only."""
  
 # Pricing per million tokens -- verify at https://aws.amazon.com/bedrock/pricing/
 PRICING = {
-    "us.anthropic.claude-sonnet-4-5-20250929-v1:0": {"input": 3.00,  "output": 15.00},
+    "us.anthropic.claude-sonnet-4-6":               {"input": 3.00,  "output": 15.00},
     "us.anthropic.claude-opus-4-6-v1":              {"input": 15.00, "output": 75.00},
     "us.anthropic.claude-haiku-4-5-20251001-v1:0":  {"input": 0.80,  "output": 4.00},
 }
@@ -60,7 +60,7 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
     return {
     #TODO 2
     # Add model response return DICT here
-	
+
 }
  
  
