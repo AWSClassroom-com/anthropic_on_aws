@@ -144,9 +144,11 @@ def cost_projection(results: list) -> None:
     print("  Verify current rates: https://aws.amazon.com/bedrock/pricing/")
     print("=" * width)
     print()
-    print("  Step 8 question: At 10,000 tickets per day, what is the")
-    print("  monthly cost difference between Sonnet and Haiku?")
-    print("  Is that difference worth the quality gap you observed?")
+    print("  Step 9 questions:")
+    print("  1. Did the three models actually disagree on the classification?")
+    print("  2. What is the monthly cost gap between Haiku and Sonnet?")
+    print("  3. Opus charges double Sonnet's rate. Why are their monthly")
+    print("     costs so close? Check the output token counts.")
     print()
  
  

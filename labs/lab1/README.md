@@ -472,9 +472,25 @@ It looks something like this (your numbers may vary):
 
 ### Step 9: The Model Selection Decision
 
-Based on your calculations, answer: at 10,000 tickets per day, what is the monthly cost difference between Sonnet and Haiku? Is that difference worth the quality gap you observed in Step 7?
+Look back at your own output from Step 7 and answer three questions.
 
-There is no single right answer. The point is that you now have the data to make the decision rather than guessing.
+**1. Did the models disagree?** Compare the three classifications. On a well-specified task like this one, they usually agree. If yours did, that is the finding, not a failure of the exercise.
+
+**2. What does Haiku cost against Sonnet?** Read the two monthly figures from the projection table. The gap is normally close to an order of magnitude for the same answer.
+
+**3. Why do Sonnet and Opus cost so much more alike than their rates suggest?** Opus charges double Sonnet's input and output rate, yet the monthly figures often land close together. Look at the output token counts before you answer.
+
+<details>
+<summary>What the third question is getting at</summary>
+
+Cost is rate multiplied by tokens, and the models differ on both. A model charging half as much per token can cost the same or more if it writes twice as much. In testing, Sonnet 5.5 produced 627 output tokens on one ticket where Opus 5.5 produced 288, which cancelled out the rate difference almost exactly.
+
+Two things follow. The rate card does not tell you the bill, only a measured run does. And constraining the response, as the prompt in this lab does by naming exactly three keys, is a cost lever as real as changing model.
+
+There is a third effect you can see in your own numbers. Claude 4.7 and later use a newer tokenizer that produces roughly 30 percent more tokens for the same text, so Haiku 4.5 reports fewer input tokens than Sonnet 5.5 for an identical prompt. Haiku's advantage is larger than the published rates alone suggest.
+</details>
+
+There is no single right answer to the decision itself. The point is that you now have measured data rather than a guess, and you know which three things move the number.
 
 ---
 
