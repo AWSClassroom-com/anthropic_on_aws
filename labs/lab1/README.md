@@ -274,16 +274,21 @@ import boto3
 import json
 import time
 
+from botocore.exceptions import ClientError
+
+# TODO 1: Add the three model IDs here
 MODELS = {
-    # TODO: Add the three model IDs here
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    # Add Opus 5.5 and Haiku 4.5 here
 }
 
 PROMPT = """A customer says: "I ordered three items two weeks ago and only two arrived.
-The third item shows as delivered but it is not here. I want a refund
-for the missing item immediately and I am very frustrated."
+..."""
 
-Classify this ticket: sentiment, priority, recommended action.
-Respond in JSON only."""
+PRICING = {
+    # already filled in for you
+}
+
 
 def invoke_model(client, model_id: str, prompt: str) -> dict:
     body = json.dumps({
@@ -293,6 +298,8 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
     })
 
     start = time.time()
+
+    # TODO 3: Return errors as data instead of letting them stop the run.
     response = client.invoke_model(
         modelId=model_id,
         contentType="application/json",
@@ -304,13 +311,12 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
     result = json.loads(response["body"].read())
 
     return {
-        # TODO: Return a dict with model_id, response text, input_tokens,
-        # output_tokens, latency_ms, and cost_usd
-        # Hint: response text is at result["content"][0]["text"]
-        # Hint: token counts are at result["usage"]["input_tokens"] and ["output_tokens"]
-        # Hint: calculate cost using the PRICING dict defined below
-    }
+    # TODO 2: Add the model response return dict here
+
+}
 ```
+
+You complete the three TODOs in order: `TODO 1` in Step 4, `TODO 2` in Step 5, and `TODO 3` in Step 6.
 
 ### Step 4: Complete the MODELS Dict
 
@@ -341,7 +347,7 @@ MODELS = {
 
 ### Step 5: Complete the Return Dict
 
-Find the commented `TODO 2` inside `invoke_model()` and fill in the section. The function should return a dict containing:
+Find the commented `TODO 2` inside `invoke_model()` and fill in the section. The `return {` and its closing `}` are already written for you, so you are adding only the dict contents. The function should return a dict containing:
 
 - `model_id` - the model string passed in
 - `response_text` - the text content of Claude's reply
@@ -351,10 +357,11 @@ Find the commented `TODO 2` inside `invoke_model()` and fill in the section. The
 - `cost_usd` - calculated using the `PRICING` dict already defined in the script
 
 <details>
-<summary>Expected return dict structure</summary>
+<summary>Expected contents of the return dict</summary>
+
+The script already has `return {` and its closing `}`. Paste this between them, replacing the `TODO 2` comment line.
 
 ```python
-return {
     "model_id":      model_id,
     "response_text": result["content"][0]["text"],
     "input_tokens":  result["usage"]["input_tokens"],
@@ -364,7 +371,6 @@ return {
         result["usage"]["input_tokens"]  * PRICING[model_id]["input"]  +
         result["usage"]["output_tokens"] * PRICING[model_id]["output"]
     ) / 1_000_000
-}
 ```
 
 **Why divide by 1,000,000:** Pricing is quoted per million tokens. Dividing converts individual token counts to the fraction of a million you actually used.
