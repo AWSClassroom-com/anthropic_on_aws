@@ -1,7 +1,7 @@
 # Lab 1: Claude on Bedrock with RAG
 
 **Course:** Anthropic Models on AWS Bedrock
-**Duration:** 55 minutes
+**Duration:** 45 minutes
 
 ---
 
@@ -265,7 +265,7 @@ Now you will do the same thing in code across all three Claude models and captur
 
 ### Step 3: Open the Comparison Script
 
-Open `scripts/compare_models.py` from the lab directory in Notepad (PC) or TextEdit (Mac). The script is partially complete. You will find three clearly marked sections to fill in, commented `TODO 1`, `TODO 2` and `TODO 3`.
+Open `scripts/compare_models.py` from the lab directory in Notepad (PC) or TextEdit (Mac). The script is partially complete. You will find two clearly marked sections to fill in, commented `TODO 1` and `TODO 2`.
 
 The script structure:
 
@@ -299,13 +299,12 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
 
     start = time.time()
 
-    # TODO 3: Return errors as data instead of letting them stop the run.
-    response = client.invoke_model(
-        modelId=model_id,
-        contentType="application/json",
-        accept="application/json",
-        body=body
-    )
+    try:
+        response = client.invoke_model(...)
+    except ClientError as e:
+        # errors are returned as data, already written for you
+        ...
+
     latency_ms = round((time.time() - start) * 1000)
 
     result = json.loads(response["body"].read())
@@ -316,7 +315,7 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
 }
 ```
 
-You complete the three TODOs in order: `TODO 1` in Step 4, `TODO 2` in Step 5, and `TODO 3` in Step 6.
+You complete the two TODOs in order: `TODO 1` in Step 4 and `TODO 2` in Step 5.
 
 ### Step 4: Complete the MODELS Dict
 
@@ -376,60 +375,7 @@ The script already has `return {` and its closing `}`. Paste this between them, 
 **Why divide by 1,000,000:** Pricing is quoted per million tokens. Dividing converts individual token counts to the fraction of a million you actually used.
 </details>
 
-### Step 6: Return Errors as Data
-
-A comparison that stops at the first failure is not much of a comparison. If one model is not enabled in your account, you still want results from the other two.
-
-Find `TODO 3` inside `invoke_model()`. You will wrap the `client.invoke_model` call in a `try` and `except` that catches `ClientError`, and return a dict on failure rather than raising. The AWS error code is at `e.response["Error"]["Code"]`.
-
-> **⚠️ Replace, do not insert.** Notepad does not indent for you, and `try` and `except` must sit at exactly the same indent. Select the whole block below and replace it, rather than typing around the existing lines.
-
-**Select everything from `# TODO 3` down to the closing `)` of the invoke call:**
-
-```python
-    # TODO 3: Return errors as data instead of letting them stop the run.
-    # Wrap the client.invoke_model call below in try / except ClientError.
-    # On failure, return a dict instead of raising:
-    #     {"model_id": model_id, "error_code": <code>, "error": <message>}
-    # The AWS error code is at e.response["Error"]["Code"].
-    # This is the same error-as-data pattern you will use in Lab 3.
-    response = client.invoke_model(
-        modelId=model_id,
-        contentType="application/json",
-        accept="application/json",
-        body=body
-    )
-```
-
-<details>
-<summary>Replace it with this</summary>
-
-```python
-    try:
-        response = client.invoke_model(
-            modelId=model_id,
-            contentType="application/json",
-            accept="application/json",
-            body=body
-        )
-    except ClientError as e:
-        return {
-            "model_id":   model_id,
-            "error_code": e.response["Error"]["Code"],
-            "error":      e.response["Error"]["Message"],
-        }
-```
-
-Both `try` and `except` sit four spaces in, level with `start = time.time()` on the line above. If Python reports `unexpected indent`, one of them has picked up extra spaces.
-</details>
-
-**Now break it on purpose.** Change one entry in `MODELS` to an invalid ID, for example drop the `us.` prefix from Sonnet so it reads `anthropic.claude-sonnet-5-5`. Run the script.
-
-**Expected result:** that model is reported as SKIPPED with a `ValidationException`, and the other two still return results and a cost comparison. Restore the correct ID before continuing.
-
-> **This is the error-as-data pattern.** Lab 3 uses the same idea for tool execution. A tool that fails returns an error Claude can read and respond to, rather than raising an exception that ends the request. Getting it right here means it is already familiar later.
-
-### Step 7: Run the Comparison
+### Step 6: Run the Comparison
 
 **macOS/Linux:**
 ```bash
@@ -473,7 +419,7 @@ Haiku 4.5
 
 > **Troubleshooting:** If you see `ValidationException`, check that your model IDs use the `us.` prefix. If you see `AccessDeniedException`, verify model access is enabled in the Bedrock console under **Model access**.
 
-### Step 8: Analyze the Results
+### Step 7: Analyze the Results
 
 Look at your output and answer these questions before moving on:
 
@@ -487,7 +433,7 @@ Look at your output and answer these questions before moving on:
 
 ## Part 3: Cost Calculation
 
-### Step 9: Review the Cost Projections
+### Step 8: Review the Cost Projections
 
 The script calculated production-scale cost projections from your actual token counts and printed them after the model comparison results. Find the Cost Projections table in your terminal output.
 
@@ -517,9 +463,9 @@ It looks something like this (your numbers may vary):
 
 > **Current pricing:** The `PRICING` dict in `compare_models.py` reflects rates at time of writing. Verify at https://aws.amazon.com/bedrock/pricing/ before making production cost decisions.
 
-### Step 10: The Model Selection Decision
+### Step 9: The Model Selection Decision
 
-Based on your calculations, answer: at 10,000 tickets per day, what is the monthly cost difference between Sonnet and Haiku? Is that difference worth the quality gap you observed in Step 8?
+Based on your calculations, answer: at 10,000 tickets per day, what is the monthly cost difference between Sonnet and Haiku? Is that difference worth the quality gap you observed in Step 7?
 
 There is no single right answer. The point is that you now have the data to make the decision rather than guessing.
 
@@ -531,7 +477,7 @@ Your instructor has created a shared Knowledge Base loaded with sample e-commerc
 
 This is the production pattern. Developers consume an existing Knowledge Base rather than provisioning their own infrastructure. Your job is to connect to it and run queries against it.
 
-### Step 11: Add the Knowledge Base ID to Your Environment
+### Step 10: Add the Knowledge Base ID to Your Environment
 
 Your instructor shared a Knowledge Base ID in the course chat. It is a string of letters and numbers such as `ABCDEF1234`.
 
@@ -549,7 +495,7 @@ Replace `ABCDEF1234` with the actual ID shared by your instructor in the course 
 
 ---
 
-### Step 12: Verify the Knowledge Base
+### Step 11: Verify the Knowledge Base
 
 Confirm you can access the shared Knowledge Base:
 
@@ -597,7 +543,7 @@ python scripts\verify_knowledge_base.py
 > $env:PYTHONIOENCODING="utf-8"
 > ```
 
-### Step 13: Run Your First Query
+### Step 12: Run Your First Query
 
 With the KB active and documents synced, run a query against it:
 
@@ -641,7 +587,7 @@ Citations:
   [3] warranty-coverage.txt (score: 0.39)
 ```
 
-### Step 14: Verify Citation Accuracy
+### Step 13: Verify Citation Accuracy
 
 Look at the citations returned. Ask yourself:
 
@@ -654,7 +600,7 @@ Relevance scores range from 0 to 1. Higher scores mean the chunk matched your qu
 
 > **Citations are not decoration.** In production applications, especially regulated ones, citations are the audit trail. A high-quality RAG system traces every claim to a source. If you cannot verify a claim against its citation, the system is hallucinating.
 
-### Step 15: Test Query Phrasing
+### Step 14: Test Query Phrasing
 
 Run the same underlying question two ways and compare results:
 
@@ -686,7 +632,7 @@ Look at the citation scores for each. The specific query should return higher sc
 
 > **Why this matters in production:** Users ask vague questions. Your application should preprocess or expand queries before sending them to the retrieval layer. You will implement this pattern in Lab 3.
 
-### Step 16: Test the Boundaries
+### Step 15: Test the Boundaries
 
 Run a query about something not in the documents:
 

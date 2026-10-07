@@ -2,10 +2,9 @@
 Lab 1: Model Comparison Script
 Anthropic Models on AWS Bedrock
  
-Students complete three TODO sections:
+Students complete two TODO sections:
 1. Fill in the MODELS dict with inference profile IDs
 2. Complete the return dict in invoke_model()
-3. Add error handling so a failed model does not stop the comparison
  
 Run: python scripts/compare_models.py
 """
@@ -52,18 +51,21 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
  
     start = time.time()
 
-    # TODO 3: Return errors as data instead of letting them stop the run.
-    # Wrap the client.invoke_model call below in try / except ClientError.
-    # On failure, return a dict instead of raising:
-    #     {"model_id": model_id, "error_code": <code>, "error": <message>}
-    # The AWS error code is at e.response["Error"]["Code"].
-    # This is the same error-as-data pattern you will use in Lab 3.
-    response = client.invoke_model(
-        modelId=model_id,
-        contentType="application/json",
-        accept="application/json",
-        body=body
-    )
+    # Errors are returned as data rather than raised, so one unavailable
+    # model does not stop the comparison. Lab 3 uses the same pattern.
+    try:
+        response = client.invoke_model(
+            modelId=model_id,
+            contentType="application/json",
+            accept="application/json",
+            body=body
+        )
+    except ClientError as e:
+        return {
+            "model_id":   model_id,
+            "error_code": e.response["Error"]["Code"],
+            "error":      e.response["Error"]["Message"],
+        }
     latency_ms = round((time.time() - start) * 1000)
  
     result = json.loads(response["body"].read())
@@ -139,7 +141,7 @@ def cost_projection(results: list) -> None:
     print("  Verify current rates: https://aws.amazon.com/bedrock/pricing/")
     print("=" * width)
     print()
-    print("  Step 9 question: At 10,000 tickets per day, what is the")
+    print("  Step 8 question: At 10,000 tickets per day, what is the")
     print("  monthly cost difference between Sonnet and Haiku?")
     print("  Is that difference worth the quality gap you observed?")
     print()
