@@ -380,16 +380,29 @@ The script already has `return {` and its closing `}`. Paste this between them, 
 
 A comparison that stops at the first failure is not much of a comparison. If one model is not enabled in your account, you still want results from the other two.
 
-Find `TODO 3` inside `invoke_model()`. Wrap the `client.invoke_model` call in a `try` and `except` that catches `ClientError`, and return a dict on failure rather than raising:
+Find `TODO 3` inside `invoke_model()`. You will wrap the `client.invoke_model` call in a `try` and `except` that catches `ClientError`, and return a dict on failure rather than raising. The AWS error code is at `e.response["Error"]["Code"]`.
+
+> **⚠️ Replace, do not insert.** Notepad does not indent for you, and `try` and `except` must sit at exactly the same indent. Select the whole block below and replace it, rather than typing around the existing lines.
+
+**Select everything from `# TODO 3` down to the closing `)` of the invoke call:**
 
 ```python
-{"model_id": model_id, "error_code": <code>, "error": <message>}
+    # TODO 3: Return errors as data instead of letting them stop the run.
+    # Wrap the client.invoke_model call below in try / except ClientError.
+    # On failure, return a dict instead of raising:
+    #     {"model_id": model_id, "error_code": <code>, "error": <message>}
+    # The AWS error code is at e.response["Error"]["Code"].
+    # This is the same error-as-data pattern you will use in Lab 3.
+    response = client.invoke_model(
+        modelId=model_id,
+        contentType="application/json",
+        accept="application/json",
+        body=body
+    )
 ```
 
-The AWS error code is at `e.response["Error"]["Code"]`.
-
 <details>
-<summary>Expected structure</summary>
+<summary>Replace it with this</summary>
 
 ```python
     try:
@@ -406,6 +419,8 @@ The AWS error code is at `e.response["Error"]["Code"]`.
             "error":      e.response["Error"]["Message"],
         }
 ```
+
+Both `try` and `except` sit four spaces in, level with `start = time.time()` on the line above. If Python reports `unexpected indent`, one of them has picked up extra spaces.
 </details>
 
 **Now break it on purpose.** Change one entry in `MODELS` to an invalid ID, for example drop the `us.` prefix from Sonnet so it reads `anthropic.claude-sonnet-5-5`. Run the script.
