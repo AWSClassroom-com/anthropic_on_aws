@@ -30,7 +30,7 @@ By completing this lab, you will:
 
 ## Prerequisites
 
-- [ ] AWS login completed (`aws login` done, `aws sts get-caller-identity` returns your account)
+- [ ] AWS SSO sign-in completed in Lab 1 (`aws configure sso` and `aws sso login` done, `aws sts get-caller-identity` returns your account)
 - [ ] Terminal access on your workstation
 
 > ## ⚠️ REGION: us-east-1 (N. Virginia) ONLY
@@ -65,7 +65,7 @@ $env:AWS_REGION="us-east-1"
 aws sts get-caller-identity
 ```
 
-**Expected result:** Your account ID and IAM user ARN. If this fails, run `aws login` and complete the browser prompt before continuing.
+**Expected result:** Your account ID and an `assumed-role` ARN. If this fails, run `aws sso login` and complete the browser prompt before continuing.
 
 ### Step 2: Install Claude Code
 
@@ -148,7 +148,7 @@ claude
 4. **How do you authenticate to AWS?** Select **1. AWS profile (SSO or named profile)**.
 5. **AWS profile.** Select **1. default**.
 6. **AWS region.** Type `us-east-1` and press Enter.
-7. **Verification.** The wizard confirms your IAM user and lists available inference profiles. Select **1. Continue**.
+7. **Verification.** The wizard confirms your identity and lists available inference profiles. Select **1. Continue**.
 8. **Pin model versions.** Read the models shown before selecting.
 
    > **Are you in us-east-1?** If the Sonnet model shown is `us.anthropic.claude-sonnet-5-5`, select **1. Pin the working models** and continue to step 9.
@@ -157,9 +157,9 @@ claude
 9. **Confirm and save.** Select **1. Save**.
 10. **Press Enter** to restart Claude Code
 
-> **SSO session expiry:** SSO sessions last approximately 8 hours. If Claude Code stops working, run `aws sso login --profile default` and Claude Code picks up the refreshed credentials automatically.
+> **SSO session expiry:** SSO sessions last approximately 8 hours. If Claude Code stops working, run `aws sso login` and Claude Code picks up the refreshed credentials automatically.
 
-> **Troubleshooting:** If verification fails, run `aws sts get-caller-identity`. If that fails, run `aws login` and relaunch.
+> **Troubleshooting:** If verification fails, run `aws sts get-caller-identity`. If that fails, run `aws sso login` and relaunch.
 
 ### Step 5: Verify Bedrock is Active
 
@@ -197,7 +197,7 @@ claude --resume lab2-session
 claude --resume lab2-session
 ```
 
-> **Why this matters:** If your SSO session expires mid-lab, run `aws sso login --profile default` in a new terminal, then `claude --resume lab2-session` to return exactly where you left off.
+> **Why this matters:** If your SSO session expires mid-lab, run `aws sso login` in a new terminal, then `claude --resume lab2-session` to return exactly where you left off.
 
 ### Step 7: (Informational) Approve File and Command Permissions
 

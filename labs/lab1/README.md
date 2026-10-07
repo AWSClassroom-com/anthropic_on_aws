@@ -9,7 +9,7 @@
 
 - [ ] Modules 1 and 2 lecture completed
 - [ ] ROI Virtual Classroom VM available and running (Ask your instructor for your access credentials for RVC)
-- [ ] AWS credentials received from your instructor
+- [ ] AWS SSO credentials received from your instructor
 
 > ## ⚠️ REGION: us-east-1 (N. Virginia) ONLY
 >
@@ -19,21 +19,77 @@
 
 ## Part 1: Setup
 
-### Step 1: Log In to AWS
+### Step 1: Sign In to AWS
 
-Your instructor has shared AWS credentials in the course chat. Use them to log in now.
+Signing in has two parts. First you authenticate to the AWS access portal in a browser, then you connect the AWS CLI in your terminal. Both use the same SSO credentials your instructor supplied.
 
-Run the following command in your terminal (Windows Command Prompt):
+#### Part A: Sign in to the AWS access portal
+
+1. Sign in to your RVC virtual machine with the SSO credentials your instructor supplied.
+2. Inside the VM, open Google Chrome and go to **https://roi.awsapps.com/start/**
+3. Enter the same credentials. You are redirected to the AWS access portal, which lists your account under the **AWS Accounts** card.
+4. Select the account name to expand it, then click the **AnthropicClassroomUser** link.
+5. You are signed in to the AWS console.
+
+**Expected result:** an authenticated AWS console with your account active. If you land anywhere else, stop and ask your instructor before continuing.
+
+#### Part B: Configure the AWS CLI for SSO
+
+Part A authenticates the browser. Your terminal needs its own session, and before it can sign in, the CLI has to know where your SSO portal lives. You do this once.
 
 ```bash
-aws login
+aws configure sso
 ```
 
-A browser window opens. Enter the username and password your instructor provided and complete the login.
+Answer the prompts:
 
-If the browser does not open automatically, the terminal will display a URL and a code. Open the URL manually, enter the code, and complete the login with your instructor credentials. If there is a delay of more than 2-3 seconds during authentication, refresh the browser screen (just the local VM browser, not the entire VM session browser) and you should see a successful authentication message.
+| Prompt | Answer |
+|--------|--------|
+| SSO session name (Recommended) | `AnthropicUser` |
+| SSO start URL [None] | `https://roi.awsapps.com/start/` |
+| SSO region [None] | `us-east-1` |
+| SSO registration scopes [sso:account:access] | leave blank, press Enter |
 
-Once login is complete, return to your terminal and verify the connection:
+A browser tab opens and asks **Allow botocore-client-AnthropicUser to access your data?** Click the orange **Allow access** button.
+
+A confirmation screen reads "Your credentials have been shared successfully and can be used until your session expires." Close that tab and return to your terminal.
+
+The CLI then finds your account and role automatically and asks three more questions:
+
+| Prompt | Answer |
+|--------|--------|
+| Default client Region [None] | `us-east-1` |
+| CLI default output format (json if not specified) [None] | `json` |
+| Profile name [AnthropicClassroomUser-...] | **type `default`** |
+
+> ## ⚠️ Type `default` at the profile name prompt
+>
+> Do not press Enter to accept the suggested name. The suggested name contains your AWS account number, which is different for every student, and it is not the profile the lab scripts look for.
+>
+> Every Python script in these labs creates its boto3 client without naming a profile, which means they all read the `default` profile. The Claude Code setup in Lab 2 and the `sam deploy` in Lab 3 expect it too. Name the profile `default` here and everything downstream works with no extra flags.
+>
+> **Already pressed Enter?** Run `aws configure sso` again and type `default` at the profile name prompt. It is safe to run more than once.
+
+**Expected result:** the CLI reports the account and role it selected, then confirms:
+
+```
+The AWS CLI is now configured to use the default profile.
+Run the following command to verify your configuration:
+
+aws sts get-caller-identity
+```
+
+If that last line instead shows `aws sts get-caller-identity --profile AnthropicClassroomUser-...`, the profile name did not take. Run `aws configure sso` again and type `default` at the profile name prompt.
+
+#### Part C: Sign in to the CLI
+
+```bash
+aws sso login
+```
+
+If the browser does not open on its own, the terminal prints a URL and a code. Open the URL, enter the code, and complete the sign-in. If authentication pauses for more than two or three seconds, refresh the browser tab inside the VM, not the VM session window itself, and the success message appears.
+
+Confirm the CLI is connected:
 
 ```bash
 aws sts get-caller-identity
@@ -42,13 +98,21 @@ aws sts get-caller-identity
 **Expected result:**
 ```json
 {
-    "UserId": "AIDA...",
-    "Account": "your-acct-num-here",
-    "Arn": "arn:aws:iam::your-acct-num-here:user/your-username"
+    "UserId": "AROA3FSDOKSIM3Z7Q5TFY:yourname@awsclassroom.com",
+    "Account": "123456789012",
+    "Arn": "arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_AnthropicClassroomUser_1282bfbd9a140ecb/yourname@awsclassroom.com"
 }
 ```
 
-> **Login failed or browser did not open?** Ask your instructor for assistance before continuing. Every step in this lab requires valid AWS credentials.
+Your account number, user name, and the suffix on the role name will differ. The shape is what matters.
+
+> **The ARN says `assumed-role`, not `user`.** SSO signs you in to a role rather than to an IAM user, so the ARN looks different from a long-lived access key. This is expected.
+
+> **`Unable to locate credentials`?** The profile is not named `default`. Re-run `aws configure sso` and type `default` at the profile name prompt. As a one-off check you can add `--profile AnthropicClassroomUser-<your-account-number>` to the command, but the lab scripts cannot use that, so fix the profile name rather than working around it.
+
+> **Sign-in failed, or the browser did not open?** Ask your instructor before continuing. Every step in this lab needs valid AWS credentials.
+
+> **SSO sessions expire after about 8 hours.** If commands start failing later in the day with an expired token error, run `aws sso login` again. You only run `aws configure sso` once, so a later sign-in is a single command.
 
 ---
 
@@ -157,7 +221,7 @@ python scripts/check_setup.py
 =======================================================
 ```
 
-> **S3 access denied?** Your IAM user may be missing S3 read permissions. Ask your instructor.
+> **S3 access denied?** Your SSO role may be missing S3 read permissions. Ask your instructor.
 > **0 documents found?** The S3 bucket path may differ from the script default. Ask your instructor for the correct bucket name and prefix.
 
 ---
@@ -501,7 +565,7 @@ python scripts\verify_knowledge_base.py
 
 > **Status shows anything other than ACTIVE?** Ask your instructor. The shared Knowledge Base may still be provisioning.
 
-> **AccessDeniedException?** Your IAM user may be missing `bedrock-agent-runtime:*` permissions. Ask your instructor.
+> **AccessDeniedException?** Your SSO role may be missing `bedrock-agent-runtime:*` permissions. Ask your instructor.
 
 
 
