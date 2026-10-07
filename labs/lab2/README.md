@@ -385,7 +385,7 @@ The plan implementation produced your project files. Part 3 has three goals: ver
 
 ### Step 12: Verify the Generated Code Against CLAUDE.md
 
-Open the generated file (or files) in the text editor of your choice. Read through the code and confirm each of the following CLAUDE.md rules is satisfied:
+Open the generated file (or files) in Notepad (PC) or TextEdit (Mac). Read through the code and confirm each of the following CLAUDE.md rules is satisfied:
 
 - Type hints on all parameters and return types
 - Bedrock Invoke API used, not the Messages API

@@ -265,7 +265,7 @@ Now you will do the same thing in code across all three Claude models and captur
 
 ### Step 3: Open the Comparison Script
 
-Open `scripts/compare_models.py` from the lab directory in your text editor of choice. The script is partially complete. You will find two clearly marked sections to fill in.
+Open `scripts/compare_models.py` from the lab directory in Notepad (PC) or TextEdit (Mac). The script is partially complete. You will find three clearly marked sections to fill in, commented `TODO 1`, `TODO 2` and `TODO 3`.
 
 The script structure:
 
@@ -314,7 +314,7 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
 
 ### Step 4: Complete the MODELS Dict
 
-Fill in the `MODELS` dict with the correct inference profile IDs for all three models. Use the format shown below for Sonnet as your guide:
+Find the commented `TODO 1` and fill in the `MODELS` dict with the correct inference profile IDs for all three models. Use the format shown below for Sonnet as your guide:
 
 ```python
 MODELS = {
@@ -341,7 +341,7 @@ MODELS = {
 
 ### Step 5: Complete the Return Dict
 
-Fill in the `TODO` section inside `invoke_model()`. The function should return a dict containing:
+Find the commented `TODO 2` inside `invoke_model()` and fill in the section. The function should return a dict containing:
 
 - `model_id` - the model string passed in
 - `response_text` - the text content of Claude's reply
@@ -514,7 +514,7 @@ This is the production pattern. Developers consume an existing Knowledge Base ra
 
 Your instructor shared a Knowledge Base ID in the course chat. It is a string of letters and numbers such as `ABCDEF1234`.
 
-Open `.env` in your editor. It is at `anthropic_on_aws/labs/lab1/.env`.
+Open `.env` in Notepad (PC) or TextEdit (Mac). It is at `anthropic_on_aws/labs/lab1/.env`.
 
 If the file does not exist, create it with the name `.env` within the \lab1 folder. In Windows Explorer, choose the VIEW options and select SHOW > FILE NAME EXTENSIONS to ensure your new file does not have a .txt file extension (it should be named `.env`, not `.env.txt`)
 

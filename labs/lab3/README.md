@@ -52,7 +52,7 @@ pip install -r requirements.txt
 copy .env.template .env
 ```
 
-Open `.env` in your editor and set `KNOWLEDGE_BASE_ID` to the value from Lab 1 (provided by your Instructor). Leave `GUARDRAIL_ID` empty for now. You will add it in Part 3.
+Open `.env` in Notepad (PC) or TextEdit (Mac) and set `KNOWLEDGE_BASE_ID` to the value from Lab 1 (provided by your Instructor). Leave `GUARDRAIL_ID` empty for now. You will add it in Part 3.
 
 > **Pre-flight check:** Run `aws sts get-caller-identity` to confirm your AWS credentials are working before starting.
 
@@ -121,7 +121,7 @@ labs/lab3/
 
 ### Step 1: Examine the Pre-Built Tool Definitions
 
-Open `src/services/tools.py` in your editor and review the `TOOLS` list:
+Open `src/services/tools.py` in Notepad (PC) or TextEdit (Mac) and review the `TOOLS` list:
 
 ```python
 TOOLS = [
@@ -492,7 +492,7 @@ Then open the guardrail you just created. In the **Versions** section, click **C
 
 ### Step 8: Configure Guardrail in Your Environment
 
-Open `.env` in your editor and add:
+Open `.env` in Notepad (PC) or TextEdit (Mac) and add:
 
 ```bash
 GUARDRAIL_ID=abc123def456

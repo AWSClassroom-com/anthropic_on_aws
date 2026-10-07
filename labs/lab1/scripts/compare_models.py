@@ -69,8 +69,7 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
     result = json.loads(response["body"].read())
  
     return {
-    #TODO 2
-    # Add model response return DICT here
+    # TODO 2: Add the model response return dict here
 
 }
  
