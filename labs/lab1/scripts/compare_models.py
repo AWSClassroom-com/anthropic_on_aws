@@ -2,9 +2,10 @@
 Lab 1: Model Comparison Script
 Anthropic Models on AWS Bedrock
  
-Students complete two TODO sections:
+Students complete three TODO sections:
 1. Fill in the MODELS dict with inference profile IDs
 2. Complete the return dict in invoke_model()
+3. Add error handling so a failed model does not stop the comparison
  
 Run: python scripts/compare_models.py
 """
@@ -12,14 +13,17 @@ Run: python scripts/compare_models.py
 import boto3
 import json
 import time
+
+from botocore.exceptions import ClientError
  
 REGION = "us-east-1"
  
-# TODO: Add the three model IDs here
-# Use inference profile format: us.anthropic.claude-[model]
+# TODO 1: Add the three model IDs here
+# Newer models use a short inference profile ID: us.anthropic.claude-[model]
+# Older models keep a dated, versioned ID. Haiku 4.5 is one of them.
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
-    # Add Opus 4.6 and Haiku 4.5 here
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    # Add Opus 5.5 and Haiku 4.5 here
 }
  
 PROMPT = """A customer says: "I ordered three items two weeks ago and only two arrived.
@@ -31,9 +35,9 @@ Respond in JSON only."""
  
 # Pricing per million tokens -- verify at https://aws.amazon.com/bedrock/pricing/
 PRICING = {
-    "us.anthropic.claude-sonnet-4-6":               {"input": 3.00,  "output": 15.00},
-    "us.anthropic.claude-opus-4-6-v1":              {"input": 15.00, "output": 75.00},
-    "us.anthropic.claude-haiku-4-5-20251001-v1:0":  {"input": 0.80,  "output": 4.00},
+    "us.anthropic.claude-sonnet-5-5":               {"input": 2.00,  "output": 10.00},
+    "us.anthropic.claude-opus-5-5":                 {"input": 4.00,  "output": 20.00},
+    "us.anthropic.claude-haiku-4-5-20251001-v1:0":  {"input": 1.00,  "output": 5.00},
 }
  
  
@@ -47,6 +51,13 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
     })
  
     start = time.time()
+
+    # TODO 3: Return errors as data instead of letting them stop the run.
+    # Wrap the client.invoke_model call below in try / except ClientError.
+    # On failure, return a dict instead of raising:
+    #     {"model_id": model_id, "error_code": <code>, "error": <message>}
+    # The AWS error code is at e.response["Error"]["Code"].
+    # This is the same error-as-data pattern you will use in Lab 3.
     response = client.invoke_model(
         modelId=model_id,
         contentType="application/json",
@@ -196,10 +207,17 @@ def main():
                 print(f"  ERROR: invoke_model returned None for {name}.")
                 print("  Complete Step 5 -- add the return dict to invoke_model().")
                 return
+            if "error" in result:
+                print(f"  SKIPPED {name}: {result.get('error_code', '')} {result['error']}")
+                continue
             results.append(result)
         except Exception as e:
             print(f"  ERROR invoking {name}: {type(e).__name__}: {e}")
-            return
+            continue
+ 
+    if not results:
+        print("No models returned a result. Check the errors above.")
+        return
  
     print_results(results)
     cost_projection(results)

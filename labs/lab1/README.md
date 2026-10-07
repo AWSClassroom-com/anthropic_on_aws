@@ -1,7 +1,7 @@
 # Lab 1: Claude on Bedrock with RAG
 
 **Course:** Anthropic Models on AWS Bedrock
-**Duration:** 45 minutes
+**Duration:** 55 minutes
 
 ---
 
@@ -172,7 +172,7 @@ Before writing code, spend a few minutes in the Bedrock console. This gives you 
 2. **Confirm you are in the us-east-1 (N. Virginia) region.** Check the region selector in the top-right corner. This is not optional. The shared Knowledge Base and every model you invoke in this lab only exist in this region.
 3. In the left sidebar under **Test**, click **Playground**.
 4. Click the orange **Select model** button.
-5. In the model picker, select **Anthropic**, then **Claude Sonnet 4.6**, then choose the **US** inference profile.
+5. In the model picker, select **Anthropic**, then **Claude Sonnet 5.5**, then choose the **US** inference profile.
 6. Click **Apply**.
 
 ### Step 2: Run One Prompt and Observe
@@ -254,20 +254,22 @@ Fill in the `MODELS` dict with the correct inference profile IDs for all three m
 
 ```python
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
-    # Add Opus 4.6 and Haiku 4.5 here
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    # Add Opus 5.5 and Haiku 4.5 here
 }
 ```
 
-> **Why the `us.` prefix matters:** Claude 4 models on Bedrock require cross-region inference profile IDs, not direct model IDs. Using `anthropic.claude-sonnet-4-6` without the prefix returns a `ValidationException`. This is the inference profile format for US regions.
+> **Why the `us.` prefix matters:** Claude models on Bedrock require a cross-region inference profile ID, not a bare model ID. Calling `anthropic.claude-sonnet-5-5` without the prefix returns a `ValidationException`. The `us.` prefix routes across US regions.
+
+> **Two ID formats, both current.** Newer models use a short ID with no date, such as `us.anthropic.claude-sonnet-5-5`. Older models keep a dated, versioned ID. Haiku 4.5 is one of them, so its ID is `us.anthropic.claude-haiku-4-5-20251001-v1:0`. You will use both in this exercise. Check the model card if you are unsure which form a model takes.
 
 <details>
 <summary>Model IDs for reference</summary>
 
 ```python
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
-    "Opus 4.6":   "us.anthropic.claude-opus-4-6-v1",
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    "Opus 5.5":   "us.anthropic.claude-opus-5-5",
     "Haiku 4.5":  "us.anthropic.claude-haiku-4-5-20251001-v1:0",
 }
 ```
@@ -304,7 +306,45 @@ return {
 **Why divide by 1,000,000:** Pricing is quoted per million tokens. Dividing converts individual token counts to the fraction of a million you actually used.
 </details>
 
-### Step 6: Run the Comparison
+### Step 6: Return Errors as Data
+
+A comparison that stops at the first failure is not much of a comparison. If one model is not enabled in your account, you still want results from the other two.
+
+Find `TODO 3` inside `invoke_model()`. Wrap the `client.invoke_model` call in a `try` and `except` that catches `ClientError`, and return a dict on failure rather than raising:
+
+```python
+{"model_id": model_id, "error_code": <code>, "error": <message>}
+```
+
+The AWS error code is at `e.response["Error"]["Code"]`.
+
+<details>
+<summary>Expected structure</summary>
+
+```python
+    try:
+        response = client.invoke_model(
+            modelId=model_id,
+            contentType="application/json",
+            accept="application/json",
+            body=body
+        )
+    except ClientError as e:
+        return {
+            "model_id":   model_id,
+            "error_code": e.response["Error"]["Code"],
+            "error":      e.response["Error"]["Message"],
+        }
+```
+</details>
+
+**Now break it on purpose.** Change one entry in `MODELS` to an invalid ID, for example drop the `us.` prefix from Sonnet so it reads `anthropic.claude-sonnet-5-5`. Run the script.
+
+**Expected result:** that model is reported as SKIPPED with a `ValidationException`, and the other two still return results and a cost comparison. Restore the correct ID before continuing.
+
+> **This is the error-as-data pattern.** Lab 3 uses the same idea for tool execution. A tool that fails returns an error Claude can read and respond to, rather than raising an exception that ends the request. Getting it right here means it is already familiar later.
+
+### Step 7: Run the Comparison
 
 **macOS/Linux:**
 ```bash
@@ -322,33 +362,33 @@ python scripts/compare_models.py
 Model Comparison Results (your results may vary)
 ============================================================
 
-Sonnet 4.6
+Sonnet 5.5
   Response:      {"sentiment": "negative", "priority": "high", ...}
   Input tokens:  76
   Output tokens: 179
   Latency:       3986 ms
-  Cost:          $0.002913
+  Cost:          $0.001942
 
-Opus 4.6
+Opus 5.5
   Response:      {"sentiment": "negative", "priority": "high", ...}
   Input tokens:  76
   Output tokens: 67
   Latency:       2080 ms
-  Cost:          $0.006165
+  Cost:          $0.001644
 
 Haiku 4.5
   Response:      {"sentiment": "negative", "priority": "high", ...}
   Input tokens:  76
   Output tokens: 52
   Latency:       1027 ms
-  Cost:          $0.000269
+  Cost:          $0.000336
 
 ============================================================
 ```
 
 > **Troubleshooting:** If you see `ValidationException`, check that your model IDs use the `us.` prefix. If you see `AccessDeniedException`, verify model access is enabled in the Bedrock console under **Model access**.
 
-### Step 7: Analyze the Results
+### Step 8: Analyze the Results
 
 Look at your output and answer these questions before moving on:
 
@@ -362,7 +402,7 @@ Look at your output and answer these questions before moving on:
 
 ## Part 3: Cost Calculation
 
-### Step 8: Review the Cost Projections
+### Step 9: Review the Cost Projections
 
 The script calculated production-scale cost projections from your actual token counts and printed them after the model comparison results. Find the Cost Projections table in your terminal output.
 
@@ -375,14 +415,16 @@ It looks something like this (your numbers may vary):
 
   Model         Tokens/req    10k/day/mo    100k/day/mo
   ------------  ----------  ------------  -------------
-  Sonnet 4.6           251       $855.90      $8,559.00
-  Opus 4.6             152     $2,052.00     $20,520.00
-  Haiku 4.5            128        $80.70        $807.00
+  Sonnet 5.5           255       $582.60      $5,826.00
+  Opus 5.5             143       $493.20      $4,932.00
+  Haiku 4.5            128       $100.80      $1,008.00
 
   Formula: cost_per_request x daily_volume x 30 days
   Verify current rates: https://aws.amazon.com/bedrock/pricing/
 ============================================================
 ```
+
+> **Notice what happened to Opus.** In this sample run Opus costs less per month than Sonnet, even though its token rate is twice as high. Opus answered in 67 output tokens where Sonnet used 179. Output tokens are billed at five times the input rate on every current model, so response length moves the bill as much as model choice does. Your own run will differ. Read the token counts before you read the rates.
 
 > **Your numbers will differ** from the example above based on the actual token counts in your run. The formula the script used is:
 >
@@ -390,9 +432,9 @@ It looks something like this (your numbers may vary):
 
 > **Current pricing:** The `PRICING` dict in `compare_models.py` reflects rates at time of writing. Verify at https://aws.amazon.com/bedrock/pricing/ before making production cost decisions.
 
-### Step 9: The Model Selection Decision
+### Step 10: The Model Selection Decision
 
-Based on your calculations, answer: at 10,000 tickets per day, what is the monthly cost difference between Sonnet and Haiku? Is that difference worth the quality gap you observed in Step 7?
+Based on your calculations, answer: at 10,000 tickets per day, what is the monthly cost difference between Sonnet and Haiku? Is that difference worth the quality gap you observed in Step 8?
 
 There is no single right answer. The point is that you now have the data to make the decision rather than guessing.
 
@@ -404,7 +446,7 @@ Your instructor has created a shared Knowledge Base loaded with sample e-commerc
 
 This is the production pattern. Developers consume an existing Knowledge Base rather than provisioning their own infrastructure. Your job is to connect to it and run queries against it.
 
-### Step 10: Add the Knowledge Base ID to Your Environment
+### Step 11: Add the Knowledge Base ID to Your Environment
 
 Your instructor shared a Knowledge Base ID in the course chat. It is a string of letters and numbers such as `ABCDEF1234`.
 
@@ -422,7 +464,7 @@ Replace `ABCDEF1234` with the actual ID shared by your instructor in the course 
 
 ---
 
-### Step 11: Verify the Knowledge Base
+### Step 12: Verify the Knowledge Base
 
 Confirm you can access the shared Knowledge Base:
 
@@ -470,7 +512,7 @@ python scripts\verify_knowledge_base.py
 > $env:PYTHONIOENCODING="utf-8"
 > ```
 
-### Step 12: Run Your First Query
+### Step 13: Run Your First Query
 
 With the KB active and documents synced, run a query against it:
 
@@ -514,7 +556,7 @@ Citations:
   [3] warranty-coverage.txt (score: 0.39)
 ```
 
-### Step 13: Verify Citation Accuracy
+### Step 14: Verify Citation Accuracy
 
 Look at the citations returned. Ask yourself:
 
@@ -527,7 +569,7 @@ Relevance scores range from 0 to 1. Higher scores mean the chunk matched your qu
 
 > **Citations are not decoration.** In production applications, especially regulated ones, citations are the audit trail. A high-quality RAG system traces every claim to a source. If you cannot verify a claim against its citation, the system is hallucinating.
 
-### Step 14: Test Query Phrasing
+### Step 15: Test Query Phrasing
 
 Run the same underlying question two ways and compare results:
 
@@ -559,7 +601,7 @@ Look at the citation scores for each. The specific query should return higher sc
 
 > **Why this matters in production:** Users ask vague questions. Your application should preprocess or expand queries before sending them to the retrieval layer. You will implement this pattern in Lab 3.
 
-### Step 15: Test the Boundaries
+### Step 16: Test the Boundaries
 
 Run a query about something not in the documents:
 

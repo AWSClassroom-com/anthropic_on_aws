@@ -12,15 +12,15 @@ This course teaches developers and cloud practitioners to deploy Anthropic's Cla
 
 ### Lab 1: Claude on Bedrock with RAG
 
-**Duration:** 45 minutes | [Open the lab](labs/lab1/)
+**Duration:** 55 minutes | [Open the lab](labs/lab1/)
 
-You invoke Claude Opus 4.6, Sonnet 4.6, and Haiku 4.5 through the Amazon Bedrock InvokeModel API using boto3, comparing how each model classifies the same customer support ticket. You then pull token counts and latency out of the API responses, calculate the real per-invocation cost, and project it to production volumes, so that choosing a model becomes a measured decision rather than a guess. The lab closes on Amazon Bedrock Knowledge Bases, where you query a shared knowledge base with `retrieve_and_generate` and verify that every claim in Claude's answer traces back to a cited source document.
+You invoke Claude Opus 5.5, Sonnet 5.5, and Haiku 4.5 through the Amazon Bedrock InvokeModel API using boto3, comparing how each model classifies the same customer support ticket. You then pull token counts and latency out of the API responses, calculate the real per-invocation cost, and project it to production volumes, so that choosing a model becomes a measured decision rather than a guess. The lab closes on Amazon Bedrock Knowledge Bases, where you query a shared knowledge base with `retrieve_and_generate` and verify that every claim in Claude's answer traces back to a cited source document.
 
 ### Lab 2: Claude Code on Bedrock
 
-**Duration:** 75 minutes | [Open the lab](labs/lab2/)
+**Duration:** 86 minutes | [Open the lab](labs/lab2/)
 
-You install Claude Code, connect it to Amazon Bedrock through your AWS profile, and pin the exact inference profiles it will call. The lab works through Plan mode with Claude Opus for architectural decisions and Claude Sonnet for execution, which is how you control cost by matching the model to the task, then through CLAUDE.md and skills, which are plain files you commit to git so that an entire team inherits the same conventions and procedures. You finish by auditing and fixing a production devcontainer, the configuration that lets Claude Code run autonomously in CI/CD pipelines or regulated environments without exposing your credentials or your filesystem.
+You install Claude Code, connect it to Amazon Bedrock through your AWS profile, and pin the exact inference profiles it will call. The lab works through Plan mode with Claude Opus for architectural decisions and Claude Sonnet for execution, which is how you control cost by matching the model to the task, then through CLAUDE.md, skills, subagents, and an MCP server, which are plain files you commit to git so that an entire team inherits the same conventions, procedures, and tools. You finish by auditing and fixing a production devcontainer, the configuration that lets Claude Code run autonomously in CI/CD pipelines or regulated environments without exposing your credentials or your filesystem.
 
 ### Lab 3: Production Tool Use and Guardrails with Claude
 
