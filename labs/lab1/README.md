@@ -349,7 +349,7 @@ MODELS = {
 Find the commented `TODO 2` inside `invoke_model()` and fill in the section. The `return {` and its closing `}` are already written for you, so you are adding only the dict contents. The function should return a dict containing:
 
 - `model_id` - the model string passed in
-- `response_text` - the text content of Claude's reply
+- `response_text` - the text content of Claude's reply, found by type rather than position
 - `input_tokens` - from `result["usage"]["input_tokens"]`
 - `output_tokens` - from `result["usage"]["output_tokens"]`
 - `latency_ms` - already calculated above
@@ -362,7 +362,9 @@ The script already has `return {` and its closing `}`. Paste this between them, 
 
 ```python
     "model_id":      model_id,
-    "response_text": result["content"][0]["text"],
+    "response_text": next(
+        b["text"] for b in result["content"] if b.get("type") == "text"
+    ),
     "input_tokens":  result["usage"]["input_tokens"],
     "output_tokens": result["usage"]["output_tokens"],
     "latency_ms":    latency_ms,
@@ -371,6 +373,8 @@ The script already has `return {` and its closing `}`. Paste this between them, 
         result["usage"]["output_tokens"] * PRICING[model_id]["output"]
     ) / 1_000_000
 ```
+
+**Why search for the text block:** Claude 5.x models think before they answer, so `content[0]` is often a thinking block rather than the reply. Indexing position 0 raises `KeyError: 'text'` on those models. Selecting by `type` works whether or not a thinking block is present.
 
 **Why divide by 1,000,000:** Pricing is quoted per million tokens. Dividing converts individual token counts to the fraction of a million you actually used.
 </details>

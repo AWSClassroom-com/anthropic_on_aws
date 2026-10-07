@@ -21,7 +21,7 @@ from pathlib import Path
 from dotenv import load_dotenv
  
 REGION = "us-east-1"
-MODEL_ID = "us.anthropic.claude-sonnet-4-6"
+MODEL_ID = "us.anthropic.claude-sonnet-5-5"
 ENV_FILE = Path(__file__).parent.parent / ".env"
 MAX_RESULTS = 5
  
@@ -85,14 +85,19 @@ Answer:"""
     })
  
     response = bedrock.invoke_model(
-        modelId=f"us.anthropic.claude-sonnet-4-6",
+        modelId=MODEL_ID,
         contentType="application/json",
         accept="application/json",
         body=body
     )
  
     result = json.loads(response["body"].read())
-    return result["content"][0]["text"]
+
+    # Claude 5.x models think before answering, so content[0] can be a
+    # thinking block. Pick the text block by type rather than by position.
+    return next(
+        b["text"] for b in result["content"] if b.get("type") == "text"
+    )
  
  
 def build_citations(chunks: list) -> list:
