@@ -29,8 +29,11 @@ PROMPT = """A customer says: "I ordered three items two weeks ago and only two a
 The third item shows as delivered but it is not here. I want a refund
 for the missing item immediately and I am very frustrated."
  
-Classify this ticket: sentiment, priority, recommended action.
-Respond in JSON only."""
+Classify this ticket. Respond with JSON only, no preamble and no extra fields.
+Use exactly these three keys:
+  "sentiment"           one of: positive, neutral, negative
+  "priority"            one of: low, medium, high
+  "recommended_action"  a single short sentence"""
  
 # Pricing per million tokens -- verify at https://aws.amazon.com/bedrock/pricing/
 PRICING = {
@@ -45,7 +48,7 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
  
     body = json.dumps({
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 512,
+        "max_tokens": 1024,
         "messages": [{"role": "user", "content": prompt}]
     })
  

@@ -248,8 +248,11 @@ A customer says: "I ordered three items two weeks ago and only two arrived.
 The third item shows as delivered but it is not here. I want a refund
 for the missing item immediately and I am very frustrated."
 
-Classify this ticket: sentiment, priority, recommended action.
-Respond in JSON only.
+Classify this ticket. Respond with JSON only, no preamble and no extra fields.
+Use exactly these three keys:
+  "sentiment"           one of: positive, neutral, negative
+  "priority"            one of: low, medium, high
+  "recommended_action"  a single short sentence
 ```
 
 8. Click **Run** and observe the response.
@@ -459,7 +462,7 @@ It looks something like this (your numbers may vary):
 ============================================================
 ```
 
-> **Notice what happened to Opus.** In this sample run Opus costs less per month than Sonnet, even though its token rate is twice as high. Opus answered in 67 output tokens where Sonnet used 179. Output tokens are billed at five times the input rate on every current model, so response length moves the bill as much as model choice does. Your own run will differ. Read the token counts before you read the rates.
+> **Read the token counts, not just the rates.** Output tokens bill at five times the input rate on every current model, so how much a model writes moves the bill as much as which model you pick. That is why the prompt pins the response to three fields. Without that constraint the larger models answer at length, which costs more and can exceed `max_tokens` and truncate the JSON. Your own numbers will differ from the sample.
 
 > **Your numbers will differ** from the example above based on the actual token counts in your run. The formula the script used is:
 >
