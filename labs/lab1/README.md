@@ -386,7 +386,7 @@ The script already has `return {` and its closing `}`. Paste this between them, 
 
 **macOS/Linux:**
 ```bash
-python compare_models.py
+python scripts/compare_models.py
 ```
 
 **Windows (PowerShell):**
@@ -631,12 +631,12 @@ Run the same underlying question two ways and compare results:
 
 **macOS/Linux:**
 ```bash
-python query_knowledge_base.py --query "How do I return something?"
+python scripts/query_knowledge_base.py --query "How do I return something?"
 ```
 
 **Windows (PowerShell):**
 ```powershell
-python query_knowledge_base.py --query "How do I return something?"
+python scripts/query_knowledge_base.py --query "How do I return something?"
 ```
 
 **Specific:**

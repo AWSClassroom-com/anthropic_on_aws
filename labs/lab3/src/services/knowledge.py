@@ -87,8 +87,10 @@ class KnowledgeService:
             response = self.client.retrieve(
                 knowledgeBaseId=self.knowledge_base_id,
                 retrievalQuery={'text': query},
+                # Managed knowledge bases take managedSearchConfiguration.
+                # A self-managed vector store takes vectorSearchConfiguration.
                 retrievalConfiguration={
-                    'vectorSearchConfiguration': {
+                    'managedSearchConfiguration': {
                         'numberOfResults': max_results
                     }
                 }

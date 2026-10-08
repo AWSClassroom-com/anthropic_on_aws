@@ -110,12 +110,23 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del in
 
 The Claude Code installer does not automatically add the executable to your PATH to avoid unintended shell override issues. On Windows, you need to add it manually so the `claude` command is available in any terminal session.
 
+The installer tells you to do this through System Properties. The commands below do the same thing without leaving the terminal.
+
 **Windows (PowerShell):**
 ```powershell
-[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\.local\bin", "User")
+$bin = "$env:USERPROFILE\.local\bin"
+$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($userPath -notlike "*$bin*") {
+    [Environment]::SetEnvironmentVariable("Path", "$userPath;$bin", "User")
+    "Added $bin to your user PATH."
+} else {
+    "$bin is already on your user PATH."
+}
 ```
 
-**Close and reopen your terminal** after running this command. This writes to the permanent user environment variables, but the change only takes effect in new terminal sessions.
+**Close and reopen your terminal** after running this. The change is written permanently but only applies to new terminal sessions.
+
+> **Why read the User path rather than `$env:Path`.** `$env:Path` is the machine PATH and your user PATH merged together. Writing that merged value back into the user scope copies every machine entry into your user PATH, duplicating them. Reading `GetEnvironmentVariable("Path", "User")` touches only your own entries. The `if` check also means the command is safe to run twice.
 
 > **⚠️ Do not use `setx` for this.** `setx` truncates the value it writes at 1,024 characters. It prints a one-line warning when this happens, but it's easy to miss in a scrolling terminal, and the dropped characters can break other tools that depend on the entries that got cut off. On a machine with a typical developer PATH, the combined system and user PATH is often already close to that limit. The command above has no such limit.
 
@@ -445,10 +456,12 @@ and returns True if the model is accessible in us-east-1, False otherwise.
 ### Step 15: Add Tests
 
 ```
-Write unit tests for both functions in bedrock_client.py. Mock the boto3 client.
+Write unit tests for both functions you created. Mock the boto3 client.
 ```
 
-**Expected Result:** If you plan did not include instructions to create tests, Claude Code creates a test file with unit tests for both functions.
+**Expected Result:** If your plan did not already include tests, Claude Code creates a test file covering both functions.
+
+> **The prompt does not name a file on purpose.** Your plan may have produced a single module, or a package split across several files. Claude Code knows what it built, so describing the code is more reliable than naming a file that may not exist in your layout.
 
 > **Note:** Claude Code creates the test file. It may or may not run the tests automatically, so watch the output and follow any prompts if it asks for approval to run a bash command.
 
@@ -460,7 +473,7 @@ Write unit tests for both functions in bedrock_client.py. Mock the boto3 client.
 >
 > The pattern: commit working tests, then ask for the refactor. If the refactor breaks something, revert to the last commit and try a different approach.
 >
-> In your own environment, the commit command would be `git add . && git commit -m "Add unit tests for invoke_claude and query_knowledge_base"`.
+> In your own environment, the commit command would be `git add . && git commit -m "Add unit tests for the invocation and knowledge base functions"`.
 
 ### Step 17: Interrupt and Steer
 
@@ -469,7 +482,7 @@ You are about to submit two requests back to back. The second one interrupts the
 First request (submit this):
 
 ```
-Refactor the invoke_claude function to use async/await
+Refactor the model invocation function to use async/await
 ```
 
 Second request (submit this immediately after, without waiting for the first to finish):
@@ -501,7 +514,7 @@ Run tests after implementing.
 ### Step 19: Delegate, Don't Dictate
 
 ```
-The invoke_claude function should handle rate limiting from Bedrock.
+The model invocation function should handle rate limiting from Bedrock.
 When we hit ThrottlingException, it should wait and retry. Can you add this?
 ```
 
@@ -625,6 +638,16 @@ Give it read-only tools. It must not edit files.
 
 **Expected Result:** Claude Code creates `.claude/agents/bedrock-reviewer.md` with frontmatter naming the agent, describing when to use it, and listing its allowed tools.
 
+**Restart Claude Code before using it.** Subagent definitions are read at startup, so the agent you just created is not available in the session that wrote it.
+
+```
+/exit
+```
+
+```
+claude --resume lab2-session
+```
+
 Now invoke it:
 
 ```
@@ -638,6 +661,16 @@ Use the bedrock-reviewer subagent to review the code you generated earlier
 ### Step 24: Add an MCP Server
 
 MCP, the Model Context Protocol, is how Claude Code reaches tools and data it does not ship with. A server exposes tools over a simple protocol, and Claude Code calls them like any other tool. You will have Claude Code build one, then use it.
+
+**First, install the SDK.** Do this in a normal terminal, not inside Claude Code.
+
+```powershell
+python -m pip install mcp
+```
+
+> **⚠️ Install it before you build the server.** Claude Code launches the server as its own process and does not inherit a virtualenv you activated in your shell. If `mcp` is missing from the interpreter Claude Code starts, the server exits on its first import and you get `Failed to reconnect: CONNECTION_CLOSED`, which looks like a broken config rather than a missing package.
+
+Now, back in Claude Code:
 
 ```
 Create a minimal MCP server at mcp_server/bedrock_info.py using the Python
@@ -671,7 +704,15 @@ Confirm it connected:
 Use the list_bedrock_models tool to show which Claude models I can call
 ```
 
-> **⚠️ If the MCP SDK will not install:** some training VMs block outbound pip. If `pip install mcp` fails, skip the restart and the live call. Open `.mcp.json` and the server file and read them instead. The registration pattern is the transferable part, and it is identical for a production server.
+> **If it still shows `CONNECTION_CLOSED`:** the server is exiting at startup. Run it directly to see the real error, since Claude Code swallows it. A healthy stdio server sits silently waiting for input.
+>
+> ```powershell
+> python mcp_server\bedrock_info.py
+> ```
+>
+> A `ModuleNotFoundError` means `mcp` is missing from the interpreter `.mcp.json` names. Check what it points at with `type .mcp.json`, and either install `mcp` for that interpreter or set `command` to the full path of one that has it.
+
+> **If outbound pip is blocked:** some training VMs do not allow it. Skip the restart and the live call, and read `.mcp.json` and the server file instead. The registration pattern is the transferable part and it is identical for a production server.
 
 > **Why this matters:** MCP is how a team gives Claude Code access to internal systems, a ticketing queue, a service catalogue, an internal API. The server you built is trivial, but committing `.mcp.json` to git gives every teammate the same tool set on their next session.
 

@@ -45,8 +45,11 @@ def retrieve_chunks(query: str, kb_id: str, client) -> list:
     response = client.retrieve(
         knowledgeBaseId=kb_id,
         retrievalQuery={"text": query},
+        # The shared Knowledge Base is a managed knowledge base, so it takes
+        # managedSearchConfiguration. A self-managed vector store would take
+        # vectorSearchConfiguration instead, with the same numberOfResults key.
         retrievalConfiguration={
-            "vectorSearchConfiguration": {
+            "managedSearchConfiguration": {
                 "numberOfResults": MAX_RESULTS
             }
         }
