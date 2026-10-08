@@ -21,7 +21,7 @@ Parameters:
 
   ModelId:
     Type: String
-    Default: "us.anthropic.claude-sonnet-4-6"
+    Default: "us.anthropic.claude-sonnet-5-5"
     Description: "Bedrock model ID to use for chat (must be a cross-region inference profile ID, prefixed with us.)"
 
 # ── Globals ────────────────────────────────────────────────────────────────────

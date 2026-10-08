@@ -9,7 +9,7 @@
 
 - [ ] Modules 1 and 2 lecture completed
 - [ ] ROI Virtual Classroom VM available and running (Ask your instructor for your access credentials for RVC)
-- [ ] AWS credentials received from your instructor
+- [ ] AWS SSO credentials received from your instructor
 
 > ## ⚠️ REGION: us-east-1 (N. Virginia) ONLY
 >
@@ -19,21 +19,77 @@
 
 ## Part 1: Setup
 
-### Step 1: Log In to AWS
+### Step 1: Sign In to AWS
 
-Your instructor has shared AWS credentials in the course chat. Use them to log in now.
+Signing in has two parts. First you authenticate to the AWS access portal in a browser, then you connect the AWS CLI in your terminal. Both use the same SSO credentials your instructor supplied.
 
-Run the following command in your terminal (Windows Command Prompt):
+#### Part A: Sign in to the AWS access portal
+
+1. Sign in to your RVC virtual machine with the SSO credentials your instructor supplied.
+2. Inside the VM, open Google Chrome and go to **https://roi.awsapps.com/start/**
+3. Enter the same credentials. You are redirected to the AWS access portal, which lists your account under the **AWS Accounts** card.
+4. Select the account name to expand it, then click the **AnthropicClassroomUser** link.
+5. You are signed in to the AWS console.
+
+**Expected result:** an authenticated AWS console with your account active. If you land anywhere else, stop and ask your instructor before continuing.
+
+#### Part B: Configure the AWS CLI for SSO
+
+Part A authenticates the browser. Your terminal needs its own session, and before it can sign in, the CLI has to know where your SSO portal lives. You do this once.
 
 ```bash
-aws login
+aws configure sso
 ```
 
-A browser window opens. Enter the username and password your instructor provided and complete the login.
+Answer the prompts:
 
-If the browser does not open automatically, the terminal will display a URL and a code. Open the URL manually, enter the code, and complete the login with your instructor credentials. If there is a delay of more than 2-3 seconds during authentication, refresh the browser screen (just the local VM browser, not the entire VM session browser) and you should see a successful authentication message.
+| Prompt | Answer |
+|--------|--------|
+| SSO session name (Recommended) | `AnthropicUser` |
+| SSO start URL [None] | `https://roi.awsapps.com/start/` |
+| SSO region [None] | `us-east-1` |
+| SSO registration scopes [sso:account:access] | leave blank, press Enter |
 
-Once login is complete, return to your terminal and verify the connection:
+A browser tab opens and asks **Allow botocore-client-AnthropicUser to access your data?** Click the orange **Allow access** button.
+
+A confirmation screen reads "Your credentials have been shared successfully and can be used until your session expires." Close that tab and return to your terminal.
+
+The CLI then finds your account and role automatically and asks three more questions:
+
+| Prompt | Answer |
+|--------|--------|
+| Default client Region [None] | `us-east-1` |
+| CLI default output format (json if not specified) [None] | `json` |
+| Profile name [AnthropicClassroomUser-...] | **type `default`** |
+
+> ## ⚠️ Type `default` at the profile name prompt
+>
+> Do not press Enter to accept the suggested name. The suggested name contains your AWS account number, which is different for every student, and it is not the profile the lab scripts look for.
+>
+> Every Python script in these labs creates its boto3 client without naming a profile, which means they all read the `default` profile. The Claude Code setup in Lab 2 and the `sam deploy` in Lab 3 expect it too. Name the profile `default` here and everything downstream works with no extra flags.
+>
+> **Already pressed Enter?** Run `aws configure sso` again and type `default` at the profile name prompt. It is safe to run more than once.
+
+**Expected result:** the CLI reports the account and role it selected, then confirms:
+
+```
+The AWS CLI is now configured to use the default profile.
+Run the following command to verify your configuration:
+
+aws sts get-caller-identity
+```
+
+If that last line instead shows `aws sts get-caller-identity --profile AnthropicClassroomUser-...`, the profile name did not take. Run `aws configure sso` again and type `default` at the profile name prompt.
+
+#### Part C: Sign in to the CLI
+
+```bash
+aws sso login
+```
+
+If the browser does not open on its own, the terminal prints a URL and a code. Open the URL, enter the code, and complete the sign-in. If authentication pauses for more than two or three seconds, refresh the browser tab inside the VM, not the VM session window itself, and the success message appears.
+
+Confirm the CLI is connected:
 
 ```bash
 aws sts get-caller-identity
@@ -42,13 +98,21 @@ aws sts get-caller-identity
 **Expected result:**
 ```json
 {
-    "UserId": "AIDA...",
-    "Account": "your-acct-num-here",
-    "Arn": "arn:aws:iam::your-acct-num-here:user/your-username"
+    "UserId": "AROA3FSDOKSIM3Z7Q5TFY:yourname@awsclassroom.com",
+    "Account": "123456789012",
+    "Arn": "arn:aws:sts::123456789012:assumed-role/AWSReservedSSO_AnthropicClassroomUser_1282bfbd9a140ecb/yourname@awsclassroom.com"
 }
 ```
 
-> **Login failed or browser did not open?** Ask your instructor for assistance before continuing. Every step in this lab requires valid AWS credentials.
+Your account number, user name, and the suffix on the role name will differ. The shape is what matters.
+
+> **The ARN says `assumed-role`, not `user`.** SSO signs you in to a role rather than to an IAM user, so the ARN looks different from a long-lived access key. This is expected.
+
+> **`Unable to locate credentials`?** The profile is not named `default`. Re-run `aws configure sso` and type `default` at the profile name prompt. As a one-off check you can add `--profile AnthropicClassroomUser-<your-account-number>` to the command, but the lab scripts cannot use that, so fix the profile name rather than working around it.
+
+> **Sign-in failed, or the browser did not open?** Ask your instructor before continuing. Every step in this lab needs valid AWS credentials.
+
+> **SSO sessions expire after about 8 hours.** If commands start failing later in the day with an expired token error, run `aws sso login` again. You only run `aws configure sso` once, so a later sign-in is a single command.
 
 ---
 
@@ -157,7 +221,7 @@ python scripts/check_setup.py
 =======================================================
 ```
 
-> **S3 access denied?** Your IAM user may be missing S3 read permissions. Ask your instructor.
+> **S3 access denied?** Your SSO role may be missing S3 read permissions. Ask your instructor.
 > **0 documents found?** The S3 bucket path may differ from the script default. Ask your instructor for the correct bucket name and prefix.
 
 ---
@@ -172,7 +236,7 @@ Before writing code, spend a few minutes in the Bedrock console. This gives you 
 2. **Confirm you are in the us-east-1 (N. Virginia) region.** Check the region selector in the top-right corner. This is not optional. The shared Knowledge Base and every model you invoke in this lab only exist in this region.
 3. In the left sidebar under **Test**, click **Playground**.
 4. Click the orange **Select model** button.
-5. In the model picker, select **Anthropic**, then **Claude Sonnet 4.6**, then choose the **US** inference profile.
+5. In the model picker, select **Anthropic**, then **Claude Sonnet 5.5**, then choose the **US** inference profile.
 6. Click **Apply**.
 
 ### Step 2: Run One Prompt and Observe
@@ -184,8 +248,11 @@ A customer says: "I ordered three items two weeks ago and only two arrived.
 The third item shows as delivered but it is not here. I want a refund
 for the missing item immediately and I am very frustrated."
 
-Classify this ticket: sentiment, priority, recommended action.
-Respond in JSON only.
+Classify this ticket. Respond with JSON only, no preamble and no extra fields.
+Use exactly these three keys:
+  "sentiment"           one of: positive, neutral, negative
+  "priority"            one of: low, medium, high
+  "recommended_action"  a single short sentence
 ```
 
 8. Click **Run** and observe the response.
@@ -201,7 +268,7 @@ Now you will do the same thing in code across all three Claude models and captur
 
 ### Step 3: Open the Comparison Script
 
-Open `scripts/compare_models.py` from the lab directory in your text editor of choice. The script is partially complete. You will find two clearly marked sections to fill in.
+Open `scripts/compare_models.py` from the lab directory in Notepad (PC) or TextEdit (Mac). The script is partially complete. You will find two clearly marked sections to fill in, commented `TODO 1` and `TODO 2`.
 
 The script structure:
 
@@ -210,16 +277,21 @@ import boto3
 import json
 import time
 
+from botocore.exceptions import ClientError
+
+# TODO 1: Add the three model IDs here
 MODELS = {
-    # TODO: Add the three model IDs here
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    # Add Opus 5.5 and Haiku 4.5 here
 }
 
 PROMPT = """A customer says: "I ordered three items two weeks ago and only two arrived.
-The third item shows as delivered but it is not here. I want a refund
-for the missing item immediately and I am very frustrated."
+..."""
 
-Classify this ticket: sentiment, priority, recommended action.
-Respond in JSON only."""
+PRICING = {
+    # already filled in for you
+}
+
 
 def invoke_model(client, model_id: str, prompt: str) -> dict:
     body = json.dumps({
@@ -229,45 +301,47 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
     })
 
     start = time.time()
-    response = client.invoke_model(
-        modelId=model_id,
-        contentType="application/json",
-        accept="application/json",
-        body=body
-    )
+
+    try:
+        response = client.invoke_model(...)
+    except ClientError as e:
+        # errors are returned as data, already written for you
+        ...
+
     latency_ms = round((time.time() - start) * 1000)
 
     result = json.loads(response["body"].read())
 
     return {
-        # TODO: Return a dict with model_id, response text, input_tokens,
-        # output_tokens, latency_ms, and cost_usd
-        # Hint: response text is at result["content"][0]["text"]
-        # Hint: token counts are at result["usage"]["input_tokens"] and ["output_tokens"]
-        # Hint: calculate cost using the PRICING dict defined below
-    }
-```
+    # TODO 2: Add the model response return dict here
 
-### Step 4: Complete the MODELS Dict
-
-Fill in the `MODELS` dict with the correct inference profile IDs for all three models. Use the format shown below for Sonnet as your guide:
-
-```python
-MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
-    # Add Opus 4.6 and Haiku 4.5 here
 }
 ```
 
-> **Why the `us.` prefix matters:** Claude 4 models on Bedrock require cross-region inference profile IDs, not direct model IDs. Using `anthropic.claude-sonnet-4-6` without the prefix returns a `ValidationException`. This is the inference profile format for US regions.
+You complete the two TODOs in order: `TODO 1` in Step 4 and `TODO 2` in Step 5.
+
+### Step 4: Complete the MODELS Dict
+
+Find the commented `TODO 1` and fill in the `MODELS` dict with the correct inference profile IDs for all three models. Use the format shown below for Sonnet as your guide:
+
+```python
+MODELS = {
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    # Add Opus 5.5 and Haiku 4.5 here
+}
+```
+
+> **Why the `us.` prefix matters:** Claude models on Bedrock require a cross-region inference profile ID, not a bare model ID. Calling `anthropic.claude-sonnet-5-5` without the prefix returns a `ValidationException`. The `us.` prefix routes across US regions.
+
+> **Two ID formats, both current.** Newer models use a short ID with no date, such as `us.anthropic.claude-sonnet-5-5`. Older models keep a dated, versioned ID. Haiku 4.5 is one of them, so its ID is `us.anthropic.claude-haiku-4-5-20251001-v1:0`. You will use both in this exercise. Check the model card if you are unsure which form a model takes.
 
 <details>
 <summary>Model IDs for reference</summary>
 
 ```python
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
-    "Opus 4.6":   "us.anthropic.claude-opus-4-6-v1",
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    "Opus 5.5":   "us.anthropic.claude-opus-5-5",
     "Haiku 4.5":  "us.anthropic.claude-haiku-4-5-20251001-v1:0",
 }
 ```
@@ -275,22 +349,25 @@ MODELS = {
 
 ### Step 5: Complete the Return Dict
 
-Fill in the `TODO` section inside `invoke_model()`. The function should return a dict containing:
+Find the commented `TODO 2` inside `invoke_model()` and fill in the section. The `return {` and its closing `}` are already written for you, so you are adding only the dict contents. The function should return a dict containing:
 
 - `model_id` - the model string passed in
-- `response_text` - the text content of Claude's reply
+- `response_text` - the text content of Claude's reply, found by type rather than position
 - `input_tokens` - from `result["usage"]["input_tokens"]`
 - `output_tokens` - from `result["usage"]["output_tokens"]`
 - `latency_ms` - already calculated above
 - `cost_usd` - calculated using the `PRICING` dict already defined in the script
 
 <details>
-<summary>Expected return dict structure</summary>
+<summary>Expected contents of the return dict</summary>
+
+The script already has `return {` and its closing `}`. Paste this between them, replacing the `TODO 2` comment line.
 
 ```python
-return {
     "model_id":      model_id,
-    "response_text": result["content"][0]["text"],
+    "response_text": next(
+        b["text"] for b in result["content"] if b.get("type") == "text"
+    ),
     "input_tokens":  result["usage"]["input_tokens"],
     "output_tokens": result["usage"]["output_tokens"],
     "latency_ms":    latency_ms,
@@ -298,8 +375,9 @@ return {
         result["usage"]["input_tokens"]  * PRICING[model_id]["input"]  +
         result["usage"]["output_tokens"] * PRICING[model_id]["output"]
     ) / 1_000_000
-}
 ```
+
+**Why search for the text block:** Claude 5.x models think before they answer, so `content[0]` is often a thinking block rather than the reply. Indexing position 0 raises `KeyError: 'text'` on those models. Selecting by `type` works whether or not a thinking block is present.
 
 **Why divide by 1,000,000:** Pricing is quoted per million tokens. Dividing converts individual token counts to the fraction of a million you actually used.
 </details>
@@ -308,7 +386,7 @@ return {
 
 **macOS/Linux:**
 ```bash
-python compare_models.py
+python scripts/compare_models.py
 ```
 
 **Windows (PowerShell):**
@@ -322,26 +400,26 @@ python scripts/compare_models.py
 Model Comparison Results (your results may vary)
 ============================================================
 
-Sonnet 4.6
+Sonnet 5.5
   Response:      {"sentiment": "negative", "priority": "high", ...}
   Input tokens:  76
   Output tokens: 179
   Latency:       3986 ms
-  Cost:          $0.002913
+  Cost:          $0.001942
 
-Opus 4.6
+Opus 5.5
   Response:      {"sentiment": "negative", "priority": "high", ...}
   Input tokens:  76
   Output tokens: 67
   Latency:       2080 ms
-  Cost:          $0.006165
+  Cost:          $0.001644
 
 Haiku 4.5
   Response:      {"sentiment": "negative", "priority": "high", ...}
   Input tokens:  76
   Output tokens: 52
   Latency:       1027 ms
-  Cost:          $0.000269
+  Cost:          $0.000336
 
 ============================================================
 ```
@@ -375,14 +453,16 @@ It looks something like this (your numbers may vary):
 
   Model         Tokens/req    10k/day/mo    100k/day/mo
   ------------  ----------  ------------  -------------
-  Sonnet 4.6           251       $855.90      $8,559.00
-  Opus 4.6             152     $2,052.00     $20,520.00
-  Haiku 4.5            128        $80.70        $807.00
+  Sonnet 5.5           255       $582.60      $5,826.00
+  Opus 5.5             143       $493.20      $4,932.00
+  Haiku 4.5            128       $100.80      $1,008.00
 
   Formula: cost_per_request x daily_volume x 30 days
   Verify current rates: https://aws.amazon.com/bedrock/pricing/
 ============================================================
 ```
+
+> **Read the token counts, not just the rates.** Output tokens bill at five times the input rate on every current model, so how much a model writes moves the bill as much as which model you pick. That is why the prompt pins the response to three fields. Without that constraint the larger models answer at length, which costs more and can exceed `max_tokens` and truncate the JSON. Your own numbers will differ from the sample.
 
 > **Your numbers will differ** from the example above based on the actual token counts in your run. The formula the script used is:
 >
@@ -392,9 +472,25 @@ It looks something like this (your numbers may vary):
 
 ### Step 9: The Model Selection Decision
 
-Based on your calculations, answer: at 10,000 tickets per day, what is the monthly cost difference between Sonnet and Haiku? Is that difference worth the quality gap you observed in Step 7?
+Look back at your own output from Step 7 and answer three questions.
 
-There is no single right answer. The point is that you now have the data to make the decision rather than guessing.
+**1. Did the models disagree?** Compare the three classifications. On a well-specified task like this one, they usually agree. If yours did, that is the finding, not a failure of the exercise.
+
+**2. What does Haiku cost against Sonnet?** Read the two monthly figures from the projection table. The gap is normally close to an order of magnitude for the same answer.
+
+**3. Why do Sonnet and Opus cost so much more alike than their rates suggest?** Opus charges double Sonnet's input and output rate, yet the monthly figures often land close together. Look at the output token counts before you answer.
+
+<details>
+<summary>What the third question is getting at</summary>
+
+Cost is rate multiplied by tokens, and the models differ on both. A model charging half as much per token can cost the same or more if it writes twice as much. In testing, Sonnet 5.5 produced 627 output tokens on one ticket where Opus 5.5 produced 288, which cancelled out the rate difference almost exactly.
+
+Two things follow. The rate card does not tell you the bill, only a measured run does. And constraining the response, as the prompt in this lab does by naming exactly three keys, is a cost lever as real as changing model.
+
+There is a third effect you can see in your own numbers. Claude 4.7 and later use a newer tokenizer that produces roughly 30 percent more tokens for the same text, so Haiku 4.5 reports fewer input tokens than Sonnet 5.5 for an identical prompt. Haiku's advantage is larger than the published rates alone suggest.
+</details>
+
+There is no single right answer to the decision itself. The point is that you now have measured data rather than a guess, and you know which three things move the number.
 
 ---
 
@@ -408,7 +504,7 @@ This is the production pattern. Developers consume an existing Knowledge Base ra
 
 Your instructor shared a Knowledge Base ID in the course chat. It is a string of letters and numbers such as `ABCDEF1234`.
 
-Open `.env` in your editor. It is at `anthropic_on_aws/labs/lab1/.env`.
+Open `.env` in Notepad (PC) or TextEdit (Mac). It is at `anthropic_on_aws/labs/lab1/.env`.
 
 If the file does not exist, create it with the name `.env` within the \lab1 folder. In Windows Explorer, choose the VIEW options and select SHOW > FILE NAME EXTENSIONS to ensure your new file does not have a .txt file extension (it should be named `.env`, not `.env.txt`)
 
@@ -459,7 +555,7 @@ python scripts\verify_knowledge_base.py
 
 > **Status shows anything other than ACTIVE?** Ask your instructor. The shared Knowledge Base may still be provisioning.
 
-> **AccessDeniedException?** Your IAM user may be missing `bedrock-agent-runtime:*` permissions. Ask your instructor.
+> **AccessDeniedException?** Your SSO role may be missing `bedrock-agent-runtime:*` permissions. Ask your instructor.
 
 
 
@@ -535,12 +631,12 @@ Run the same underlying question two ways and compare results:
 
 **macOS/Linux:**
 ```bash
-python query_knowledge_base.py --query "How do I return something?"
+python scripts/query_knowledge_base.py --query "How do I return something?"
 ```
 
 **Windows (PowerShell):**
 ```powershell
-python query_knowledge_base.py --query "How do I return something?"
+python scripts/query_knowledge_base.py --query "How do I return something?"
 ```
 
 **Specific:**

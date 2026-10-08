@@ -1,7 +1,7 @@
 # Lab 2: Claude Code on Bedrock
 
 **Course:** Anthropic Models on AWS Bedrock
-**Duration:** 75 minutes
+**Duration:** 86 minutes
 
 ---
 
@@ -23,14 +23,14 @@ By completing this lab, you will:
 4. Scaffold and iterate on a Bedrock integration using agentic workflows
 5. Understand how to use git safely with AI-generated code
 6. Manage session context using /compact and /clear
-7. Create a reusable Claude Code skill
+7. Extend Claude Code with a skill, a subagent, and an MCP server
 8. Inspect, audit, and improve a production devcontainer configuration
 
 ---
 
 ## Prerequisites
 
-- [ ] AWS login completed (`aws login` done, `aws sts get-caller-identity` returns your account)
+- [ ] AWS SSO sign-in completed in Lab 1 (`aws configure sso` and `aws sso login` done, `aws sts get-caller-identity` returns your account)
 - [ ] Terminal access on your workstation
 
 > ## ⚠️ REGION: us-east-1 (N. Virginia) ONLY
@@ -65,7 +65,7 @@ $env:AWS_REGION="us-east-1"
 aws sts get-caller-identity
 ```
 
-**Expected result:** Your account ID and IAM user ARN. If this fails, run `aws login` and complete the browser prompt before continuing.
+**Expected result:** Your account ID and an `assumed-role` ARN. If this fails, run `aws sso login` and complete the browser prompt before continuing.
 
 ### Step 2: Install Claude Code
 
@@ -110,12 +110,23 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del in
 
 The Claude Code installer does not automatically add the executable to your PATH to avoid unintended shell override issues. On Windows, you need to add it manually so the `claude` command is available in any terminal session.
 
+The installer tells you to do this through System Properties. The commands below do the same thing without leaving the terminal.
+
 **Windows (PowerShell):**
 ```powershell
-[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\.local\bin", "User")
+$bin = "$env:USERPROFILE\.local\bin"
+$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($userPath -notlike "*$bin*") {
+    [Environment]::SetEnvironmentVariable("Path", "$userPath;$bin", "User")
+    "Added $bin to your user PATH."
+} else {
+    "$bin is already on your user PATH."
+}
 ```
 
-**Close and reopen your terminal** after running this command. This writes to the permanent user environment variables, but the change only takes effect in new terminal sessions.
+**Close and reopen your terminal** after running this. The change is written permanently but only applies to new terminal sessions.
+
+> **Why read the User path rather than `$env:Path`.** `$env:Path` is the machine PATH and your user PATH merged together. Writing that merged value back into the user scope copies every machine entry into your user PATH, duplicating them. Reading `GetEnvironmentVariable("Path", "User")` touches only your own entries. The `if` check also means the command is safe to run twice.
 
 > **⚠️ Do not use `setx` for this.** `setx` truncates the value it writes at 1,024 characters. It prints a one-line warning when this happens, but it's easy to miss in a scrolling terminal, and the dropped characters can break other tools that depend on the entries that got cut off. On a machine with a typical developer PATH, the combined system and user PATH is often already close to that limit. The command above has no such limit.
 
@@ -148,18 +159,18 @@ claude
 4. **How do you authenticate to AWS?** Select **1. AWS profile (SSO or named profile)**.
 5. **AWS profile.** Select **1. default**.
 6. **AWS region.** Type `us-east-1` and press Enter.
-7. **Verification.** The wizard confirms your IAM user and lists available inference profiles. Select **1. Continue**.
+7. **Verification.** The wizard confirms your identity and lists available inference profiles. Select **1. Continue**.
 8. **Pin model versions.** Read the models shown before selecting.
 
-   > **Are you in us-east-1?** If the Sonnet model shown is `us.anthropic.claude-sonnet-4-6`, select **1. Pin the working models** and continue to step 9.
+   > **Are you in us-east-1?** If the Sonnet model shown is `us.anthropic.claude-sonnet-5-5`, select **1. Pin the working models** and continue to step 9.
 
-   > **Not in us-east-1, or Sonnet shows a different version?** Select **3. Choose different models...** and update Sonnet to `us.anthropic.claude-sonnet-4-6`. Confirm the existing Opus and Haiku models are unchanged. You are returned to the same screen. Now select **1. Pin the working models**.
+   > **Not in us-east-1, or Sonnet shows a different version?** Select **3. Choose different models...** and update Sonnet to `us.anthropic.claude-sonnet-5-5`. Confirm the existing Opus and Haiku models are unchanged. You are returned to the same screen. Now select **1. Pin the working models**.
 9. **Confirm and save.** Select **1. Save**.
 10. **Press Enter** to restart Claude Code
 
-> **SSO session expiry:** SSO sessions last approximately 8 hours. If Claude Code stops working, run `aws sso login --profile default` and Claude Code picks up the refreshed credentials automatically.
+> **SSO session expiry:** SSO sessions last approximately 8 hours. If Claude Code stops working, run `aws sso login` and Claude Code picks up the refreshed credentials automatically.
 
-> **Troubleshooting:** If verification fails, run `aws sts get-caller-identity`. If that fails, run `aws login` and relaunch.
+> **Troubleshooting:** If verification fails, run `aws sts get-caller-identity`. If that fails, run `aws sso login` and relaunch.
 
 ### Step 5: Verify Bedrock is Active
 
@@ -175,7 +186,7 @@ Now confirm the actual model string:
 /model
 ```
 
-**Expected result:** The full inference profile ID such as `us.anthropic.claude-sonnet-4-6`. The Claude Code screen shows a human-readable label but `/model` shows the actual string sent to Bedrock. Use `/model` any time you need to confirm the exact model in use.
+**Expected result:** The full inference profile ID such as `us.anthropic.claude-sonnet-5-5`. The Claude Code screen shows a human-readable label but `/model` shows the actual string sent to Bedrock. Use `/model` any time you need to confirm the exact model in use.
 
 > **If /status shows the Anthropic API instead of Bedrock:** Type `/logout`, relaunch `claude`, and select option 3 (3rd-party platform) at the login method screen.
 
@@ -197,7 +208,7 @@ claude --resume lab2-session
 claude --resume lab2-session
 ```
 
-> **Why this matters:** If your SSO session expires mid-lab, run `aws sso login --profile default` in a new terminal, then `claude --resume lab2-session` to return exactly where you left off.
+> **Why this matters:** If your SSO session expires mid-lab, run `aws sso login` in a new terminal, then `claude --resume lab2-session` to return exactly where you left off.
 
 ### Step 7: (Informational) Approve File and Command Permissions
 
@@ -385,7 +396,7 @@ The plan implementation produced your project files. Part 3 has three goals: ver
 
 ### Step 12: Verify the Generated Code Against CLAUDE.md
 
-Open the generated file (or files) in the text editor of your choice. Read through the code and confirm each of the following CLAUDE.md rules is satisfied:
+Open the generated file (or files) in Notepad (PC) or TextEdit (Mac). Read through the code and confirm each of the following CLAUDE.md rules is satisfied:
 
 - Type hints on all parameters and return types
 - Bedrock Invoke API used, not the Messages API
@@ -445,10 +456,12 @@ and returns True if the model is accessible in us-east-1, False otherwise.
 ### Step 15: Add Tests
 
 ```
-Write unit tests for both functions in bedrock_client.py. Mock the boto3 client.
+Write unit tests for both functions you created. Mock the boto3 client.
 ```
 
-**Expected Result:** If you plan did not include instructions to create tests, Claude Code creates a test file with unit tests for both functions.
+**Expected Result:** If your plan did not already include tests, Claude Code creates a test file covering both functions.
+
+> **The prompt does not name a file on purpose.** Your plan may have produced a single module, or a package split across several files. Claude Code knows what it built, so describing the code is more reliable than naming a file that may not exist in your layout.
 
 > **Note:** Claude Code creates the test file. It may or may not run the tests automatically, so watch the output and follow any prompts if it asks for approval to run a bash command.
 
@@ -460,7 +473,7 @@ Write unit tests for both functions in bedrock_client.py. Mock the boto3 client.
 >
 > The pattern: commit working tests, then ask for the refactor. If the refactor breaks something, revert to the last commit and try a different approach.
 >
-> In your own environment, the commit command would be `git add . && git commit -m "Add unit tests for invoke_claude and query_knowledge_base"`.
+> In your own environment, the commit command would be `git add . && git commit -m "Add unit tests for the invocation and knowledge base functions"`.
 
 ### Step 17: Interrupt and Steer
 
@@ -469,7 +482,7 @@ You are about to submit two requests back to back. The second one interrupts the
 First request (submit this):
 
 ```
-Refactor the invoke_claude function to use async/await
+Refactor the model invocation function to use async/await
 ```
 
 Second request (submit this immediately after, without waiting for the first to finish):
@@ -501,7 +514,7 @@ Run tests after implementing.
 ### Step 19: Delegate, Don't Dictate
 
 ```
-The invoke_claude function should handle rate limiting from Bedrock.
+The model invocation function should handle rate limiting from Bedrock.
 When we hit ThrottlingException, it should wait and retry. Can you add this?
 ```
 
@@ -535,7 +548,7 @@ In production, unmanaged context leads to higher costs and eventually to Claude 
 
 ### Step 21: Compact Your Context
 
-You have completed the core build. This is a natural point to summarize accumulated context before moving to the devcontainer work.
+You have completed the core build. This is a natural point to summarize accumulated context before moving on.
 
 ```
 /compact Focus on the functions we built, the CLAUDE.md standards, and the test coverage. Discard the planning discussion.
@@ -551,7 +564,7 @@ You have completed the core build. This is a natural point to summarize accumula
 
 ---
 
-## Part 6: Skills
+## Part 6: Extending Claude Code
 
 ### Concept: Skills as Reusable Playbooks
 
@@ -560,6 +573,8 @@ CLAUDE.md defines conventions. Skills define procedures.
 A skill is a `SKILL.md` file that gives Claude Code a detailed playbook for a specific task. When the skill is relevant, Claude Code loads it automatically. You can also invoke any skill directly with a `/slash-command`.
 
 Skills persist across sessions and can be committed to git so the whole team shares the same playbooks. They load only when used, so long reference material costs nothing until needed.
+
+This part covers the three file-based ways to extend Claude Code. A **skill** changes how Claude Code does something inside your session. A **subagent** does work in a separate context and reports back. An **MCP server** gives Claude Code tools it does not ship with. All three are files you commit to git, so the whole team inherits them.
 
 ### Step 22: Create a Bedrock Debug Skill
 
@@ -606,6 +621,101 @@ Verify the skill is available:
 > | Token cost | Every request | Only when used |
 > | Best for | "Always use type hints" | "When debugging Bedrock, do this..." |
 
+### Step 23: Create a Subagent
+
+A skill is a playbook Claude Code follows in your session. A subagent is a separate instance with its own context window, its own tool permissions, and its own instructions. Use one when work would otherwise fill your main context, or when a task should be restricted in what it can touch.
+
+```
+Create a project subagent at .claude/agents/bedrock-reviewer.md.
+
+It should review Python files that call Amazon Bedrock and report:
+- Model IDs missing the us. inference profile prefix
+- Hardcoded credentials or region strings
+- Missing error handling around invoke_model calls
+
+Give it read-only tools. It must not edit files.
+```
+
+**Expected Result:** Claude Code creates `.claude/agents/bedrock-reviewer.md` with frontmatter naming the agent, describing when to use it, and listing its allowed tools.
+
+**Restart Claude Code before using it.** Subagent definitions are read at startup, so the agent you just created is not available in the session that wrote it.
+
+```
+/exit
+```
+
+```
+claude --resume lab2-session
+```
+
+Now invoke it:
+
+```
+Use the bedrock-reviewer subagent to review the code you generated earlier
+```
+
+**Expected Result:** The subagent runs in its own context and reports findings back. Your main conversation does not fill with the file contents it read.
+
+> **Subagent or skill?** A skill changes how Claude Code works in your session. A subagent does the work elsewhere and returns a result. Reach for a subagent when the task is read-heavy, when you want an opinion uninfluenced by your conversation so far, or when you want to restrict tools for one specific job.
+
+### Step 24: Add an MCP Server
+
+MCP, the Model Context Protocol, is how Claude Code reaches tools and data it does not ship with. A server exposes tools over a simple protocol, and Claude Code calls them like any other tool. You will have Claude Code build one, then use it.
+
+**First, install the SDK.** Do this in a normal terminal, not inside Claude Code.
+
+```powershell
+python -m pip install mcp
+```
+
+> **⚠️ Install it before you build the server.** Claude Code launches the server as its own process and does not inherit a virtualenv you activated in your shell. If `mcp` is missing from the interpreter Claude Code starts, the server exits on its first import and you get `Failed to reconnect: CONNECTION_CLOSED`, which looks like a broken config rather than a missing package.
+
+Now, back in Claude Code:
+
+```
+Create a minimal MCP server at mcp_server/bedrock_info.py using the Python
+MCP SDK. Expose one tool called list_bedrock_models that returns the Claude
+model IDs available in us-east-1 using boto3.
+
+Then create .mcp.json in the project root registering this server over stdio.
+```
+
+**Expected Result:** Claude Code creates the server file and a `.mcp.json` that points at it.
+
+Restart Claude Code so it loads the new server:
+
+```
+/exit
+```
+
+```
+claude --resume lab2-session
+```
+
+Confirm it connected:
+
+```
+/mcp
+```
+
+**Expected Result:** `bedrock-info` appears as a connected server with one tool. Now use it:
+
+```
+Use the list_bedrock_models tool to show which Claude models I can call
+```
+
+> **If it still shows `CONNECTION_CLOSED`:** the server is exiting at startup. Run it directly to see the real error, since Claude Code swallows it. A healthy stdio server sits silently waiting for input.
+>
+> ```powershell
+> python mcp_server\bedrock_info.py
+> ```
+>
+> A `ModuleNotFoundError` means `mcp` is missing from the interpreter `.mcp.json` names. Check what it points at with `type .mcp.json`, and either install `mcp` for that interpreter or set `command` to the full path of one that has it.
+
+> **If outbound pip is blocked:** some training VMs do not allow it. Skip the restart and the live call, and read `.mcp.json` and the server file instead. The registration pattern is the transferable part and it is identical for a production server.
+
+> **Why this matters:** MCP is how a team gives Claude Code access to internal systems, a ticketing queue, a service catalogue, an internal API. The server you built is trivial, but committing `.mcp.json` to git gives every teammate the same tool set on their next session.
+
 ---
 
 ## Part 7: Production Configuration
@@ -628,7 +738,7 @@ It is not appropriate for team environments, CI/CD pipelines, regulated workload
 
 The solution is a development container: an isolated sandbox with a network firewall, sandboxed credentials, and a reproducible environment that every team member gets identically.
 
-### Step 23: Copy the Devcontainer Files
+### Step 25: Copy the Devcontainer Files
 
 ### If you have not cloned the course repo in Lab 1, you'll need to copy the pre-built `.devcontainer/` folder from the course repo into your working directory:
 
@@ -666,30 +776,22 @@ ls .devcontainer\
 
 **Expected result:** Both `devcontainer.json` and `init-firewall.sh` listed.
 
-### Step 24: Inspect the Devcontainer Configuration
+### Step 26: Inspect the Devcontainer and Its Firewall
 
 ```
-Read the files in .devcontainer/ and explain what each one does
-and why it matters for a production Claude Code deployment.
+Read the files in .devcontainer/ and explain what each one does and why it
+matters for a production Claude Code deployment. Then pick one ALLOW rule
+in init-firewall.sh and explain in plain English what traffic it permits
+and what would break if it were removed.
 ```
 
-**Expected Result:** Claude Code reads `devcontainer.json` and `init-firewall.sh` and explains each setting: the sandboxed credential mount, the environment variables, and the firewall initialization script.
+**Expected Result:** Claude Code explains `devcontainer.json` and `init-firewall.sh`, covering the sandboxed credential mount, the environment variables, and the firewall initialization script, then walks through one specific ACCEPT rule.
 
-> **Look for the mounts entry in devcontainer.json.** It points to `~/.aws/sandbox` rather than `~/.aws`. This means the container gets sandbox credentials only. Your production AWS account credentials are never mounted into the container.
-
-### Step 25: Investigate a Firewall Rule
-
-```
-Look at the ALLOW rules in .devcontainer/init-firewall.sh.
-Pick one rule and explain it in plain English. What traffic does
-it allow? What would happen if it were removed?
-```
-
-**Expected Result:** Claude Code explains the selected rule and its purpose. Without the rule, the corresponding service would be unreachable from inside the container.
+> **Look for the mounts entry in devcontainer.json.** It points to `~/.aws/sandbox` rather than `~/.aws`. The container gets sandbox credentials only. Your production AWS account credentials are never mounted into it.
 
 > **Key insight:** Each ACCEPT rule is intentional and minimal. This whitelist approach is what makes `--dangerously-skip-permissions` safe inside a devcontainer. Claude Code can edit files freely but cannot reach arbitrary internet endpoints.
 
-### Step 26: Audit for Security Gaps
+### Step 27: Audit for Security Gaps
 
 ```
 Review .devcontainer/init-firewall.sh for security issues.
@@ -711,7 +813,7 @@ that could expose the host environment?
 
 > **Key learning:** Claude Code functions as a security review tool as well as a code generation tool. Asking it to audit infrastructure before committing to git catches issues across multiple severity levels that a manual review can easily miss.
 
-### Step 27: Fix the Security Issues
+### Step 28: Fix the Security Issues
 
 ```
 Fix the Critical and High security issues you identified in
@@ -721,17 +823,15 @@ and why it addresses the vulnerability.
 
 **Expected Result:** Claude Code updates `init-firewall.sh` addressing the Critical and High findings, explaining each change as it makes it.
 
-### Step 28: Generate the Dockerfile
-
-This step exists to show how easily Claude Code produces a complete, production-shaped Dockerfile from context alone. It is not something you run here. You will not be able to run this Dockerfile in the training environment, so treat it as a real starting point for your own deployment instead.
-
-```
-Generate a Dockerfile that completes the devcontainer configuration
-based on what you read in devcontainer.json. It should be
-production-ready for a Claude Code deployment on Amazon Bedrock.
-```
-
-**Expected Result:** Claude Code generates a `Dockerfile` inside `.devcontainer/` that matches the base image and dependencies referenced in `devcontainer.json`. You now have a complete, corrected devcontainer configuration: the original two files, a fixed `init-firewall.sh`, and this new `Dockerfile`, ready to use in a production deployment.
+> **Take home: generate the Dockerfile.** You have a corrected `init-firewall.sh`, but the configuration is not complete until a `Dockerfile` exists alongside it. Run this in your own environment after class:
+>
+> ```
+> Generate a Dockerfile that completes the devcontainer configuration
+> based on what you read in devcontainer.json. It should be
+> production-ready for a Claude Code deployment on Amazon Bedrock.
+> ```
+>
+> Claude Code produces a `Dockerfile` matching the base image and dependencies in `devcontainer.json`. That gives you the full set: the original two files, a fixed firewall script, and a Dockerfile, ready for a real deployment.
 
 ---
 
@@ -749,7 +849,7 @@ In just over an hour, you moved from setup to a complete, production-patterned C
 
 **Part 5:** Compacted session context at a natural task boundary, a production habit that controls cost and keeps Claude Code focused.
 
-**Part 6:** Created a reusable `/bedrock-debug` skill you will use in Lab 3.
+**Part 6:** Created a reusable `/bedrock-debug` skill you will use in Lab 3, a read-only subagent, and an MCP server.
 
 **Part 7:** Inspected, audited, fixed, and completed a production devcontainer configuration.
 

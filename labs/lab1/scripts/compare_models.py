@@ -12,28 +12,34 @@ Run: python scripts/compare_models.py
 import boto3
 import json
 import time
+
+from botocore.exceptions import ClientError
  
 REGION = "us-east-1"
  
-# TODO: Add the three model IDs here
-# Use inference profile format: us.anthropic.claude-[model]
+# TODO 1: Add the three model IDs here
+# Newer models use a short inference profile ID: us.anthropic.claude-[model]
+# Older models keep a dated, versioned ID. Haiku 4.5 is one of them.
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
-    # Add Opus 4.6 and Haiku 4.5 here
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    # Add Opus 5.5 and Haiku 4.5 here
 }
  
 PROMPT = """A customer says: "I ordered three items two weeks ago and only two arrived.
 The third item shows as delivered but it is not here. I want a refund
 for the missing item immediately and I am very frustrated."
  
-Classify this ticket: sentiment, priority, recommended action.
-Respond in JSON only."""
+Classify this ticket. Respond with JSON only, no preamble and no extra fields.
+Use exactly these three keys:
+  "sentiment"           one of: positive, neutral, negative
+  "priority"            one of: low, medium, high
+  "recommended_action"  a single short sentence"""
  
 # Pricing per million tokens -- verify at https://aws.amazon.com/bedrock/pricing/
 PRICING = {
-    "us.anthropic.claude-sonnet-4-6":               {"input": 3.00,  "output": 15.00},
-    "us.anthropic.claude-opus-4-6-v1":              {"input": 15.00, "output": 75.00},
-    "us.anthropic.claude-haiku-4-5-20251001-v1:0":  {"input": 0.80,  "output": 4.00},
+    "us.anthropic.claude-sonnet-5-5":               {"input": 2.00,  "output": 10.00},
+    "us.anthropic.claude-opus-5-5":                 {"input": 4.00,  "output": 20.00},
+    "us.anthropic.claude-haiku-4-5-20251001-v1:0":  {"input": 1.00,  "output": 5.00},
 }
  
  
@@ -42,24 +48,33 @@ def invoke_model(client, model_id: str, prompt: str) -> dict:
  
     body = json.dumps({
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 512,
+        "max_tokens": 1024,
         "messages": [{"role": "user", "content": prompt}]
     })
  
     start = time.time()
-    response = client.invoke_model(
-        modelId=model_id,
-        contentType="application/json",
-        accept="application/json",
-        body=body
-    )
+
+    # Errors are returned as data rather than raised, so one unavailable
+    # model does not stop the comparison. Lab 3 uses the same pattern.
+    try:
+        response = client.invoke_model(
+            modelId=model_id,
+            contentType="application/json",
+            accept="application/json",
+            body=body
+        )
+    except ClientError as e:
+        return {
+            "model_id":   model_id,
+            "error_code": e.response["Error"]["Code"],
+            "error":      e.response["Error"]["Message"],
+        }
     latency_ms = round((time.time() - start) * 1000)
  
     result = json.loads(response["body"].read())
  
     return {
-    #TODO 2
-    # Add model response return DICT here
+    # TODO 2: Add the model response return dict here
 
 }
  
@@ -129,9 +144,11 @@ def cost_projection(results: list) -> None:
     print("  Verify current rates: https://aws.amazon.com/bedrock/pricing/")
     print("=" * width)
     print()
-    print("  Step 9 question: At 10,000 tickets per day, what is the")
-    print("  monthly cost difference between Sonnet and Haiku?")
-    print("  Is that difference worth the quality gap you observed?")
+    print("  Step 9 questions:")
+    print("  1. Did the three models actually disagree on the classification?")
+    print("  2. What is the monthly cost gap between Haiku and Sonnet?")
+    print("  3. Opus charges double Sonnet's rate. Why are their monthly")
+    print("     costs so close? Check the output token counts.")
     print()
  
  
@@ -196,10 +213,17 @@ def main():
                 print(f"  ERROR: invoke_model returned None for {name}.")
                 print("  Complete Step 5 -- add the return dict to invoke_model().")
                 return
+            if "error" in result:
+                print(f"  SKIPPED {name}: {result.get('error_code', '')} {result['error']}")
+                continue
             results.append(result)
         except Exception as e:
             print(f"  ERROR invoking {name}: {type(e).__name__}: {e}")
-            return
+            continue
+ 
+    if not results:
+        print("No models returned a result. Check the errors above.")
+        return
  
     print_results(results)
     cost_projection(results)

@@ -1,7 +1,7 @@
 # Lab 3: Production Tool Use & Guardrails with Claude
 
 **Course:** Anthropic Models on AWS Bedrock  
-**Duration:** 90 minutes
+**Duration:** 98 minutes
 
 ---
 
@@ -22,13 +22,13 @@ By completing this lab, you will:
 - [ ] Lab 1 completed (Shared Knowledge Base provided by Instructor exists and is working)
 - [ ] Lab 2 completed (Claude Code configured and connected to Bedrock)
 - [ ] AWS account with Bedrock access
-- [ ] Claude Sonnet 4.6 model access enabled in Bedrock
+- [ ] Claude Sonnet 5.5 model access enabled in Bedrock
 - [ ] Python 3.11+, AWS CLI configured
 - [ ] AWS SAM CLI installed
 
 > ## ⚠️ REGION: us-east-1 (N. Virginia) ONLY
 >
-> Deploy everything in this lab to **us-east-1**. The shared Knowledge Base from Lab 1, your guardrail, and your Lambda deployment all need to be in the same region to work together. When `sam deploy --guided` asks for AWS Region in Step 12, type `us-east-1`, and when you create the guardrail in Step 7, confirm the console's region selector reads **US East (N. Virginia)** first.
+> Deploy everything in this lab to **us-east-1**. The shared Knowledge Base from Lab 1, your guardrail, and your Lambda deployment all need to be in the same region to work together. When `sam deploy --guided` asks for AWS Region in Step 13, type `us-east-1`, and when you create the guardrail in Step 7, confirm the console's region selector reads **US East (N. Virginia)** first.
 
 **Pre-lab setup (complete before Part 1 to ensure you are back in a venv environment in the correct lab folder):**
 
@@ -52,7 +52,7 @@ pip install -r requirements.txt
 copy .env.template .env
 ```
 
-Open `.env` in your editor and set `KNOWLEDGE_BASE_ID` to the value from Lab 1 (provided by your Instructor). Leave `GUARDRAIL_ID` empty for now. You will add it in Part 3.
+Open `.env` in Notepad (PC) or TextEdit (Mac) and set `KNOWLEDGE_BASE_ID` to the value from Lab 1 (provided by your Instructor). Leave `GUARDRAIL_ID` empty for now. You will add it in Part 3.
 
 > **Pre-flight check:** Run `aws sts get-caller-identity` to confirm your AWS credentials are working before starting.
 
@@ -121,7 +121,7 @@ labs/lab3/
 
 ### Step 1: Examine the Pre-Built Tool Definitions
 
-Open `src/services/tools.py` in your editor and review the `TOOLS` list:
+Open `src/services/tools.py` in Notepad (PC) or TextEdit (Mac) and review the `TOOLS` list:
 
 ```python
 TOOLS = [
@@ -413,7 +413,7 @@ Checkpoint 2 complete — move on to Part 3 (Guardrails).
 **If tests fail:**
 - Run `aws sts get-caller-identity` to confirm credentials
 - Verify `KNOWLEDGE_BASE_ID` in `.env` is correct
-- Confirm Claude Sonnet 4.6 model access is enabled in the AWS Console
+- Confirm Claude Sonnet 5.5 model access is enabled in the AWS Console
 
 ---
 
@@ -492,7 +492,7 @@ Then open the guardrail you just created. In the **Versions** section, click **C
 
 ### Step 8: Configure Guardrail in Your Environment
 
-Open `.env` in your editor and add:
+Open `.env` in Notepad (PC) or TextEdit (Mac) and add:
 
 ```bash
 GUARDRAIL_ID=abc123def456
@@ -570,6 +570,50 @@ Current behavior: Guardrail blocks it (Insults = HIGH).
 
 > **For this lab:** Block is the safest default. In production you would tune the approach based on business requirements and risk tolerance.
 
+### Step 11: Calculate Your Guardrail's Cost
+
+Guardrails bill separately from model inference, per filter type, per 1,000 text units. One text unit holds up to 1,000 characters, and anything larger rounds up. The prompt and the model response are evaluated separately, so each rounds to its own text units.
+
+Your guardrail from Step 7 has three paid filter types enabled:
+
+| Filter | Price |
+|--------|-------|
+| Content filters | $0.15 per 1,000 text units |
+| Denied topics | $0.15 per 1,000 text units |
+| Sensitive information filters (PII) | $0.10 per 1,000 text units |
+
+You pay only for the filters you enable. Word filters and regex based PII detection are free.
+
+**Your task:** calculate the hourly Guardrails cost for a chatbot handling 1,000 queries per hour, with all three filters checking both the input and the output.
+
+Use these message sizes:
+
+- Input: about 200 characters, which is 1 text unit
+- Response: about 1,500 characters, which is 2 text units
+
+<details>
+<summary>Click to see the calculation</summary>
+
+```
+Text units per query = 1 (input) + 2 (output) = 3
+Text units per hour  = 3 x 1,000 queries = 3,000
+
+Content filters:  3,000 x $0.15 / 1,000 = $0.45
+Denied topics:    3,000 x $0.15 / 1,000 = $0.45
+PII filters:      3,000 x $0.10 / 1,000 = $0.30
+
+Total Guardrails cost = $1.20 per hour
+```
+
+Your own message lengths will give different numbers. The method stays the same.
+</details>
+
+**Expected Result:** a per-hour cost figure broken down by filter type.
+
+> **Scale check:** at 100,000 queries per day with all three filters, Guardrails costs about $120 per day. This is on top of model inference cost, not instead of it.
+
+> **Blocking early is cheapest.** If the guardrail blocks the prompt, you pay for that one evaluation and nothing for inference, because the model never runs. If it blocks the response, you pay for both evaluations plus the inference that produced the text being discarded.
+
 ---
 
 ## Part 4: Deploy & Test
@@ -587,14 +631,14 @@ Lambda auto-scales with no servers to manage. You pay only for requests made.
 
 > **Cost awareness:** Every Bedrock invocation in this lab has a cost based on
 > input and output tokens. Agentic loops with multiple tool calls make several
-> invocations per request. Check current rates for Claude Sonnet 4.6 on the
+> invocations per request. Check current rates for Claude Sonnet 5.5 on the
 > AWS Bedrock pricing page before running load tests or leaving the stack
 > running overnight:
 > **https://aws.amazon.com/bedrock/pricing/**
 
 ---
 
-### Step 11: Build the Application
+### Step 12: Build the Application
 
 Navigate to the infrastructure directory:
 
@@ -614,7 +658,7 @@ Built Template   : .aws-sam/build/template.yaml
 
 ---
 
-### Step 12: Deploy to AWS, staying in the infrastructure folder for the next command:
+### Step 13: Deploy to AWS, staying in the infrastructure folder for the next command:
 
 ```bash
 sam deploy --guided
@@ -650,7 +694,7 @@ Deployment can take up to 5 minutes. Coffee or water break?
 
 ---
 
-### Step 13: Test the Deployed API
+### Step 14: Test the Deployed API
 
 **Test 1: Order lookup**
 
@@ -703,9 +747,9 @@ curl.exe -X POST https://YOUR-ENDPOINT/prod/chat `
 
 ---
 
-### Step 14: Verify in CloudWatch (wait at least 1min for lambda log delivery to complete!)
+### Step 15: Verify in CloudWatch (wait at least 1min for lambda log delivery to complete!)
 
-1. Find your Lambda function's log group name: it is not the fixed name `/aws/lambda/lab3-chat-handler` shown in older versions of this lab. Look up the `LambdaFunctionName` value in your stack's **Outputs** (Step 12), or check `CloudWatchLogGroup` in the same Outputs list, and use that exact name below.
+1. Find your Lambda function's log group name: it is not the fixed name `/aws/lambda/lab3-chat-handler` shown in older versions of this lab. Look up the `LambdaFunctionName` value in your stack's **Outputs** (Step 13), or check `CloudWatchLogGroup` in the same Outputs list, and use that exact name below.
 2. Go to **CloudWatch** → **Log groups** → the log group from step 1
 3. Click the most recent log stream
 4. Look for: `[Executing tool: lookup_order]`
@@ -716,7 +760,7 @@ This confirms your deployed Lambda is calling your tool execution code.
 
 ## What You Built
 
-In 90 minutes, you:
+In 98 minutes, you:
 
 - Implemented tool execution logic for 3 custom tools (order lookup, ticket creation, account status)
 - Configured production guardrails with content filtering, PII masking, and denied topics
@@ -751,7 +795,7 @@ The agentic loop in `src/services/bedrock.py` handles the full Claude to tool ex
 
 Run these commands to avoid ongoing AWS charges:
 
-**Delete the CloudFormation stack.** Use the same stack name you chose in Step 12 (`lab3-claude-app-yourname`, not the literal example below):
+**Delete the CloudFormation stack.** Use the same stack name you chose in Step 13 (`lab3-claude-app-yourname`, not the literal example below):
 
 **macOS/Linux:**
 ```bash
@@ -781,7 +825,7 @@ Confirm your virtual environment is active. `(venv)` should appear in your termi
 Check that `.env` exists (not just `.env.template`) and contains a valid value.
 
 **`AccessDeniedException` from Bedrock:**  
-Confirm Claude Sonnet 4.6 model access is enabled: AWS Console → Amazon Bedrock → Model access.
+Confirm Claude Sonnet 5.5 model access is enabled: AWS Console → Amazon Bedrock → Model access.
 
 **Guardrail tests fail with `GUARDRAIL_ID is not set`:**  
 Check `.env` contains `GUARDRAIL_ID` and that you saved the file.
@@ -790,7 +834,7 @@ Check `.env` contains `GUARDRAIL_ID` and that you saved the file.
 Re-run `sam deploy --guided` and answer `Y` to "Allow SAM CLI IAM role creation".
 
 **API returns 500 errors:**  
-Check Lambda logs: CloudWatch → Log groups → the log group name from your stack's Outputs (see Step 14), not a fixed name
+Check Lambda logs: CloudWatch → Log groups → the log group name from your stack's Outputs (see Step 15), not a fixed name
 
 **Windows: `curl` not found:**  
 Use `curl.exe` in PowerShell, or run `python tests\test_deployed_api.py` instead.
