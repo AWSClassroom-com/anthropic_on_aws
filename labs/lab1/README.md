@@ -54,7 +54,7 @@ A browser tab opens and asks **Allow botocore-client-AnthropicUser to access you
 
 A confirmation screen reads "Your credentials have been shared successfully and can be used until your session expires." Close that tab and return to your terminal.
 
-The CLI then finds your account and role automatically and asks three more questions:
+The CLI then finds your account and role automatically and asks three more questions, however, a quick warning on the Profile Name. It MUST be entered as 'default' or this configuration will now work! Do NOT skip this step:
 
 | Prompt | Answer |
 |--------|--------|
@@ -120,16 +120,16 @@ Your account number, user name, and the suffix on the role name will differ. The
 
 The course repository contains the starter scripts and sample data for all three labs. Clone it now and navigate to the Lab 1 directory. From this point, instruction are provided for Mac and Windows environments. If you wish to run these labs locally on your own machine, you may do so, but your instructor can only support running labs on RVC VMs, which run on Windows (follow the PowerShell instructions for RVC).
 
-**macOS/Linux:**
-```bash
-git clone https://github.com/AWSClassroom-com/anthropic_on_aws.git ~/anthropic_on_aws
-cd ~/anthropic_on_aws/labs/lab1
-```
-
 **Windows (PowerShell):**
 ```powershell
 git clone https://github.com/AWSClassroom-com/anthropic_on_aws.git C:\anthropic_on_aws
 cd C:\anthropic_on_aws\labs\lab1
+```
+
+**macOS/Linux:**
+```bash
+git clone https://github.com/AWSClassroom-com/anthropic_on_aws.git ~/anthropic_on_aws
+cd ~/anthropic_on_aws/labs/lab1
 ```
 
 > **Keep note of this path.** Labs 2 and 3 reference files from this repository. The full path on macOS/Linux is `~/anthropic_on_aws/` and on Windows is `C:\anthropic_on_aws\`.
@@ -154,17 +154,17 @@ python --version
 
 The lab uses several Python packages. Install them now from the requirements file included in the lab 1 repository at C:\anthropic_on_aws\labs\lab1:
 
-**macOS/Linux:**
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
 **Windows (PowerShell):**
 ```powershell
 python -m venv venv
 venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+**macOS/Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -522,14 +522,14 @@ Replace `ABCDEF1234` with the actual ID shared by your instructor in the course 
 
 Confirm you can access the shared Knowledge Base:
 
-**macOS/Linux:**
-```bash
-python scripts/verify_knowledge_base.py
-```
-
 **Windows (PowerShell):**
 ```powershell
 python scripts\verify_knowledge_base.py
+```
+
+**macOS/Linux:**
+```bash
+python scripts/verify_knowledge_base.py
 ```
 
 **Expected output:**
@@ -570,13 +570,13 @@ python scripts\verify_knowledge_base.py
 
 With the KB active and documents synced, run a query against it:
 
-**macOS/Linux:**
-```bash
+**Windows (PowerShell):**
+```powershell
 python scripts/query_knowledge_base.py --query "What is the return policy for damaged products?"
 ```
 
-**Windows (PowerShell):**
-```powershell
+**macOS/Linux:**
+```bash
 python scripts/query_knowledge_base.py --query "What is the return policy for damaged products?"
 ```
 
@@ -629,25 +629,25 @@ Run the same underlying question two ways and compare results:
 
 **Vague:**
 
-**macOS/Linux:**
-```bash
+**Windows (PowerShell):**
+```powershell
 python scripts/query_knowledge_base.py --query "How do I return something?"
 ```
 
-**Windows (PowerShell):**
-```powershell
+**macOS/Linux:**
+```bash
 python scripts/query_knowledge_base.py --query "How do I return something?"
 ```
 
 **Specific:**
 
-**macOS/Linux:**
-```bash
+**Windows (PowerShell):**
+```powershell
 python scripts/query_knowledge_base.py --query "What is the step-by-step process for initiating a product return, including required documentation and timelines?"
 ```
 
-**Windows (PowerShell):**
-```powershell
+**macOS/Linux:**
+```bash
 python scripts/query_knowledge_base.py --query "What is the step-by-step process for initiating a product return, including required documentation and timelines?"
 ```
 
@@ -659,13 +659,13 @@ Look at the citation scores for each. The specific query should return higher sc
 
 Run a query about something not in the documents:
 
-**macOS/Linux:**
-```bash
+**Windows (PowerShell):**
+```powershell
 python scripts/query_knowledge_base.py --query "What is the CEO's favorite color?"
 ```
 
-**Windows (PowerShell):**
-```powershell
+**macOS/Linux:**
+```bash
 python scripts/query_knowledge_base.py --query "What is the CEO's favorite color?"
 ```
 
