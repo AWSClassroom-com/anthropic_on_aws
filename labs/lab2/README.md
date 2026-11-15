@@ -665,7 +665,7 @@ MCP, the Model Context Protocol, is how Claude Code reaches tools and data it do
 **First, install the SDK.** Do this in a normal terminal, not inside Claude Code.
 
 ```powershell
-python -m pip install mcp
+python -m pip install "mcp<2"
 ```
 
 > **⚠️ Install it before you build the server.** Claude Code launches the server as its own process and does not inherit a virtualenv you activated in your shell. If `mcp` is missing from the interpreter Claude Code starts, the server exits on its first import and you get `Failed to reconnect: CONNECTION_CLOSED`, which looks like a broken config rather than a missing package.
