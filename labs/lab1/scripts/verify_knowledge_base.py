@@ -87,10 +87,12 @@ def main():
         print(f"  Data source:         {ds_name}")
         print(f"  Sync status:         {ds_status}")
  
-        # Check ingestion jobs -- use get_ingestion_job for full statistics
+        # Check ingestion jobs. Sort newest first: without a sort order the API
+        # returns jobs in no particular order, so jobs[0] is not always the latest.
         jobs_response = client.list_ingestion_jobs(
             knowledgeBaseId=kb_id,
-            dataSourceId=ds_id
+            dataSourceId=ds_id,
+            sortBy={"attribute": "STARTED_AT", "order": "DESCENDING"}
         )
         jobs = jobs_response.get("ingestionJobSummaries", [])
  
@@ -98,11 +100,11 @@ def main():
             latest_job = jobs[0]
             job_status = latest_job.get("status", "UNKNOWN")
             stats = latest_job.get("statistics", {})
-            docs_indexed = (
-                stats.get("numberOfNewDocumentsIndexed", 0) +
-                stats.get("numberOfModifiedDocumentsIndexed", 0)
-            )
             docs_failed = stats.get("numberOfDocumentsFailed", 0)
+            # A re-sync only reports what changed as "new" or "modified", so a
+            # sync that touched one file would look like one document. Count the
+            # documents the sync scanned instead, minus any that failed.
+            docs_indexed = max(stats.get("numberOfDocumentsScanned", 0) - docs_failed, 0)
  
             print(f"  Documents synced:    {docs_indexed}")
  
