@@ -162,11 +162,12 @@ claude
 7. **Verification.** The wizard confirms your identity and lists available inference profiles. Select **1. Continue**.
 8. **Pin model versions.** Read the models shown before selecting.
 
-   > **Are you in us-east-1?** If the Sonnet model shown is `us.anthropic.claude-sonnet-5-5`, select **1. Pin the working models** and continue to step 9.
+   > **Are you in us-east-1?** If the Sonnet model shown is `us.anthropic.claude-sonnet-4-6` and the Opus model shown is `us.anthropic.claude-opus-4-6-v1`, select **1. Pin the working models** and continue to step 9.
 
-   > **Not in us-east-1, or Sonnet shows a different version?** Select **3. Choose different models...** and update Sonnet to `us.anthropic.claude-sonnet-5-5`. Confirm the existing Opus and Haiku models are unchanged. You are returned to the same screen. Now select **1. Pin the working models**.
+   > **Not in us-east-1, or Sonnet or Opus shows a different version?** Select **2. Choose different models...**. The wizard then shows a list for each model in turn: Sonnet, Opus, Haiku, then Fable. Each entry is tested and marked √ (works) or × (blocked). Select `us.anthropic.claude-sonnet-4-6` in the Sonnet list, `us.anthropic.claude-opus-4-6-v1` in the Opus list, and `us.anthropic.claude-haiku-4-5-20251001-v1:0` in the Haiku list. Pick the `us.` entry each time, not the `global.` one. In the Fable list every entry is blocked and there is no skip option, so select the entry marked `(built-in default)`. Fable is not used in this class. You are returned to the same screen. Now select **1. Pin the working models**. Newer Claude models appear in the lists, but this class account cannot call them, so do not pick them. Do not select **3. Skip** either. Without pinning, Claude Code's default Sonnet fails in this account with a `403` error that mentions AWS Marketplace.
 9. **Confirm and save.** Select **1. Save**.
 10. **Press Enter** to restart Claude Code
+11. **Trust the folder.** After the restart, Claude Code asks whether you trust the folder. The highlighted default is **No, exit**, so move down and select **Yes, I trust this folder**.
 
 > **SSO session expiry:** SSO sessions last approximately 8 hours. If Claude Code stops working, run `aws sso login` and Claude Code picks up the refreshed credentials automatically.
 
@@ -186,7 +187,7 @@ Now confirm the actual model string:
 /model
 ```
 
-**Expected result:** The full inference profile ID such as `us.anthropic.claude-sonnet-5-5`. The Claude Code screen shows a human-readable label but `/model` shows the actual string sent to Bedrock. Use `/model` any time you need to confirm the exact model in use.
+**Expected result:** The full inference profile ID such as `us.anthropic.claude-sonnet-4-6`. The Claude Code screen shows a human-readable label but `/model` shows the actual string sent to Bedrock. Use `/model` any time you need to confirm the exact model in use.
 
 > **If /status shows the Anthropic API instead of Bedrock:** Type `/logout`, relaunch `claude`, and select option 3 (3rd-party platform) at the login method screen.
 
@@ -287,7 +288,7 @@ Confirm the switch:
 /model
 ```
 
-**Expected result:** The model string now shows the Opus inference profile.
+**Expected result:** The model string now shows the Opus inference profile, `us.anthropic.claude-opus-4-6-v1`.
 
 > **Cost note:** Opus costs significantly more per token than Sonnet. You will use it for one planning step only, then switch back. Check current rates at https://aws.amazon.com/bedrock/pricing/
 
@@ -602,6 +603,16 @@ AccessDeniedException, or ResourceNotFoundException."
 
 **Expected Result:** Claude Code creates `.claude/skills/bedrock-debug/SKILL.md` in your project directory.
 
+**Restart Claude Code before checking it.** Skills are read at startup, so the skill you just created is not available in the session that wrote it. Typing `/bedrock-debug` now would not find it.
+
+```
+/exit
+```
+
+```
+claude --resume lab2-session
+```
+
 Verify the skill is available:
 
 ```
@@ -662,13 +673,15 @@ Use the bedrock-reviewer subagent to review the code you generated earlier
 
 MCP, the Model Context Protocol, is how Claude Code reaches tools and data it does not ship with. A server exposes tools over a simple protocol, and Claude Code calls them like any other tool. You will have Claude Code build one, then use it.
 
-**First, install the SDK.** Do this in a normal terminal, not inside Claude Code.
+**First, install the SDK.** Do this in a normal terminal, not inside Claude Code. Pin it below version 2:
 
 ```powershell
 python -m pip install "mcp<2"
 ```
 
-> **⚠️ Install it before you build the server.** Claude Code launches the server as its own process and does not inherit a virtualenv you activated in your shell. If `mcp` is missing from the interpreter Claude Code starts, the server exits on its first import and you get `Failed to reconnect: CONNECTION_CLOSED`, which looks like a broken config rather than a missing package.
+> **⚠️ Install it before you build the server, and keep it below version 2.** Claude Code launches the server as its own process and does not inherit a virtualenv you activated in your shell. If `mcp` is missing from the interpreter Claude Code starts, the server exits on its first import and you get `Failed to reconnect: CONNECTION_CLOSED`, which looks like a broken config rather than a missing package.
+>
+> Version 2 of the SDK removed `mcp.server.fastmcp`, the import Claude Code's generated server uses. An unpinned install picks up version 2 and fails the same way, even though `mcp` is installed. The `<2` pin keeps the 1.x API.
 
 Now, back in Claude Code:
 
@@ -711,6 +724,8 @@ Use the list_bedrock_models tool to show which Claude models I can call
 > ```
 >
 > A `ModuleNotFoundError` means `mcp` is missing from the interpreter `.mcp.json` names. Check what it points at with `type .mcp.json`, and either install `mcp` for that interpreter or set `command` to the full path of one that has it.
+>
+> If the error names `mcp.server.fastmcp` and `mcp` is installed, you have version 2. Run `python -m pip install "mcp<2"` and run the command above again.
 
 > **If outbound pip is blocked:** some training VMs do not allow it. Skip the restart and the live call, and read `.mcp.json` and the server file instead. The registration pattern is the transferable part and it is identical for a production server.
 

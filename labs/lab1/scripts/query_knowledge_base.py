@@ -21,7 +21,7 @@ from pathlib import Path
 from dotenv import load_dotenv
  
 REGION = "us-east-1"
-MODEL_ID = "us.anthropic.claude-sonnet-5-5"
+MODEL_ID = "us.anthropic.claude-sonnet-4-6"
 ENV_FILE = Path(__file__).parent.parent / ".env"
 MAX_RESULTS = 5
  
@@ -42,19 +42,24 @@ def retrieve_chunks(query: str, kb_id: str, client) -> list:
     Step 1: Retrieve relevant chunks from the Knowledge Base.
     Returns chunks with real relevance scores.
     """
-    response = client.retrieve(
-        knowledgeBaseId=kb_id,
-        retrievalQuery={"text": query},
-        # The shared Knowledge Base is a managed knowledge base, so it takes
-        # managedSearchConfiguration. A self-managed vector store would take
-        # vectorSearchConfiguration instead, with the same numberOfResults key.
-        retrievalConfiguration={
-            "managedSearchConfiguration": {
-                "numberOfResults": MAX_RESULTS
-            }
-        }
-    )
-    return response.get("retrievalResults", [])
+    # A Knowledge Base with its own vector store (OpenSearch Serverless, for
+    # example) takes vectorSearchConfiguration. A managed knowledge base takes
+    # managedSearchConfiguration instead. Both use the same numberOfResults key,
+    # so try the vector form first and fall back to the managed form.
+    for config_key in ("vectorSearchConfiguration", "managedSearchConfiguration"):
+        try:
+            response = client.retrieve(
+                knowledgeBaseId=kb_id,
+                retrievalQuery={"text": query},
+                retrievalConfiguration={
+                    config_key: {"numberOfResults": MAX_RESULTS}
+                }
+            )
+            return response.get("retrievalResults", [])
+        except client.exceptions.ValidationException as e:
+            if config_key == "managedSearchConfiguration" or "only supported" not in str(e):
+                raise
+    return []
  
  
 def generate_answer(query: str, chunks: list, account_id: str) -> str:
@@ -96,8 +101,9 @@ Answer:"""
  
     result = json.loads(response["body"].read())
 
-    # Claude 5.x models think before answering, so content[0] can be a
-    # thinking block. Pick the text block by type rather than by position.
+    # Some Claude models return a thinking block before the answer, so
+    # content[0] is not always text. Pick the text block by type rather
+    # than by position, and the code works on every model.
     return next(
         b["text"] for b in result["content"] if b.get("type") == "text"
     )

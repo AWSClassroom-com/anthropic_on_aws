@@ -18,11 +18,12 @@ from botocore.exceptions import ClientError
 REGION = "us-east-1"
  
 # TODO 1: Add the three model IDs here
-# Newer models use a short inference profile ID: us.anthropic.claude-[model]
-# Older models keep a dated, versioned ID. Haiku 4.5 is one of them.
+# Inference profile IDs start with us.anthropic.claude-[model], but the ending
+# differs by model: Sonnet 4.6 is short, Opus 4.6 ends in -v1, and Haiku 4.5
+# carries a date and a version. Copy each ID exactly.
 MODELS = {
-    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
-    # Add Opus 5.5 and Haiku 4.5 here
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
+    # Add Opus 4.6 and Haiku 4.5 here
 }
  
 PROMPT = """A customer says: "I ordered three items two weeks ago and only two arrived.
@@ -37,8 +38,8 @@ Use exactly these three keys:
  
 # Pricing per million tokens -- verify at https://aws.amazon.com/bedrock/pricing/
 PRICING = {
-    "us.anthropic.claude-sonnet-5-5":               {"input": 2.00,  "output": 10.00},
-    "us.anthropic.claude-opus-5-5":                 {"input": 4.00,  "output": 20.00},
+    "us.anthropic.claude-sonnet-4-6":               {"input": 3.00,  "output": 15.00},
+    "us.anthropic.claude-opus-4-6-v1":              {"input": 5.00,  "output": 25.00},
     "us.anthropic.claude-haiku-4-5-20251001-v1:0":  {"input": 1.00,  "output": 5.00},
 }
  
@@ -147,8 +148,9 @@ def cost_projection(results: list) -> None:
     print("  Step 9 questions:")
     print("  1. Did the three models actually disagree on the classification?")
     print("  2. What is the monthly cost gap between Haiku and Sonnet?")
-    print("  3. Opus charges double Sonnet's rate. Why are their monthly")
-    print("     costs so close? Check the output token counts.")
+    print("  3. Opus charges about two thirds more than Sonnet per token.")
+    print("     Does your monthly figure show the same gap? Check the")
+    print("     input and output token counts.")
     print()
  
  

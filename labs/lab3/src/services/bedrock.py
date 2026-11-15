@@ -7,6 +7,7 @@ Read invoke_with_tools() after class to understand how the loop works.
 """
 import json
 import logging
+import secrets
 from typing import Any, Dict, List, Optional
 
 import boto3
@@ -34,6 +35,32 @@ def _guardrail_trace_shows_block(result: Dict[str, Any]) -> bool:
         .get('actionReason', '')
     )
     return 'blocked' in action_reason.lower()
+
+
+def _tag_user_input(messages: List[Dict], tag_suffix: str) -> List[Dict]:
+    """
+    Return a copy of messages with the user's own text wrapped in guardrail
+    input tags.
+
+    With InvokeModel, Bedrock only runs the prompt attack filter on content
+    wrapped in <amazon-bedrock-guardrails-guardContent_SUFFIX> tags. Untagged
+    text is not checked for prompt attacks. Only plain-text user messages are
+    tagged. Assistant turns and tool results are left alone, because they are
+    not the user's input.
+
+    The original list is not modified, so the agentic loop's message history
+    stays clean.
+    """
+    open_tag = f'<amazon-bedrock-guardrails-guardContent_{tag_suffix}>'
+    close_tag = f'</amazon-bedrock-guardrails-guardContent_{tag_suffix}>'
+
+    tagged: List[Dict] = []
+    for message in messages:
+        content = message.get('content')
+        if message.get('role') == 'user' and isinstance(content, str):
+            message = {**message, 'content': f'{open_tag}{content}{close_tag}'}
+        tagged.append(message)
+    return tagged
 
 
 class BedrockService:
@@ -225,6 +252,9 @@ class BedrockService:
         """
         iteration = 0
 
+        # A random suffix per request stops user text from forging a closing tag
+        tag_suffix = secrets.token_hex(4)
+
         while iteration < max_iterations:
             iteration += 1
             logger.debug('Guardrail loop iteration %d / %d', iteration, max_iterations)
@@ -232,8 +262,9 @@ class BedrockService:
             body: Dict[str, Any] = {
                 'anthropic_version': 'bedrock-2023-05-31',
                 'max_tokens': 2048,
-                'messages': messages,
-                'tools': tools
+                'messages': _tag_user_input(messages, tag_suffix),
+                'tools': tools,
+                'amazon-bedrock-guardrailConfig': {'tagSuffix': tag_suffix}
             }
 
             if system_prompt:

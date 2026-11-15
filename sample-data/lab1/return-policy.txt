@@ -1,32 +1,17 @@
-ACME Corp — Product Return Policy
-Last Updated: January 2025
+What is the return policy for damaged products?
+What is the step-by-step process for initiating a product return?
+What required documentation must accompany a product return?
+What are the product return timelines?
+See below.
 
-1. STANDARD RETURNS
-   - Products may be returned within 30 days of purchase for a full refund.
-   - Items must be in original packaging, unused, and include all accessories.
-   - A valid receipt or order confirmation is required.
+ACME Corp Product Return Policy, last updated January 2025: standard returns are accepted within 30 days of purchase for a full refund, provided the item is unused, in its original packaging, and includes all accessories, and a valid receipt or order confirmation is required; products that arrive damaged may be returned within 60 days of purchase, which is double the standard 30-day window, with photo documentation of the damage, and ACME Corp covers return shipping for damaged items and ships replacements within 3-5 business days after it receives the returned item; digital products such as software licenses and subscriptions are non-refundable after activation, although unused digital product keys may be returned within 14 days; custom-built products are non-returnable, clearance items are final sale, and customers placing international orders are responsible for their own return shipping costs; and every return is started online by logging into your account at acmecorp.com/returns, selecting the order containing the item to return, choosing the reason for return from the dropdown menu, printing the prepaid shipping label where eligible, and shipping the item within 7 days of initiating the return, after which the refund is processed within 5-7 business days after ACME Corp receives the item; questions can be sent to support@acmecorp.com or made by phone at 1-800-ACME-HELP.
 
-2. DAMAGED PRODUCTS
-   - Products arriving damaged may be returned within 60 days.
-   - Photo documentation of damage is required.
-   - ACME Corp covers return shipping for damaged items.
-   - Replacements are shipped within 3-5 business days after receiving the return.
+RETURN POLICY FOR DAMAGED PRODUCTS. Products that arrive damaged may be returned within 60 days of purchase, double the standard 30-day return window. Photo documentation of the damage is required for every damaged product return. ACME Corp covers return shipping for damaged items. Replacements are shipped within 3-5 business days after ACME Corp receives the returned item.
 
-3. DIGITAL PRODUCTS
-   - Digital products (software licenses, subscriptions) are non-refundable after activation.
-   - Unused digital product keys may be returned within 14 days.
+STEP-BY-STEP PROCESS FOR INITIATING A PRODUCT RETURN. Step 1: Log into your account at acmecorp.com/returns. Step 2: Select the order containing the item to return. Step 3: Choose the reason for return from the dropdown menu. Step 4: Print the prepaid shipping label (for eligible returns). Step 5: Ship the item within 7 days of initiating the return. Step 6: The refund is processed within 5-7 business days after ACME Corp receives the item.
 
-4. HOW TO INITIATE A RETURN
-   Step 1: Log into your account at acmecorp.com/returns
-   Step 2: Select the order containing the item to return
-   Step 3: Choose the reason for return from the dropdown menu
-   Step 4: Print the prepaid shipping label (for eligible returns)
-   Step 5: Ship the item within 7 days of initiating the return
-   Step 6: Refund is processed within 5-7 business days after item is received
+REQUIRED DOCUMENTATION AND TIMELINES. A valid receipt or order confirmation is required for every return, and damaged product returns also require photo documentation. Standard returns are accepted within 30 days of purchase, damaged products within 60 days, and unused digital product keys within 14 days.
 
-5. EXCEPTIONS
-   - Custom-built products are non-returnable.
-   - Clearance items are final sale.
-   - International orders: customer is responsible for return shipping costs.
+EXCEPTIONS. Custom-built products are non-returnable. Clearance items are final sale. International orders: the customer is responsible for return shipping costs.
 
 For questions, contact support@acmecorp.com or call 1-800-ACME-HELP.

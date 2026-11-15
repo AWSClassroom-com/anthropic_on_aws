@@ -22,7 +22,7 @@ By completing this lab, you will:
 - [ ] Lab 1 completed (Shared Knowledge Base provided by Instructor exists and is working)
 - [ ] Lab 2 completed (Claude Code configured and connected to Bedrock)
 - [ ] AWS account with Bedrock access
-- [ ] Claude Sonnet 5.5 model access enabled in Bedrock
+- [ ] Claude Sonnet 4.6 model access enabled in Bedrock
 - [ ] Python 3.11+, AWS CLI configured
 - [ ] AWS SAM CLI installed
 
@@ -413,7 +413,7 @@ Checkpoint 2 complete — move on to Part 3 (Guardrails).
 **If tests fail:**
 - Run `aws sts get-caller-identity` to confirm credentials
 - Verify `KNOWLEDGE_BASE_ID` in `.env` is correct
-- Confirm Claude Sonnet 5.5 model access is enabled in the AWS Console
+- Confirm Claude Sonnet 4.6 model access is enabled in the AWS Console
 
 ---
 
@@ -541,7 +541,7 @@ Test 5: Normal request passes through guardrail
   ✅ Request was NOT blocked
   ✅ Received a valid response
 
-All 9 checks passed! ✅
+All 8 checks passed! ✅
 
 Checkpoint 3 complete — move on to Part 4 (Deploy & Test).
 ============================================================
@@ -552,6 +552,8 @@ Checkpoint 3 complete — move on to Part 4 (Deploy & Test).
 - Check guardrail status is READY, not CREATING. Wait 1 to 2 minutes if needed.
 - Confirm you completed the separate **Create version** step in Step 7. A working draft alone is not enough. `GUARDRAIL_VERSION` must point to a real published version, such as `1`.
 - For Test 4: verify the Credit Card Number filter's Input and Output actions are both set to Mask, not Block
+
+> **Why the prompt injection test depends on tags.** When you call `InvokeModel`, Bedrock runs the Prompt Attack filter only on text wrapped in guardrail input tags. Text without tags is not checked for prompt attacks. The pre-built `invoke_with_tools_and_guardrail()` in `src/services/bedrock.py` wraps each user message in `<amazon-bedrock-guardrails-guardContent_...>` tags for you, using a random suffix on every request so a user cannot type a matching closing tag. Only the tagged user message is scanned on the way in. System prompts and tool results are not. You do not need to change anything.
 
 ---
 
@@ -631,7 +633,7 @@ Lambda auto-scales with no servers to manage. You pay only for requests made.
 
 > **Cost awareness:** Every Bedrock invocation in this lab has a cost based on
 > input and output tokens. Agentic loops with multiple tool calls make several
-> invocations per request. Check current rates for Claude Sonnet 5.5 on the
+> invocations per request. Check current rates for Claude Sonnet 4.6 on the
 > AWS Bedrock pricing page before running load tests or leaving the stack
 > running overnight:
 > **https://aws.amazon.com/bedrock/pricing/**
@@ -825,7 +827,7 @@ Confirm your virtual environment is active. `(venv)` should appear in your termi
 Check that `.env` exists (not just `.env.template`) and contains a valid value.
 
 **`AccessDeniedException` from Bedrock:**  
-Confirm Claude Sonnet 5.5 model access is enabled: AWS Console → Amazon Bedrock → Model access.
+Confirm Claude Sonnet 4.6 model access is enabled: AWS Console → Amazon Bedrock → Model access.
 
 **Guardrail tests fail with `GUARDRAIL_ID is not set`:**  
 Check `.env` contains `GUARDRAIL_ID` and that you saved the file.

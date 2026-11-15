@@ -236,7 +236,7 @@ Before writing code, spend a few minutes in the Bedrock console. This gives you 
 2. **Confirm you are in the us-east-1 (N. Virginia) region.** Check the region selector in the top-right corner. This is not optional. The shared Knowledge Base and every model you invoke in this lab only exist in this region.
 3. In the left sidebar under **Test**, click **Playground**.
 4. Click the orange **Select model** button.
-5. In the model picker, select **Anthropic**, then **Claude Sonnet 5.5**, then choose the **US** inference profile.
+5. In the model picker, select **Anthropic**, then **Claude Sonnet 4.6**, then choose the **US** inference profile.
 6. Click **Apply**.
 
 ### Step 2: Run One Prompt and Observe
@@ -281,8 +281,8 @@ from botocore.exceptions import ClientError
 
 # TODO 1: Add the three model IDs here
 MODELS = {
-    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
-    # Add Opus 5.5 and Haiku 4.5 here
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
+    # Add Opus 4.6 and Haiku 4.5 here
 }
 
 PROMPT = """A customer says: "I ordered three items two weeks ago and only two arrived.
@@ -296,7 +296,7 @@ PRICING = {
 def invoke_model(client, model_id: str, prompt: str) -> dict:
     body = json.dumps({
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 512,
+        "max_tokens": 1024,
         "messages": [{"role": "user", "content": prompt}]
     })
 
@@ -326,22 +326,22 @@ Find the commented `TODO 1` and fill in the `MODELS` dict with the correct infer
 
 ```python
 MODELS = {
-    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
-    # Add Opus 5.5 and Haiku 4.5 here
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
+    # Add Opus 4.6 and Haiku 4.5 here
 }
 ```
 
-> **Why the `us.` prefix matters:** Claude models on Bedrock require a cross-region inference profile ID, not a bare model ID. Calling `anthropic.claude-sonnet-5-5` without the prefix returns a `ValidationException`. The `us.` prefix routes across US regions.
+> **Why the `us.` prefix matters:** Claude models on Bedrock require a cross-region inference profile ID, not a bare model ID. Calling `anthropic.claude-sonnet-4-6` without the prefix returns a `ValidationException`. The `us.` prefix routes across US regions. Use `us.` for every model in this lab. The `global.` prefix is not enabled for every model in the class account, and Opus 4.6 is one that fails with it.
 
-> **Two ID formats, both current.** Newer models use a short ID with no date, such as `us.anthropic.claude-sonnet-5-5`. Older models keep a dated, versioned ID. Haiku 4.5 is one of them, so its ID is `us.anthropic.claude-haiku-4-5-20251001-v1:0`. You will use both in this exercise. Check the model card if you are unsure which form a model takes.
+> **Three ID formats, all current.** Sonnet 4.6 uses a short ID with no date, `us.anthropic.claude-sonnet-4-6`. Opus 4.6 ends in a version suffix, `us.anthropic.claude-opus-4-6-v1`. Haiku 4.5 carries a date and a version, `us.anthropic.claude-haiku-4-5-20251001-v1:0`. You will use all three in this exercise. Check the model card if you are unsure which form a model takes.
 
 <details>
 <summary>Model IDs for reference</summary>
 
 ```python
 MODELS = {
-    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
-    "Opus 5.5":   "us.anthropic.claude-opus-5-5",
+    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
+    "Opus 4.6":   "us.anthropic.claude-opus-4-6-v1",
     "Haiku 4.5":  "us.anthropic.claude-haiku-4-5-20251001-v1:0",
 }
 ```
@@ -377,7 +377,7 @@ The script already has `return {` and its closing `}`. Paste this between them, 
     ) / 1_000_000
 ```
 
-**Why search for the text block:** Claude 5.x models think before they answer, so `content[0]` is often a thinking block rather than the reply. Indexing position 0 raises `KeyError: 'text'` on those models. Selecting by `type` works whether or not a thinking block is present.
+**Why search for the text block:** Some Claude models return a thinking block before the reply, so `content[0]` is not always the text. On those models, indexing position 0 raises `KeyError: 'text'`. The models in this lab usually answer with a single text block, but selecting by `type` works whether or not a thinking block is present, so the same code keeps working when you move to a newer model.
 
 **Why divide by 1,000,000:** Pricing is quoted per million tokens. Dividing converts individual token counts to the fraction of a million you actually used.
 </details>
@@ -400,31 +400,31 @@ python scripts/compare_models.py
 Model Comparison Results (your results may vary)
 ============================================================
 
-Sonnet 5.5
+Sonnet 4.6
   Response:      {"sentiment": "negative", "priority": "high", ...}
-  Input tokens:  76
-  Output tokens: 179
-  Latency:       3986 ms
-  Cost:          $0.001942
+  Input tokens:  124
+  Output tokens: 59
+  Latency:       2399 ms
+  Cost:          $0.001257
 
-Opus 5.5
+Opus 4.6
   Response:      {"sentiment": "negative", "priority": "high", ...}
-  Input tokens:  76
-  Output tokens: 67
-  Latency:       2080 ms
-  Cost:          $0.001644
+  Input tokens:  124
+  Output tokens: 58
+  Latency:       1338 ms
+  Cost:          $0.002070
 
 Haiku 4.5
   Response:      {"sentiment": "negative", "priority": "high", ...}
-  Input tokens:  76
+  Input tokens:  124
   Output tokens: 52
-  Latency:       1027 ms
-  Cost:          $0.000336
+  Latency:       644 ms
+  Cost:          $0.000384
 
 ============================================================
 ```
 
-> **Troubleshooting:** If you see `ValidationException`, check that your model IDs use the `us.` prefix. If you see `AccessDeniedException`, verify model access is enabled in the Bedrock console under **Model access**.
+> **Troubleshooting:** If you see `ValidationException`, check that your model IDs use the `us.` prefix. If you see `AccessDeniedException`, verify model access is enabled in the Bedrock console under **Model access**. If the message mentions AWS Marketplace, the class account does not currently allow that model. Tell your instructor. The script skips the model that failed and still runs the others.
 
 ### Step 7: Analyze the Results
 
@@ -434,7 +434,7 @@ Look at your output and answer these questions before moving on:
 2. Which model had the lowest cost? By how much compared to Sonnet?
 
 
-> **Key insight:** All three returned valid JSON, which is a good baseline, but they are meaningfully different in ways that matter for a production classification system. The prompt asked for three specific fields: sentiment, priority, recommended action. Haiku returned exactly those three fields with clean, machine-readable values. A downstream system can parse this response, route it, and act on it without any additional processing. Sonnet over-engineered it. In a production ticket classifier, unexpected fields in the response schema break parsers, require additional handling, and add cost. Sonnet used 175 output tokens to return data nobody asked for. Opus got the schema right but the value wrong. recommended_action should be a machine-readable code like investigate_and_refund, not a prose paragraph. A downstream routing system cannot act on a sentence. Opus also cost 25x more than Haiku for an inferior result.
+> **Key insight:** All three models returned valid JSON with exactly the three keys the prompt asked for, and all three classified the ticket the same way: negative sentiment, high priority. Only the wording of `recommended_action` differs. That is the normal result for a well-specified task, and it is the finding. When the smallest model gives an answer a downstream system can parse and route, a larger model is not buying you a better answer on this task. It is only buying you a higher bill. For the same classification, Opus cost about five times what Haiku did and Sonnet about three times.
 
 ---
 
@@ -453,16 +453,16 @@ It looks something like this (your numbers may vary):
 
   Model         Tokens/req    10k/day/mo    100k/day/mo
   ------------  ----------  ------------  -------------
-  Sonnet 5.5           255       $582.60      $5,826.00
-  Opus 5.5             143       $493.20      $4,932.00
-  Haiku 4.5            128       $100.80      $1,008.00
+  Sonnet 4.6           183       $377.10      $3,771.00
+  Opus 4.6             182       $621.00      $6,210.00
+  Haiku 4.5            176       $115.20      $1,152.00
 
   Formula: cost_per_request x daily_volume x 30 days
   Verify current rates: https://aws.amazon.com/bedrock/pricing/
 ============================================================
 ```
 
-> **Read the token counts, not just the rates.** Output tokens bill at five times the input rate on every current model, so how much a model writes moves the bill as much as which model you pick. That is why the prompt pins the response to three fields. Without that constraint the larger models answer at length, which costs more and can exceed `max_tokens` and truncate the JSON. Your own numbers will differ from the sample.
+> **Read the token counts, not just the rates.** Output tokens bill at five times the input rate on every current model, so how much a model writes moves the bill as much as which model you pick. That is why the prompt pins the response to three fields. Without that constraint a model is free to explain itself at length, which costs more and can exceed `max_tokens` and truncate the JSON. Your own numbers will differ from the sample.
 
 > **Your numbers will differ** from the example above based on the actual token counts in your run. The formula the script used is:
 >
@@ -476,18 +476,20 @@ Look back at your own output from Step 7 and answer three questions.
 
 **1. Did the models disagree?** Compare the three classifications. On a well-specified task like this one, they usually agree. If yours did, that is the finding, not a failure of the exercise.
 
-**2. What does Haiku cost against Sonnet?** Read the two monthly figures from the projection table. The gap is normally close to an order of magnitude for the same answer.
+**2. What does Haiku cost against Sonnet?** Read the two monthly figures from the projection table. For the same answer, Haiku normally costs about a third of what Sonnet does.
 
-**3. Why do Sonnet and Opus cost so much more alike than their rates suggest?** Opus charges double Sonnet's input and output rate, yet the monthly figures often land close together. Look at the output token counts before you answer.
+**3. Opus charges about two thirds more than Sonnet per token. Does your monthly figure show the same gap?** Compare the Opus and Sonnet monthly figures, then look at the input and output token counts for each model before you answer.
 
 <details>
 <summary>What the third question is getting at</summary>
 
-Cost is rate multiplied by tokens, and the models differ on both. A model charging half as much per token can cost the same or more if it writes twice as much. In testing, Sonnet 5.5 produced 627 output tokens on one ticket where Opus 5.5 produced 288, which cancelled out the rate difference almost exactly.
+Cost is rate multiplied by tokens. Here the tokens are almost identical: every model reports the same input count, and Sonnet and Opus wrote nearly the same number of output tokens. With the token counts matched, the rate card decides, so Opus lands about two thirds above Sonnet, the same gap as its rates ($5 and $25 per million tokens against $3 and $15).
 
-Two things follow. The rate card does not tell you the bill, only a measured run does. And constraining the response, as the prompt in this lab does by naming exactly three keys, is a cost lever as real as changing model.
+Two things follow. The rate card only predicts the bill when the models write about the same amount, so a measured run is the way to check. And constraining the response, as the prompt in this lab does by naming exactly three keys, is what keeps the token counts level. Output tokens bill at five times the input rate, so a model that writes twice as much can cost as much as a model with double the rate.
 
-There is a third effect you can see in your own numbers. Claude 4.7 and later use a newer tokenizer that produces roughly 30 percent more tokens for the same text, so Haiku 4.5 reports fewer input tokens than Sonnet 5.5 for an identical prompt. Haiku's advantage is larger than the published rates alone suggest.
+Cost is not the only number that moves. In this lab's runs Haiku answered in under a second, Opus in roughly one to two and a half seconds, and Sonnet in about two to three. Latency does not follow price, so measure it for your own workload.
+
+Different model generations can also tokenize the same text differently, so identical prompts can report different input counts. Here all three report the same count, which is why their token counts compare directly.
 </details>
 
 There is no single right answer to the decision itself. The point is that you now have measured data rather than a guess, and you know which three things move the number.

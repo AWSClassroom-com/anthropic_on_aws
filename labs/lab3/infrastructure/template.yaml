@@ -21,7 +21,7 @@ Parameters:
 
   ModelId:
     Type: String
-    Default: "us.anthropic.claude-sonnet-5-5"
+    Default: "us.anthropic.claude-sonnet-4-6"
     Description: "Bedrock model ID to use for chat (must be a cross-region inference profile ID, prefixed with us.)"
 
 # ── Globals ────────────────────────────────────────────────────────────────────
@@ -73,12 +73,15 @@ Resources:
       Policies:
         - Version: '2012-10-17'
           Statement:
-            # Invoke Claude via Bedrock
+            # Invoke Claude via Bedrock. The us. cross-region inference profile
+            # needs two grants: the profile itself in this account, and the
+            # underlying foundation models in every region the profile routes to.
             - Effect: Allow
               Action:
                 - bedrock:InvokeModel
               Resource:
-                - !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-*'
+                - !Sub 'arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.anthropic.claude-*'
+                - 'arn:aws:bedrock:*::foundation-model/anthropic.claude-*'
 
             # Query the Knowledge Base
             - Effect: Allow
