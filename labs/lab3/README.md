@@ -326,7 +326,7 @@ Test 6: unknown tool name returns error dict
   ✅ Returns a dict
   ✅ Returns error key
 
-All 18 checks passed! ✅
+All 22 checks passed! ✅
 
 Checkpoint 1 complete — move on to Part 2.
 ============================================================
