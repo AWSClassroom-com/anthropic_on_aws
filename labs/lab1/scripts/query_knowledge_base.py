@@ -21,7 +21,7 @@ from pathlib import Path
 from dotenv import load_dotenv
  
 REGION = "us-east-1"
-MODEL_ID = "us.anthropic.claude-sonnet-4-6"
+MODEL_ID = "us.anthropic.claude-sonnet-5-5"
 ENV_FILE = Path(__file__).parent.parent / ".env"
 MAX_RESULTS = 5
  
@@ -101,9 +101,8 @@ Answer:"""
  
     result = json.loads(response["body"].read())
 
-    # Some Claude models return a thinking block before the answer, so
-    # content[0] is not always text. Pick the text block by type rather
-    # than by position, and the code works on every model.
+    # Claude 5.x models think before answering, so content[0] can be a
+    # thinking block. Pick the text block by type rather than by position.
     return next(
         b["text"] for b in result["content"] if b.get("type") == "text"
     )

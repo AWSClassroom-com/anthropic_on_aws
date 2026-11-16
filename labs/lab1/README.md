@@ -236,7 +236,7 @@ Before writing code, spend a few minutes in the Bedrock console. This gives you 
 2. **Confirm you are in the us-east-1 (N. Virginia) region.** Check the region selector in the top-right corner. This is not optional. The shared Knowledge Base and every model you invoke in this lab only exist in this region.
 3. In the left sidebar under **Test**, click **Playground**.
 4. Click the orange **Select model** button.
-5. In the model picker, select **Anthropic**, then **Claude Sonnet 4.6**, then choose the **US** inference profile.
+5. In the model picker, select **Anthropic**, then **Claude Sonnet 5.5**, then choose the **US** inference profile.
 6. Click **Apply**.
 
 ### Step 2: Run One Prompt and Observe
@@ -281,8 +281,8 @@ from botocore.exceptions import ClientError
 
 # TODO 1: Add the three model IDs here
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
-    # Add Opus 4.6 and Haiku 4.5 here
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    # Add Opus 5.5 and Haiku 5.5 here
 }
 
 PROMPT = """A customer says: "I ordered three items two weeks ago and only two arrived.
@@ -326,23 +326,23 @@ Find the commented `TODO 1` and fill in the `MODELS` dict with the correct infer
 
 ```python
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
-    # Add Opus 4.6 and Haiku 4.5 here
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    # Add Opus 5.5 and Haiku 5.5 here
 }
 ```
 
-> **Why the `us.` prefix matters:** Claude models on Bedrock require a cross-region inference profile ID, not a bare model ID. Calling `anthropic.claude-sonnet-4-6` without the prefix returns a `ValidationException`. The `us.` prefix routes across US regions. Use `us.` for every model in this lab. The `global.` prefix is not enabled for every model in the class account, and Opus 4.6 is one that fails with it.
+> **Why the `us.` prefix matters:** Claude models on Bedrock require a cross-region inference profile ID, not a bare model ID. Calling `anthropic.claude-sonnet-5-5` without the prefix returns a `ValidationException`. The `us.` prefix routes across US regions. Use `us.` for every model in this lab. The `global.` prefix is not reliably enabled in the class account, so stay with `us.`.
 
-> **Three ID formats, all current.** Sonnet 4.6 uses a short ID with no date, `us.anthropic.claude-sonnet-4-6`. Opus 4.6 ends in a version suffix, `us.anthropic.claude-opus-4-6-v1`. Haiku 4.5 carries a date and a version, `us.anthropic.claude-haiku-4-5-20251001-v1:0`. You will use all three in this exercise. Check the model card if you are unsure which form a model takes.
+> **Model ID format.** The 5.5 models use a short ID with no date: `us.anthropic.claude-sonnet-5-5`, `us.anthropic.claude-opus-5-5` and `us.anthropic.claude-haiku-5-5`. Older models keep a dated, versioned ID, such as `us.anthropic.claude-haiku-4-5-20251001-v1:0`. Check the model card if you are unsure which form a model takes.
 
 <details>
 <summary>Model IDs for reference</summary>
 
 ```python
 MODELS = {
-    "Sonnet 4.6": "us.anthropic.claude-sonnet-4-6",
-    "Opus 4.6":   "us.anthropic.claude-opus-4-6-v1",
-    "Haiku 4.5":  "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "Sonnet 5.5": "us.anthropic.claude-sonnet-5-5",
+    "Opus 5.5":   "us.anthropic.claude-opus-5-5",
+    "Haiku 5.5":  "us.anthropic.claude-haiku-5-5",
 }
 ```
 </details>
@@ -400,26 +400,26 @@ python scripts/compare_models.py
 Model Comparison Results (your results may vary)
 ============================================================
 
-Sonnet 4.6
+Sonnet 5.5
   Response:      {"sentiment": "negative", "priority": "high", ...}
-  Input tokens:  124
-  Output tokens: 59
-  Latency:       2399 ms
-  Cost:          $0.001257
+  Input tokens:  167
+  Output tokens: 69
+  Latency:       2185 ms
+  Cost:          $0.001024
 
-Opus 4.6
+Opus 5.5
   Response:      {"sentiment": "negative", "priority": "high", ...}
-  Input tokens:  124
-  Output tokens: 58
-  Latency:       1338 ms
-  Cost:          $0.002070
+  Input tokens:  167
+  Output tokens: 65
+  Latency:       1636 ms
+  Cost:          $0.001968
 
-Haiku 4.5
+Haiku 5.5
   Response:      {"sentiment": "negative", "priority": "high", ...}
-  Input tokens:  124
-  Output tokens: 52
-  Latency:       644 ms
-  Cost:          $0.000384
+  Input tokens:  167
+  Output tokens: 63
+  Latency:       902 ms
+  Cost:          $0.000048
 
 ============================================================
 ```
@@ -434,7 +434,7 @@ Look at your output and answer these questions before moving on:
 2. Which model had the lowest cost? By how much compared to Sonnet?
 
 
-> **Key insight:** All three models returned valid JSON with exactly the three keys the prompt asked for, and all three classified the ticket the same way: negative sentiment, high priority. Only the wording of `recommended_action` differs. That is the normal result for a well-specified task, and it is the finding. When the smallest model gives an answer a downstream system can parse and route, a larger model is not buying you a better answer on this task. It is only buying you a higher bill. For the same classification, Opus cost about five times what Haiku did and Sonnet about three times.
+> **Key insight:** All three models returned valid JSON with exactly the three keys the prompt asked for, and all three classified the ticket the same way: negative sentiment, high priority. Only the wording of `recommended_action` differs. That is the normal result for a well-specified task, and it is the finding. When the smallest model gives an answer a downstream system can parse and route, a larger model is not buying you a better answer on this task. It is only buying you a higher bill. For the same classification, Sonnet cost roughly twenty times what Haiku did and Opus roughly forty times.
 
 ---
 
@@ -453,9 +453,9 @@ It looks something like this (your numbers may vary):
 
   Model         Tokens/req    10k/day/mo    100k/day/mo
   ------------  ----------  ------------  -------------
-  Sonnet 4.6           183       $377.10      $3,771.00
-  Opus 4.6             182       $621.00      $6,210.00
-  Haiku 4.5            176       $115.20      $1,152.00
+  Sonnet 5.5           236       $307.20      $3,072.00
+  Opus 5.5             232       $590.40      $5,904.00
+  Haiku 5.5            230        $14.46        $144.60
 
   Formula: cost_per_request x daily_volume x 30 days
   Verify current rates: https://aws.amazon.com/bedrock/pricing/
@@ -476,20 +476,20 @@ Look back at your own output from Step 7 and answer three questions.
 
 **1. Did the models disagree?** Compare the three classifications. On a well-specified task like this one, they usually agree. If yours did, that is the finding, not a failure of the exercise.
 
-**2. What does Haiku cost against Sonnet?** Read the two monthly figures from the projection table. For the same answer, Haiku normally costs about a third of what Sonnet does.
+**2. What does Haiku cost against Sonnet?** Read the two monthly figures from the projection table. For the same answer, Haiku normally costs about one twentieth of what Sonnet does.
 
-**3. Opus charges about two thirds more than Sonnet per token. Does your monthly figure show the same gap?** Compare the Opus and Sonnet monthly figures, then look at the input and output token counts for each model before you answer.
+**3. Opus charges double Sonnet's rate. Does your monthly figure show the same gap?** Compare the Opus and Sonnet monthly figures, then look at the input and output token counts for each model before you answer.
 
 <details>
 <summary>What the third question is getting at</summary>
 
-Cost is rate multiplied by tokens. Here the tokens are almost identical: every model reports the same input count, and Sonnet and Opus wrote nearly the same number of output tokens. With the token counts matched, the rate card decides, so Opus lands about two thirds above Sonnet, the same gap as its rates ($5 and $25 per million tokens against $3 and $15).
+Cost is rate multiplied by tokens. Here the tokens are almost identical: Sonnet and Opus report the same input count and wrote a similar number of output tokens. With the token counts matched, the rate card decides, so Opus lands about twice Sonnet, the same gap as its rates ($4 and $20 per million tokens against $2 and $10). If Opus happens to write noticeably more in your run, the gap widens.
 
 Two things follow. The rate card only predicts the bill when the models write about the same amount, so a measured run is the way to check. And constraining the response, as the prompt in this lab does by naming exactly three keys, is what keeps the token counts level. Output tokens bill at five times the input rate, so a model that writes twice as much can cost as much as a model with double the rate.
 
-Cost is not the only number that moves. In this lab's runs Haiku answered in under a second, Opus in roughly one to two and a half seconds, and Sonnet in about two to three. Latency does not follow price, so measure it for your own workload.
+Cost is not the only number that moves. In this lab's runs Haiku answered in about a second, Opus in one and a half to two seconds, and Sonnet was the slowest every time, at over two seconds and once close to ten. Latency does not follow price, so measure it for your own workload.
 
-Different model generations can also tokenize the same text differently, so identical prompts can report different input counts. Here all three report the same count, which is why their token counts compare directly.
+All three models report the same input count, 167 tokens, because they share a tokenizer, so their token counts compare directly. That is not true across older generations: Haiku 4.5, for example, reports fewer input tokens for the same prompt because it tokenizes text differently.
 </details>
 
 There is no single right answer to the decision itself. The point is that you now have measured data rather than a guess, and you know which three things move the number.
@@ -607,7 +607,7 @@ Based on the ACME Corp Return Policy, here are the details for returning damaged
 For additional assistance, you can contact ACME Corp at **support@acmecorp.com** or call **1-800-ACME-HELP**.
 
 Citations:
-  [1] return-policy.txt (score: 0.45)
+  [1] return-policy.txt (score: 0.71)
   [2] support-procedures.txt (score: 0.41)
   [3] warranty-coverage.txt (score: 0.39)
 ```
@@ -653,7 +653,7 @@ python scripts/query_knowledge_base.py --query "What is the step-by-step process
 python scripts/query_knowledge_base.py --query "What is the step-by-step process for initiating a product return, including required documentation and timelines?"
 ```
 
-Look at the citation scores for each. The specific query should return higher scores and more targeted chunks.
+Look at the citation scores for each. The specific query should return higher scores and more targeted chunks. In testing, the vague query's top score was about 0.47 and the specific query's was about 0.74, both from `return-policy.txt`. Expect your numbers to land within a few hundredths of these.
 
 > **Why this matters in production:** Users ask vague questions. Your application should preprocess or expand queries before sending them to the retrieval layer. You will implement this pattern in Lab 3.
 
@@ -671,7 +671,7 @@ python scripts/query_knowledge_base.py --query "What is the CEO's favorite color
 python scripts/query_knowledge_base.py --query "What is the CEO's favorite color?"
 ```
 
-**Expected result:** Claude indicates it does not have that information, or retrieval returns no relevant chunks with scores near zero.
+**Expected result:** Claude indicates it does not have that information, or retrieval returns only weak matches. Every score sits at about 0.35, which is the lowest value this scoring produces, and no document stands out.
 
 This is correct behavior. A RAG system that answers out-of-scope questions confidently is more dangerous than one that says it does not know.
 
