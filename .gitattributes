@@ -1,0 +1,9 @@
+# Keep every text file LF in the repository and in every checkout.
+# The student VM runs Linux, and a CRLF in a shell script (for example
+# lab2/.devcontainer/init-firewall.sh) breaks it with "bad interpreter".
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.png binary
+*.jpg binary
+*.gif binary
