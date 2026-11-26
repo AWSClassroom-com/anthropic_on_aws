@@ -1,147 +1,99 @@
 """
 Lab 1: Knowledge Base Verification Script
 Anthropic Models on AWS Bedrock
- 
-Confirms the Knowledge Base is active and documents are synced.
-Reads the Knowledge Base ID from .env
- 
-Run: python scripts/verify_knowledge_base.py
+
+Finds the shared Knowledge Base, confirms it is active and its documents are
+synced, and saves its ID for the rest of Lab 1 and for Lab 3.
+Nothing to edit.
+
+Run:  python scripts/verify_knowledge_base.py
+      python scripts/verify_knowledge_base.py --kb-id ABCDEF1234
 """
- 
-import boto3
-import os
+
+import argparse
 import sys
-from pathlib import Path
-from dotenv import load_dotenv
- 
-REGION = "us-east-1"
-ENV_FILE = Path(__file__).parent.parent / ".env"
- 
- 
-def get_kb_id() -> str:
-    """Read Knowledge Base ID from .env file."""
-    load_dotenv(ENV_FILE)
-    kb_id = os.getenv("KNOWLEDGE_BASE_ID", "").strip()
-    if not kb_id:
-        print("\nERROR: KNOWLEDGE_BASE_ID not found in .env")
-        print("Add your Knowledge Base ID to .env -- check the course chat for the ID your instructor shared.\n")
-        sys.exit(1)
-    return kb_id
- 
- 
+
+import boto3
+
+from kb_common import REGION, get_kb_id
+
+EXPECTED_DOCUMENTS = 5
+
+
 def main():
+    parser = argparse.ArgumentParser(description="Verify the shared Knowledge Base")
+    parser.add_argument("--kb-id", help="Knowledge Base ID, if you were given one")
+    args = parser.parse_args()
+
     print()
     print("=" * 55)
     print("  Lab 1: Knowledge Base Verification")
     print("  Anthropic Models on AWS Bedrock")
     print("=" * 55)
     print()
- 
-    kb_id = get_kb_id()
+
+    kb_id = get_kb_id(args.kb_id)
     client = boto3.client("bedrock-agent", region_name=REGION)
- 
-    # Build bucket path dynamically from account ID
+    checks = []
+
     try:
-        sts = boto3.client("sts", region_name=REGION)
-        account_id = sts.get_caller_identity()["Account"]
-        bucket_path = f"s3://bedrock-training-{account_id}/lab1-documents/"
-    except Exception:
-        bucket_path = "s3://bedrock-training-[your-account-id]/lab1-documents/"
- 
-    try:
-        # Check Knowledge Base status
-        response = client.get_knowledge_base(knowledgeBaseId=kb_id)
-        kb = response["knowledgeBase"]
-        status = kb["status"]
-        name = kb["name"]
- 
+        kb = client.get_knowledge_base(knowledgeBaseId=kb_id)["knowledgeBase"]
         print(f"  Knowledge Base ID:   {kb_id}")
-        print(f"  Name:                {name}")
-        print(f"  Status:              {status}")
- 
-        if status != "ACTIVE":
-            print()
-            print(f"  WARNING: Status is '{status}', expected 'ACTIVE'.")
-            if status == "CREATING":
-                print("  Still provisioning -- wait a few more minutes and retry.")
-            elif status == "FAILED":
-                print("  Creation failed. Ask your instructor for help.")
-            print()
-            sys.exit(1)
- 
-        # Check data sources
-        ds_response = client.list_data_sources(knowledgeBaseId=kb_id)
-        data_sources = ds_response.get("dataSourceSummaries", [])
- 
-        if not data_sources:
-            print()
-            print("  WARNING: No data sources found.")
-            print("  Ask your instructor -- the shared Knowledge Base may need to be reconfigured.\n")
-            sys.exit(1)
- 
-        ds = data_sources[0]
-        ds_name = ds["name"]
-        ds_status = ds["status"]
-        ds_id = ds["dataSourceId"]
- 
-        print(f"  Data source:         {ds_name}")
-        print(f"  Sync status:         {ds_status}")
- 
-        # Check ingestion jobs. Sort newest first: without a sort order the API
-        # returns jobs in no particular order, so jobs[0] is not always the latest.
-        jobs_response = client.list_ingestion_jobs(
-            knowledgeBaseId=kb_id,
-            dataSourceId=ds_id,
-            sortBy={"attribute": "STARTED_AT", "order": "DESCENDING"}
-        )
-        jobs = jobs_response.get("ingestionJobSummaries", [])
- 
-        if jobs:
-            latest_job = jobs[0]
-            job_status = latest_job.get("status", "UNKNOWN")
-            stats = latest_job.get("statistics", {})
-            docs_failed = stats.get("numberOfDocumentsFailed", 0)
-            # A re-sync only reports what changed as "new" or "modified", so a
-            # sync that touched one file would look like one document. Count the
-            # documents the sync scanned instead, minus any that failed.
-            docs_indexed = max(stats.get("numberOfDocumentsScanned", 0) - docs_failed, 0)
- 
-            print(f"  Documents synced:    {docs_indexed}")
- 
-            if docs_failed > 0:
-                print(f"  Documents failed:    {docs_failed}")
-                print()
-                print("  WARNING: Some documents failed to sync.")
-                print("  Ask your instructor to check the S3 bucket contents.\n")
- 
-            if job_status == "IN_PROGRESS":
-                print()
-                print("  Sync still in progress -- wait a few minutes and retry.\n")
-                sys.exit(1)
- 
-            if docs_indexed == 0:
-                print()
-                print("  WARNING: No documents indexed.")
-                print(f"  Verify documents exist at {bucket_path}")
-                print("  Ask your instructor if the S3 bucket is empty.\n")
-                sys.exit(1)
-        else:
-            print(f"  Documents synced:    0 (no ingestion job found)")
- 
-        print()
-        print("=" * 55)
-        print("  Knowledge Base is active and ready.")
-        print("=" * 55)
-        print()
- 
+        print(f"  Name:                {kb['name']}")
+        print(f"  Status:              {kb['status']}")
+        checks.append(("Knowledge Base is ACTIVE", kb["status"] == "ACTIVE"))
+
+        sources = client.list_data_sources(knowledgeBaseId=kb_id).get("dataSourceSummaries", [])
+        checks.append(("Knowledge Base has a data source", bool(sources)))
+
+        scanned, failed, job_status = 0, 0, "NONE"
+        if sources:
+            ds = sources[0]
+            print(f"  Data source:         {ds['name']}")
+            # Sort newest first: without a sort order the API returns jobs in
+            # no particular order, so jobs[0] is not always the latest.
+            jobs = client.list_ingestion_jobs(
+                knowledgeBaseId=kb_id,
+                dataSourceId=ds["dataSourceId"],
+                sortBy={"attribute": "STARTED_AT", "order": "DESCENDING"},
+            ).get("ingestionJobSummaries", [])
+            if jobs:
+                job_status = jobs[0].get("status", "UNKNOWN")
+                stats = jobs[0].get("statistics", {})
+                scanned = stats.get("numberOfDocumentsScanned", 0)
+                failed = stats.get("numberOfDocumentsFailed", 0)
+            print(f"  Sync status:         {job_status}")
+            print(f"  Documents synced:    {max(scanned - failed, 0)}")
+
+        checks.append(("Last sync completed", job_status == "COMPLETE"))
+        checks.append((
+            f"All {EXPECTED_DOCUMENTS} documents synced with none failed",
+            scanned - failed >= EXPECTED_DOCUMENTS and failed == 0,
+        ))
+
     except client.exceptions.ResourceNotFoundException:
         print(f"\n  ERROR: Knowledge Base '{kb_id}' not found.")
-        print("  Check the Knowledge Base ID in your .env file matches the ID your instructor shared.\n")
+        print("  Ask your instructor to confirm the ID.\n")
         sys.exit(1)
     except Exception as e:
         print(f"\n  ERROR: {type(e).__name__}: {e}\n")
         sys.exit(1)
- 
- 
+
+    print()
+    for label, ok in checks:
+        print(f"  {'✅' if ok else '❌'} {label}")
+    print()
+
+    passed = sum(ok for _, ok in checks)
+    if passed == len(checks):
+        print(f"All {len(checks)} checks passed! ✅")
+        print("Knowledge Base ID saved for Lab 1 and Lab 3.")
+        print()
+        return
+    print(f"{passed} / {len(checks)} checks passed. Tell your instructor.")
+    print()
+    sys.exit(1)
+
+
 if __name__ == "__main__":
     main()

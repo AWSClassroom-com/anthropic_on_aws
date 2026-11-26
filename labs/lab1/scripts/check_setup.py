@@ -3,7 +3,7 @@ Lab 1 Setup Verification Script
 Anthropic Models on AWS Bedrock
  
 Checks that all prerequisites are in place before starting Lab 1.
-Run this script after completing Part 1 setup steps.
+Run this script after signing in to AWS. Nothing to edit.
 """
  
 import sys
@@ -35,7 +35,7 @@ def check_python():
 def check_boto3():
     spec = importlib.util.find_spec("boto3")
     if spec is None:
-        check("boto3 installed...", False, "(run: pip install boto3)")
+        check("boto3 installed...", False, "(missing from the VM image -- tell your instructor)")
         return False
     import boto3
     return check("boto3 installed...", True, f"({boto3.__version__})")
@@ -44,7 +44,7 @@ def check_boto3():
 def check_dotenv():
     spec = importlib.util.find_spec("dotenv")
     if spec is None:
-        check("python-dotenv installed...", False, "(run: pip install python-dotenv)")
+        check("python-dotenv installed...", False, "(missing from the VM image -- tell your instructor)")
         return False
     return check("python-dotenv installed...", True)
  
@@ -69,7 +69,7 @@ def build_bucket_name(account_id):
  
 def check_credentials():
     if not boto3_available():
-        return check("AWS credentials...", False, "(boto3 not installed -- install it first)"), None
+        return check("AWS credentials...", False, "(boto3 missing -- tell your instructor)"), None
  
     try:
         import boto3
@@ -82,7 +82,7 @@ def check_credentials():
         return check("AWS credentials...", True, f"({username})"), account_id
     except NoCredentialsError:
         check("AWS credentials...", False, "(no credentials found)")
-        print(f"\n  Run 'aws login' and complete the browser prompt, then retry.\n")
+        print(f"\n  Run 'aws sso login' and complete the browser prompt, then retry.\n")
         return False, None
     except ClientError as e:
         code = e.response["Error"]["Code"]
@@ -94,8 +94,7 @@ def check_credentials():
         msg = str(e)
         if "MissingDependency" in msg or "botocore[crt]" in msg:
             check("AWS credentials...", False, "(missing botocore[crt])")
-            print(f"\n  Run: pip install 'botocore[crt]'")
-            print(f"  Then retry this script.\n")
+            print("\n  botocore[crt] is missing from the VM image. Tell your instructor.\n")
         else:
             check("AWS credentials...", False, f"({type(e).__name__}: {e})")
         return False, None
@@ -103,7 +102,7 @@ def check_credentials():
  
 def check_s3_access(bucket_name):
     if not boto3_available():
-        return check("S3 bucket access...", False, "(boto3 not installed -- install it first)")
+        return check("S3 bucket access...", False, "(boto3 missing -- tell your instructor)")
  
     try:
         import boto3
@@ -124,7 +123,7 @@ def check_s3_access(bucket_name):
  
 def check_documents(bucket_name):
     if not boto3_available():
-        return check("Sample documents...", False, "(boto3 not installed -- install it first)")
+        return check("Sample documents...", False, "(boto3 missing -- tell your instructor)")
  
     try:
         import boto3
@@ -183,17 +182,14 @@ def main():
     print()
  
     if all(results):
-        print("=" * 55)
-        print("  Setup complete. Ready to start Lab 1.")
-        print("=" * 55)
+        print(f"All {len(results)} checks passed! ✅")
+        print("Setup complete. Ready to start Lab 1.")
         print()
         sys.exit(0)
     else:
         failed = results.count(False)
-        print("=" * 55)
-        print(f"  {failed} check{'s' if failed != 1 else ''} failed.")
-        print("  Resolve the issues above before continuing.")
-        print("=" * 55)
+        print(f"{len(results) - failed} / {len(results)} checks passed.")
+        print("Resolve the issues above before continuing, or tell your instructor.")
         print()
         sys.exit(1)
  

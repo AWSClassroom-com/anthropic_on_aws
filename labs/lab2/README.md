@@ -17,7 +17,7 @@ But knowing how to operate Claude Code is not the same as knowing how to work wi
 
 By completing this lab, you will:
 
-1. Install and launch Claude Code connected to Amazon Bedrock
+1. Launch Claude Code and connect it to Amazon Bedrock
 2. Use Plan mode and model switching to plan before you build
 3. Use CLAUDE.md to enforce project-wide coding and writing standards
 4. Scaffold and iterate on a Bedrock integration using agentic workflows
@@ -31,13 +31,13 @@ By completing this lab, you will:
 ## Prerequisites
 
 - [ ] AWS SSO sign-in completed in Lab 1 (`aws configure sso` and `aws sso login` done, `aws sts get-caller-identity` returns your account)
-- [ ] Terminal access on your workstation
+- [ ] Your lab VM terminal (Claude Code is already installed)
 
 > ## ⚠️ REGION: us-east-1 (N. Virginia) ONLY
 >
-> Claude Code must be configured to use **us-east-1** for the class. Every model ID, the shared Knowledge Base from Lab 1, and Lab 3's guardrail and deployment all depend on it. Step 4's setup wizard asks for a region: type `us-east-1`, not the region shown by default in your AWS profile if it differs.
+> Claude Code must be configured to use **us-east-1** for the class. Every model ID, the shared Knowledge Base from Lab 1, and Lab 3's guardrail and deployment all depend on it. Step 3's setup wizard asks for a region: type `us-east-1`, not the region shown by default in your AWS profile if it differs.
 
-> **Course repository location:** The course repo was cloned in Lab 1 and is at `~/anthropic_on_aws/` on macOS/Linux and `$env:USERPROFILE\anthropic_on_aws\` on Windows. You will need this path in Part 7. If you cloned it elsewhere, note your actual path.
+> **Course repository location:** The course repo is already on your VM at `~/anthropic_on_aws/`. You will need this path in Part 7.
 
 **Course Repository:** **https://github.com/AWSClassroom-com/anthropic_on_aws**
 
@@ -49,14 +49,8 @@ Claude Code authenticates using your AWS credentials and routes model calls thro
 
 > **Optional:** Setting `AWS_REGION=us-east-1` in your terminal before launching pre-fills the region field in the wizard.
 
-**macOS/Linux:**
 ```bash
 export AWS_REGION=us-east-1
-```
-
-**Windows (PowerShell):**
-```powershell
-$env:AWS_REGION="us-east-1"
 ```
 
 ### Step 1: Confirm AWS Credentials Are Active
@@ -67,87 +61,21 @@ aws sts get-caller-identity
 
 **Expected result:** Your account ID and an `assumed-role` ARN. If this fails, run `aws sso login` and complete the browser prompt before continuing.
 
-### Step 2: Install Claude Code
+### Step 2: Create Your Working Folder
 
-Make a folder off the root directory for this lab:
-
-```bash
-cd /
-mkdir claude-code-lab
-cd claude-code-lab
-```
-
-Check whether Claude Code is already installed:
+Claude Code is already installed on your VM. Make a working folder for this lab and confirm Claude Code is available:
 
 ```bash
+mkdir -p ~/claude-code-lab
+cd ~/claude-code-lab
 claude --version
 ```
 
-If a version number appears, skip to Step 3.
+**Expected result:** A version number. If you see `command not found`, tell your instructor.
 
-If not, install using the native installer:
+### Step 3: Launch Claude Code
 
-**macOS/Linux:**
 ```bash
-curl -fsSL https://claude.ai/install.sh | bash
-```
-
-**Windows (PowerShell):**
-```powershell
-irm https://claude.ai/install.ps1 | iex
-```
-
-**Windows (CMD):**
-```batch
-curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
-```
-
-> **Native install is recommended.** It auto-updates in the background and avoids permission issues.
-
-> **Fallback: install via npm.** If the native installer is not available, run `npm install -g @anthropic-ai/claude-code`. This requires Node.js 22 or later. Do not use `sudo npm install -g`, since this causes permission issues.
-
-### Step 3: Add Claude to Your PATH (Windows only)
-
-The Claude Code installer does not automatically add the executable to your PATH to avoid unintended shell override issues. On Windows, you need to add it manually so the `claude` command is available in any terminal session.
-
-The installer tells you to do this through System Properties. The commands below do the same thing without leaving the terminal.
-
-**Windows (PowerShell):**
-```powershell
-$bin = "$env:USERPROFILE\.local\bin"
-$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($userPath -notlike "*$bin*") {
-    [Environment]::SetEnvironmentVariable("Path", "$userPath;$bin", "User")
-    "Added $bin to your user PATH."
-} else {
-    "$bin is already on your user PATH."
-}
-```
-
-**Close and reopen your terminal** after running this. The change is written permanently but only applies to new terminal sessions.
-
-> **Why read the User path rather than `$env:Path`.** `$env:Path` is the machine PATH and your user PATH merged together. Writing that merged value back into the user scope copies every machine entry into your user PATH, duplicating them. Reading `GetEnvironmentVariable("Path", "User")` touches only your own entries. The `if` check also means the command is safe to run twice.
-
-> **⚠️ Do not use `setx` for this.** `setx` truncates the value it writes at 1,024 characters. It prints a one-line warning when this happens, but it's easy to miss in a scrolling terminal, and the dropped characters can break other tools that depend on the entries that got cut off. On a machine with a typical developer PATH, the combined system and user PATH is often already close to that limit. The command above has no such limit.
-
-Verify Claude is now on your PATH:
-```powershell
-claude --version
-```
-
-**Expected result:** A version number. If you see `claude is not recognized`, confirm the terminal was fully closed and reopened, not just refreshed.
-
-> **macOS/Linux:** The native installer adds Claude to your PATH automatically. Skip this step.
-
-### Step 4: Launch Claude Code
-
-**macOS/Linux:**
-```bash
-claude
-```
-
-**Windows (PowerShell):**
-```powershell
 claude
 ```
 
@@ -173,7 +101,7 @@ claude
 
 > **Troubleshooting:** If verification fails, run `aws sts get-caller-identity`. If that fails, run `aws sso login` and relaunch.
 
-### Step 5: Verify Bedrock is Active
+### Step 4: Verify Bedrock is Active
 
 ```
 /status
@@ -191,7 +119,7 @@ Now confirm the actual model string:
 
 > **If /status shows the Anthropic API instead of Bedrock:** Type `/logout`, relaunch `claude`, and select option 3 (3rd-party platform) at the login method screen.
 
-### Step 6: Name Your Session
+### Step 5: Name Your Session
 
 ```
 /rename lab2-session
@@ -199,19 +127,13 @@ Now confirm the actual model string:
 
 Use any name you prefer. To resume this session if your terminal closes or your SSO expires:
 
-**macOS/Linux:**
 ```bash
-claude --resume lab2-session
-```
-
-**Windows (PowerShell):**
-```powershell
 claude --resume lab2-session
 ```
 
 > **Why this matters:** If your SSO session expires mid-lab, run `aws sso login` in a new terminal, then `claude --resume lab2-session` to return exactly where you left off.
 
-### Step 7: (Informational) Approve File and Command Permissions
+### Step 6: (Informational) Approve File and Command Permissions
 
 In upcoming lab steps, Claude Code will ask for permission before creating files and running commands. You will see two prompt types during this lab:
 
@@ -247,7 +169,7 @@ The right sequence is: establish your standards first, then plan, then build. Wh
 
 Model switching supports this. Claude Opus reasons more deeply about architecture, trade-offs, and edge cases. Claude Sonnet is faster and more cost-effective for iterative code edits once the thinking is done.
 
-### Step 8: Create CLAUDE.md with Code and Writing Standards
+### Step 7: Create CLAUDE.md with Code and Writing Standards
 
 Before planning or writing any code, establish the standards Claude Code will follow throughout this project:
 
@@ -270,7 +192,7 @@ WRITING STYLE:
 
 > **Key insight:** CLAUDE.md is not limited to code conventions. Commit message formats, error message tone, and API naming patterns are all team standards that can be described in plain language and belong here. Because CLAUDE.md is created before the plan, the plan output will already reflect these conventions.
 
-### Step 9: Switch to Opus for Planning
+### Step 8: Switch to Opus for Planning
 
 ```
 /model
@@ -292,7 +214,7 @@ Confirm the switch:
 
 > **Cost note:** Opus costs significantly more per token than Sonnet. You will use it for one planning step only, then switch back. Check current rates at https://aws.amazon.com/bedrock/pricing/
 
-### Step 10: Activate Plan Mode and Create the Project Plan
+### Step 9: Activate Plan Mode and Create the Project Plan
 
 Activate Plan mode by pressing **Shift+Tab** twice to cycle to Plan mode, or type:
 
@@ -341,7 +263,7 @@ A well-structured plan from Opus will typically include:
 If a plan suggests a significantly different approach than you expect, this is the moment to redirect, before any files are created.
 </details>
 
-### Step 11: Tell Claude to Hold, Then Switch Back to Sonnet
+### Step 10: Tell Claude to Hold, Then Switch Back to Sonnet
 
 If the plan looks good, do not approve it while you are still on Opus. After Claude Code writes a plan it offers three options:
 
@@ -395,9 +317,9 @@ Execute the plan
 
 The plan implementation produced your project files. Part 3 has three goals: verify the generated code follows your CLAUDE.md standards, commit the first working milestone, and prove CLAUDE.md persists across session restarts.
 
-### Step 12: Verify the Generated Code Against CLAUDE.md
+### Step 11: Verify the Generated Code Against CLAUDE.md
 
-Open the generated file (or files) in Notepad (PC) or TextEdit (Mac). Read through the code and confirm each of the following CLAUDE.md rules is satisfied:
+Open the generated file (or files) in VS Code with `code <filename>`. Read through the code and confirm each of the following CLAUDE.md rules is satisfied:
 
 - Type hints on all parameters and return types
 - Bedrock Invoke API used, not the Messages API
@@ -409,7 +331,7 @@ Open the generated file (or files) in Notepad (PC) or TextEdit (Mac). Read throu
 
 > **If a rule was not followed:** Say "Rewrite the [function name] function following the CLAUDE.md standards." The standards were in place before the plan was created, so Claude Code should have followed them. If it did not, the rewrite prompt corrects it.
 
-### Step 13: (Best Practice) Commit Your First Working Milestone
+### Step 12: (Best Practice) Commit Your First Working Milestone
 
 You now have an implementation boilerplate that follows your standards. In the real world, this is a natural commit point.
 
@@ -421,19 +343,13 @@ You now have an implementation boilerplate that follows your standards. In the r
 >
 > In your own environment, the commit command would be `git add . && git commit -m "Implement Bedrock integration from approved plan"`.
 
-### Step 14: Verify CLAUDE.md Persists Across Restarts
+### Step 13: Verify CLAUDE.md Persists Across Restarts
 
 This step proves CLAUDE.md is persistent, not just a conversation setting.
 
 Type `/exit` to quit Claude Code, then relaunch in the same directory:
 
-**macOS/Linux:**
 ```bash
-claude --resume lab2-session
-```
-
-**Windows (PowerShell):**
-```powershell
 claude --resume lab2-session
 ```
 
@@ -454,7 +370,7 @@ and returns True if the model is accessible in us-east-1, False otherwise.
 
 ## Part 4: Iterate with Confidence
 
-### Step 15: Add Tests
+### Step 14: Add Tests
 
 ```
 Write unit tests for both functions you created. Mock the boto3 client.
@@ -466,7 +382,7 @@ Write unit tests for both functions you created. Mock the boto3 client.
 
 > **Note:** Claude Code creates the test file. It may or may not run the tests automatically, so watch the output and follow any prompts if it asks for approval to run a bash command.
 
-### Step 16: (Best Practice) Commit Before a Risky Change
+### Step 15: (Best Practice) Commit Before a Risky Change
 
 > **Note:** This is real-world best practice, not a step to run in this lab. Training VMs here do not have git configured for commits.
 >
@@ -476,7 +392,7 @@ Write unit tests for both functions you created. Mock the boto3 client.
 >
 > In your own environment, the commit command would be `git add . && git commit -m "Add unit tests for the invocation and knowledge base functions"`.
 
-### Step 17: Interrupt and Steer
+### Step 16: Interrupt and Steer
 
 You are about to submit two requests back to back. The second one interrupts the first while it is still working, so read both before you start and have the second one ready to paste in immediately.
 
@@ -498,7 +414,7 @@ Type or paste the second request as soon as you hit Enter on the first. You do n
 
 > **Key point:** Interrupting Claude Code mid-execution is how you course-correct efficiently. You do not need to wait for a wrong direction to finish before changing it.
 
-### Step 18: Provide Verification Criteria
+### Step 17: Provide Verification Criteria
 
 ```
 Create a function validate_bedrock_region that checks if a region supports Bedrock.
@@ -512,7 +428,7 @@ Run tests after implementing.
 
 > **Key learning:** Test cases upfront give Claude Code a clear definition of done. Without them, Claude Code has to guess what correct looks like.
 
-### Step 19: Delegate, Don't Dictate
+### Step 18: Delegate, Don't Dictate
 
 ```
 The model invocation function should handle rate limiting from Bedrock.
@@ -523,7 +439,7 @@ When we hit ThrottlingException, it should wait and retry. Can you add this?
 
 > **Key insight:** Claude Code reads and understands your existing code before acting. It does not blindly implement what you ask if the behavior already exists. This code comprehension is what makes it useful on real projects rather than just greenfield code.
 
-### Step 20: (Best Practice) Rollback When Things Go Wrong
+### Step 19: (Best Practice) Rollback When Things Go Wrong
 
 > **Note:** This describes a real-world recovery workflow. Training VMs here do not have git configured for commits, so you will not run these commands in this lab.
 >
@@ -535,7 +451,7 @@ When we hit ThrottlingException, it should wait and retry. Can you add this?
 >
 > The most common mistake with AI-generated code is asking Claude Code to fix a broken change rather than reverting and starting over. Fixing compounds the problem. Reverting resets it.
 >
-> This is why the commit-before-change habit from Step 16 matters. You cannot revert to a commit that does not exist.
+> This is why the commit-before-change habit from Step 15 matters. You cannot revert to a commit that does not exist.
 
 ---
 
@@ -547,7 +463,7 @@ Every message, every function, every file Claude Code reads accumulates in the c
 
 In production, unmanaged context leads to higher costs and eventually to Claude Code losing track of early conversation details as the window fills.
 
-### Step 21: Compact Your Context
+### Step 20: Compact Your Context
 
 You have completed the core build. This is a natural point to summarize accumulated context before moving on.
 
@@ -557,7 +473,7 @@ You have completed the core build. This is a natural point to summarize accumula
 
 **Expected Result:** Claude Code replaces the full conversation history with a focused summary. Your CLAUDE.md and files remain on disk unchanged. Only the conversation history is compressed.
 
-> **⚠️ Wait for compaction to finish.** Compaction can take anywhere from a few seconds to over a minute depending on how much context has accumulated. Unlike Step 17's interrupt, Claude Code blocks input entirely while compacting, so you cannot type ahead or start Step 22 early. Wait for the compacted summary to appear before continuing.
+> **⚠️ Wait for compaction to finish.** Compaction can take anywhere from a few seconds to over a minute depending on how much context has accumulated. Unlike Step 16's interrupt, Claude Code blocks input entirely while compacting, so you cannot type ahead or start Step 21 early. Wait for the compacted summary to appear before continuing.
 
 > **When to use /compact:** At natural task boundaries, when you finish one phase and start another. The instruction after `/compact` tells Claude Code what to preserve in the summary.
 
@@ -577,7 +493,7 @@ Skills persist across sessions and can be committed to git so the whole team sha
 
 This part covers the three file-based ways to extend Claude Code. A **skill** changes how Claude Code does something inside your session. A **subagent** does work in a separate context and reports back. An **MCP server** gives Claude Code tools it does not ship with. All three are files you commit to git, so the whole team inherits them.
 
-### Step 22: Create a Bedrock Debug Skill
+### Step 21: Create a Bedrock Debug Skill
 
 You will use this skill in Lab 3 whenever a test fails. Creating it now means you have a working debugging tool before you need it.
 
@@ -632,7 +548,7 @@ Verify the skill is available:
 > | Token cost | Every request | Only when used |
 > | Best for | "Always use type hints" | "When debugging Bedrock, do this..." |
 
-### Step 23: Create a Subagent
+### Step 22: Create a Subagent
 
 A skill is a playbook Claude Code follows in your session. A subagent is a separate instance with its own context window, its own tool permissions, and its own instructions. Use one when work would otherwise fill your main context, or when a task should be restricted in what it can touch.
 
@@ -669,19 +585,21 @@ Use the bedrock-reviewer subagent to review the code you generated earlier
 
 > **Subagent or skill?** A skill changes how Claude Code works in your session. A subagent does the work elsewhere and returns a result. Reach for a subagent when the task is read-heavy, when you want an opinion uninfluenced by your conversation so far, or when you want to restrict tools for one specific job.
 
-### Step 24: Add an MCP Server
+### Step 23: Add an MCP Server
 
 MCP, the Model Context Protocol, is how Claude Code reaches tools and data it does not ship with. A server exposes tools over a simple protocol, and Claude Code calls them like any other tool. You will have Claude Code build one, then use it.
 
-**First, install the SDK.** Do this in a normal terminal, not inside Claude Code. Pin it below version 2:
+**First, confirm the SDK is installed.** The MCP Python SDK is already in your lab environment, pinned below version 2. Check it in a normal terminal, not inside Claude Code:
 
-```powershell
-python -m pip install "mcp<2"
+```bash
+pip show mcp | grep Version
 ```
 
-> **⚠️ Install it before you build the server, and keep it below version 2.** Claude Code launches the server as its own process and does not inherit a virtualenv you activated in your shell. If `mcp` is missing from the interpreter Claude Code starts, the server exits on its first import and you get `Failed to reconnect: CONNECTION_CLOSED`, which looks like a broken config rather than a missing package.
+**Expected result:** A version that starts with `1.`
+
+> **Keep it below version 2.** Version 2 of the SDK removed `mcp.server.fastmcp`, the import Claude Code's generated server uses. A version 2 install fails with an import error even though `mcp` is installed.
 >
-> Version 2 of the SDK removed `mcp.server.fastmcp`, the import Claude Code's generated server uses. An unpinned install picks up version 2 and fails the same way, even though `mcp` is installed. The `<2` pin keeps the 1.x API.
+> **Launch Claude Code from a terminal that shows `(venv)`.** Claude Code starts the server as its own process using the `python` on your path, so the server finds `mcp` only when that `python` is the lab environment's.
 
 Now, back in Claude Code:
 
@@ -719,15 +637,13 @@ Use the list_bedrock_models tool to show which Claude models I can call
 
 > **If it still shows `CONNECTION_CLOSED`:** the server is exiting at startup. Run it directly to see the real error, since Claude Code swallows it. A healthy stdio server sits silently waiting for input.
 >
-> ```powershell
-> python mcp_server\bedrock_info.py
+> ```bash
+> python mcp_server/bedrock_info.py
 > ```
 >
-> A `ModuleNotFoundError` means `mcp` is missing from the interpreter `.mcp.json` names. Check what it points at with `type .mcp.json`, and either install `mcp` for that interpreter or set `command` to the full path of one that has it.
+> A `ModuleNotFoundError` means the `python` that `.mcp.json` names is not the lab environment's. Check what it points at with `cat .mcp.json`, and set `command` to the full path that `which python` prints in a terminal showing `(venv)`.
 >
-> If the error names `mcp.server.fastmcp` and `mcp` is installed, you have version 2. Run `python -m pip install "mcp<2"` and run the command above again.
-
-> **If outbound pip is blocked:** some training VMs do not allow it. Skip the restart and the live call, and read `.mcp.json` and the server file instead. The registration pattern is the transferable part and it is identical for a production server.
+> If the error names `mcp.server.fastmcp`, tell your instructor, because the environment has the wrong SDK version.
 
 > **Why this matters:** MCP is how a team gives Claude Code access to internal systems, a ticketing queue, a service catalogue, an internal API. The server you built is trivial, but committing `.mcp.json` to git gives every teammate the same tool set on their next session.
 
@@ -753,45 +669,19 @@ It is not appropriate for team environments, CI/CD pipelines, regulated workload
 
 The solution is a development container: an isolated sandbox with a network firewall, sandboxed credentials, and a reproducible environment that every team member gets identically.
 
-### Step 25: Copy the Devcontainer Files
+### Step 24: Copy the Devcontainer Files
 
-### If you have not cloned the course repo in Lab 1, you'll need to copy the pre-built `.devcontainer/` folder from the course repo into your working directory:
+Copy the pre-built `.devcontainer/` folder from the course repo into your working directory:
 
-**macOS/Linux:**
 ```bash
 cp -r ~/anthropic_on_aws/labs/lab2/.devcontainer/ ~/claude-code-lab/.devcontainer/
-```
-
-**Windows (PowerShell):**
-```powershell
-Copy-Item -Recurse "$env:USERPROFILE\anthropic_on_aws\labs\lab2\.devcontainer" "$env:USERPROFILE\claude-code-lab\.devcontainer"
-```
-
-> **Cloned the repo elsewhere?** Replace the path with your actual repo location.
-
-> **On RVC?** Your RVC has the .devcontainer files already on the vm. You can copy over using Powershell:
-
-```powershell
-Copy-Item -Recurse "\anthropic_on_aws\labs\lab2\.devcontainer" "\claude-code-lab\.devcontainer"
-```
-
-> **Alternative:** Download `devcontainer.json` and `init-firewall.sh` from the course repository on GitHub and paste them into a new `.devcontainer/` folder inside `claude-code-lab/`.
-
-Verify the files are in place:
-
-**macOS/Linux:**
-```bash
+cd ~/claude-code-lab
 ls .devcontainer/
-```
-
-**Windows (PowerShell):**
-```powershell
-ls .devcontainer\
 ```
 
 **Expected result:** Both `devcontainer.json` and `init-firewall.sh` listed.
 
-### Step 26: Inspect the Devcontainer and Its Firewall
+### Step 25: Inspect the Devcontainer and Its Firewall
 
 ```
 Read the files in .devcontainer/ and explain what each one does and why it
@@ -806,7 +696,7 @@ and what would break if it were removed.
 
 > **Key insight:** Each ACCEPT rule is intentional and minimal. This whitelist approach is what makes `--dangerously-skip-permissions` safe inside a devcontainer. Claude Code can edit files freely but cannot reach arbitrary internet endpoints.
 
-### Step 27: Audit for Security Gaps
+### Step 26: Audit for Security Gaps
 
 ```
 Review .devcontainer/init-firewall.sh for security issues.
@@ -828,7 +718,7 @@ that could expose the host environment?
 
 > **Key learning:** Claude Code functions as a security review tool as well as a code generation tool. Asking it to audit infrastructure before committing to git catches issues across multiple severity levels that a manual review can easily miss.
 
-### Step 28: Fix the Security Issues
+### Step 27: Fix the Security Issues
 
 ```
 Fix the Critical and High security issues you identified in
@@ -882,16 +772,9 @@ In just over an hour, you moved from setup to a complete, production-patterned C
 
 No AWS resources were created in this lab. Delete the working directory when you are finished:
 
-**macOS/Linux:**
 ```bash
-cd ..
+cd ~
 rm -rf claude-code-lab
-```
-
-**Windows (PowerShell):**
-```powershell
-cd ..
-Remove-Item -Recurse -Force claude-code-lab
 ```
 
 ---

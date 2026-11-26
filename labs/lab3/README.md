@@ -21,40 +21,26 @@ By completing this lab, you will:
 
 - [ ] Lab 1 completed (Shared Knowledge Base provided by Instructor exists and is working)
 - [ ] Lab 2 completed (Claude Code configured and connected to Bedrock)
-- [ ] AWS account with Bedrock access
 - [ ] Claude Sonnet 5.5 model access enabled in Bedrock
-- [ ] Python 3.11+, AWS CLI configured
-- [ ] AWS SAM CLI installed
+- [ ] Signed in to AWS from your lab VM (`aws sts get-caller-identity` returns your account)
 
 > ## ⚠️ REGION: us-east-1 (N. Virginia) ONLY
 >
-> Deploy everything in this lab to **us-east-1**. The shared Knowledge Base from Lab 1, your guardrail, and your Lambda deployment all need to be in the same region to work together. When `sam deploy --guided` asks for AWS Region in Step 13, type `us-east-1`, and when you create the guardrail in Step 7, confirm the console's region selector reads **US East (N. Virginia)** first.
+> Deploy everything in this lab to **us-east-1**. The shared Knowledge Base from Lab 1, your guardrail, and your Lambda deployment all need to be in the same region to work together. The deploy command in Step 13 already sets `--region us-east-1`, and when you create the guardrail in Step 7, confirm the console's region selector reads **US East (N. Virginia)** first.
 
-**Pre-lab setup (complete before Part 1 to ensure you are back in a venv environment in the correct lab folder):**
+**Pre-lab setup (nothing to install):** Python, the lab's packages, the AWS CLI, and the AWS SAM CLI are already on your VM. Open the Lab 3 folder and create your `.env` file:
 
-> **Use your existing clone from Lab 1.** Do not run `git clone` again. It already exists at `~/anthropic_on_aws` (macOS/Linux) or `C:\anthropic_on_aws` (Windows). Cloning again either fails with "destination path already exists" or creates a second, out-of-sync copy of the repository.
-
-**macOS/Linux:**
 ```bash
 cd ~/anthropic_on_aws/labs/lab3
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-cp .env.template .env
+[ -f .env ] || cp .env.template .env
+grep KNOWLEDGE_BASE_ID .env
 ```
 
-**Windows (PowerShell):**
-```powershell
-cd C:\anthropic_on_aws\labs\lab3
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.template .env
-```
+**Expected result:** a line such as `KNOWLEDGE_BASE_ID=ABCDEF1234`. Lab 1's `verify_knowledge_base.py` saved your Knowledge Base ID here. If the line still reads `your-knowledge-base-id-here`, run `python ../lab1/scripts/verify_knowledge_base.py` and check again. Leave `GUARDRAIL_ID` empty for now. You will add it in Part 3.
 
-Open `.env` in Notepad (PC) or TextEdit (Mac) and set `KNOWLEDGE_BASE_ID` to the value from Lab 1 (provided by your Instructor). Leave `GUARDRAIL_ID` empty for now. You will add it in Part 3.
+Your terminal prompt starts with `(venv)`. If it does not, run `source ~/venv/bin/activate`.
 
-> **Pre-flight check:** Run `aws sts get-caller-identity` to confirm your AWS credentials are working before starting.
+> **Pre-flight check:** Run `aws sts get-caller-identity` to confirm your AWS credentials are working before starting. If it reports an expired token, run `aws sso login`.
 
 ---
 
@@ -121,7 +107,7 @@ labs/lab3/
 
 ### Step 1: Examine the Pre-Built Tool Definitions
 
-Open `src/services/tools.py` in Notepad (PC) or TextEdit (Mac) and review the `TOOLS` list:
+Open `src/services/tools.py` in VS Code (`code src/services/tools.py`) and review the `TOOLS` list:
 
 ```python
 TOOLS = [
@@ -269,21 +255,8 @@ Raise exceptions for unexpected system errors (database down, auth failed). Retu
 
 ### Step 5: Test Your Implementation
 
-> ## ⚠️ Windows: set this first, or the test will crash every time
->
-> `tests/test_tools.py` (and every other test script in this lab) prints ✅/❌ characters directly. The default Windows console codepage cannot print them, so without the fix below the very first test run fails with `UnicodeEncodeError: 'charmap' codec can't encode character`, unrelated to whether your code is correct. Run this once per terminal session, before any `python tests\...` command in this lab:
-> ```powershell
-> $env:PYTHONIOENCODING="utf-8"
-> ```
-
-**macOS/Linux:**
 ```bash
 python tests/test_tools.py
-```
-
-**Windows:**
-```powershell
-python tests\test_tools.py
 ```
 
 **Expected output:**
@@ -363,14 +336,8 @@ The loop keeps calling Claude until `stop_reason == 'end_turn'`. A `max_iteratio
 
 ### Step 6: Test the Full Agentic Flow
 
-**macOS/Linux:**
 ```bash
 python tests/test_full_flow.py
-```
-
-**Windows:**
-```powershell
-python tests\test_full_flow.py
 ```
 
 **Expected output:**
@@ -492,27 +459,23 @@ Then open the guardrail you just created. In the **Versions** section, click **C
 
 ### Step 8: Configure Guardrail in Your Environment
 
-Open `.env` in Notepad (PC) or TextEdit (Mac) and add:
+Save your Guardrail ID into `.env` with one command. Replace `abc123def456` with the Guardrail ID from Step 7:
 
 ```bash
-GUARDRAIL_ID=abc123def456
-GUARDRAIL_VERSION=1
+sed -i 's/^GUARDRAIL_ID=.*/GUARDRAIL_ID=abc123def456/' .env
+grep GUARDRAIL .env
 ```
 
-Save the file. The handler in `src/handlers/chat.py` checks for `GUARDRAIL_ID` at startup and automatically routes to the guardrail-protected invocation path when it is set.
+**Expected result:** `GUARDRAIL_ID=abc123def456` (your own ID) and `GUARDRAIL_VERSION=1`.
+
+The handler in `src/handlers/chat.py` checks for `GUARDRAIL_ID` at startup and automatically routes to the guardrail-protected invocation path when it is set.
 
 ---
 
 ### Step 9: Test Guardrail Protection
 
-**macOS/Linux:**
 ```bash
 python tests/test_guardrails.py
-```
-
-**Windows:**
-```powershell
-python tests\test_guardrails.py
 ```
 
 **Expected output:**
@@ -660,33 +623,38 @@ Built Template   : .aws-sam/build/template.yaml
 
 ---
 
-### Step 13: Deploy to AWS, staying in the infrastructure folder for the next command:
+### Step 13: Deploy to AWS
+
+Stay in the `infrastructure` folder. This command reads your Knowledge Base ID and Guardrail ID from `.env`, names the stack after your SSO user name so it cannot collide with a classmate's, and deploys without prompting:
 
 ```bash
-sam deploy --guided
+set -a; source ../.env; set +a
+NAME=$(aws sts get-caller-identity --query Arn --output text | awk -F/ '{print $NF}' | cut -d@ -f1 | tr -cd 'a-zA-Z0-9')
+sam deploy \
+  --stack-name "lab3-claude-app-$NAME" \
+  --region us-east-1 \
+  --resolve-s3 \
+  --capabilities CAPABILITY_IAM \
+  --no-confirm-changeset \
+  --parameter-overrides \
+    KnowledgeBaseId=$KNOWLEDGE_BASE_ID \
+    GuardrailId=$GUARDRAIL_ID \
+    GuardrailVersion=$GUARDRAIL_VERSION
 ```
 
-**Answer the prompts:**
+What the options do:
 
-| Prompt | Your Answer |
-|--------|-------------|
-| Stack Name | `lab3-claude-app-yourname` |
-| AWS Region | `us-east-1` |
-| Parameter KnowledgeBaseId | [Your KB ID from Lab 1] |
-| Parameter GuardrailId | [Your Guardrail ID from Step 7] |
-| Parameter GuardrailVersion | `1` |
-| Parameter ModelId | [Press Enter for default, or your instructor's chosen model ID] |
-| Confirm changes before deploy | `y` |
-| Allow SAM CLI IAM role creation | `Y` |
-| Disable rollback | `N` |
-| ChatFunction may not have authorization | `y` |
-| Save arguments to config file | `Y` |
-| SAM configuration file | [Press Enter for default] |
-| SAM configuration environment | [Press Enter for default] |
-
-> **Sharing an AWS account with classmates?** Replace `yourname` above with your own name or initials, so your stack does not collide with another student's. The Lambda function name is generated automatically from your stack name, so it won't collide with another student's stack either, as long as your stack names differ.
+| Option | Why |
+|--------|-----|
+| `--stack-name` | `lab3-claude-app-` plus your user name. Note the name for the Cleanup step. |
+| `--resolve-s3` | SAM creates and manages the bucket that holds your packaged code. |
+| `--capabilities CAPABILITY_IAM` | Allows the stack to create the Lambda function's IAM role. |
+| `--no-confirm-changeset` | Deploys without stopping to ask for confirmation. |
+| `--parameter-overrides` | Passes your Knowledge Base and Guardrail IDs into the template. |
 
 Deployment can take up to 5 minutes. Coffee or water break?
+
+**Expected output:** the deploy ends with a table of **Outputs**.
 
 > **Copy the API endpoint from Outputs.** You need it for testing:
 > ```
@@ -700,18 +668,10 @@ Deployment can take up to 5 minutes. Coffee or water break?
 
 **Test 1: Order lookup**
 
-**macOS/Linux:**
 ```bash
 curl -X POST https://YOUR-ENDPOINT/prod/chat \
   -H 'Content-Type: application/json' \
   -d '{"message": "What is the status of order ORD-12345?", "customer_id": "CUST-001"}'
-```
-
-**Windows (PowerShell):**
-```powershell
-curl.exe -X POST https://YOUR-ENDPOINT/prod/chat `
-  -H 'Content-Type: application/json' `
-  -d '{\"message\": \"What is the status of order ORD-12345?\", \"customer_id\": \"CUST-001\"}'
 ```
 
 **Expected:** Order details including status, tracking number, and estimated delivery.
@@ -720,18 +680,10 @@ curl.exe -X POST https://YOUR-ENDPOINT/prod/chat `
 
 **Test 2: Guardrail block**
 
-**macOS/Linux:**
 ```bash
 curl -X POST https://YOUR-ENDPOINT/prod/chat \
   -H 'Content-Type: application/json' \
   -d '{"message": "Which stocks should I invest in right now?"}'
-```
-
-**Windows (PowerShell):**
-```powershell
-curl.exe -X POST https://YOUR-ENDPOINT/prod/chat `
-  -H 'Content-Type: application/json' `
-  -d '{\"message\": \"Which stocks should I invest in right now?\"}'
 ```
 
 **Expected:**
@@ -741,11 +693,6 @@ curl.exe -X POST https://YOUR-ENDPOINT/prod/chat `
   "blocked": true
 }
 ```
-
-> **Note:** If `curl` is not available on Windows, use the Python test script instead:
-> ```powershell
-> python ..\tests\test_deployed_api.py https://YOUR-ENDPOINT/prod/chat
-> ```
 
 ---
 
@@ -797,19 +744,11 @@ The agentic loop in `src/services/bedrock.py` handles the full Claude to tool ex
 
 Run these commands to avoid ongoing AWS charges:
 
-**Delete the CloudFormation stack.** Use the same stack name you chose in Step 13 (`lab3-claude-app-yourname`, not the literal example below):
+**Delete the CloudFormation stack.** Use the stack name from Step 13. The `$NAME` variable still holds it if you are in the same terminal. If not, run the `NAME=` line from Step 13 first:
 
-**macOS/Linux:**
 ```bash
 aws cloudformation delete-stack \
-  --stack-name lab3-claude-app-yourname \
-  --region us-east-1
-```
-
-**Windows (PowerShell):**
-```powershell
-aws cloudformation delete-stack `
-  --stack-name lab3-claude-app-yourname `
+  --stack-name "lab3-claude-app-$NAME" \
   --region us-east-1
 ```
 
@@ -824,7 +763,7 @@ AWS Console → Amazon Bedrock → Safeguards → Guardrails → Select → Dele
 Confirm your virtual environment is active. `(venv)` should appear in your terminal prompt.
 
 **`EnvironmentError: KNOWLEDGE_BASE_ID is not set`:**  
-Check that `.env` exists (not just `.env.template`) and contains a valid value.
+Check that `.env` exists (not just `.env.template`) and contains a valid value. Run `python ../lab1/scripts/verify_knowledge_base.py` to save it again.
 
 **`AccessDeniedException` from Bedrock:**  
 Confirm Claude Sonnet 5.5 model access is enabled: AWS Console → Amazon Bedrock → Model access.
@@ -833,16 +772,10 @@ Confirm Claude Sonnet 5.5 model access is enabled: AWS Console → Amazon Bedroc
 Check `.env` contains `GUARDRAIL_ID` and that you saved the file.
 
 **`sam deploy` fails with `InsufficientCapabilitiesException`:**  
-Re-run `sam deploy --guided` and answer `Y` to "Allow SAM CLI IAM role creation".
+Confirm your `sam deploy` command includes `--capabilities CAPABILITY_IAM`.
 
 **API returns 500 errors:**  
 Check Lambda logs: CloudWatch → Log groups → the log group name from your stack's Outputs (see Step 15), not a fixed name
-
-**Windows: `curl` not found:**  
-Use `curl.exe` in PowerShell, or run `python tests\test_deployed_api.py` instead.
-
-**macOS: `python` not found:**  
-Use `python3` instead of `python` for all commands.
 
 ---
 
