@@ -752,8 +752,7 @@ aws cloudformation delete-stack \
   --region us-east-1
 ```
 
-**Delete the guardrail:**  
-AWS Console → Amazon Bedrock → Safeguards → Guardrails → Select → Delete
+**Leave the guardrail in place.** Your class role is not allowed to delete guardrails, and an idle guardrail costs nothing. Your instructor removes it when the class account is cleaned up.
 
 ---
 

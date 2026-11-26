@@ -29,7 +29,7 @@ Globals:
   Function:
     Timeout: 60          # Agentic loops with multiple tool calls need up to 60s
     MemorySize: 512      # boto3 + dependencies require more than the 128MB default
-    Runtime: python3.11
+    Runtime: python3.14
     Environment:
       Variables:
         KNOWLEDGE_BASE_ID: !Ref KnowledgeBaseId

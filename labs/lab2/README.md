@@ -109,13 +109,15 @@ claude
 
 **Expected result:** Amazon Bedrock shown as API provider, `us-east-1` as region.
 
-Now confirm the actual model string:
+Now open the model picker:
 
 ```
 /model
 ```
 
-**Expected result:** The full inference profile ID such as `us.anthropic.claude-sonnet-5-5`. The Claude Code screen shows a human-readable label but `/model` shows the actual string sent to Bedrock. Use `/model` any time you need to confirm the exact model in use.
+**Expected result:** A list of models. The one marked with a check is in use. This install starts on **Opus 5.5**, and the Sonnet entry shows its full inference profile ID, `us.anthropic.claude-sonnet-5-5`. This lab builds with Sonnet and uses Opus only for planning, so switch to Sonnet now. Press **Down** to highlight **Sonnet 5.5**, then press **s** to use it for this session only. You see `Set model to Sonnet 5.5 for this session only`.
+
+> **Other ways to check the model:** The line under the Claude Code logo names the model in use. `/status` also shows it as `Model: ... (us.anthropic.claude-...)`. Press **Esc** to close the picker without changing anything.
 
 > **If /status shows the Anthropic API instead of Bedrock:** Type `/logout`, relaunch `claude`, and select option 3 (3rd-party platform) at the login method screen.
 
@@ -135,27 +137,19 @@ claude --resume lab2-session
 
 ### Step 6: (Informational) Approve File and Command Permissions
 
-In upcoming lab steps, Claude Code will ask for permission before creating files and running commands. You will see two prompt types during this lab:
+Claude Code starts in **auto mode**. The footer under the input box reads `auto mode on`. In auto mode Claude Code approves low-risk file edits and commands for you, so most of this lab runs without permission prompts.
 
-**File edit prompt:**
+In **plan mode** (Step 9), Claude Code does not edit freely, and you may see approval prompts when it builds:
+
 ```
-Do you want to make this edit to filename.py?
+Do you want to create filename.py?
 1. Yes
-2. Yes, allow all edits during this session (shift+tab)
-3. No
+2. No
 ```
 
-**Bash command prompt:**
-```
-This command requires approval. Do you want to proceed?
-1. Yes
-2. Yes, and don't ask again for: python *
-3. No
-```
+Press **1** to approve. These prompts offer no "allow all" option. To stop them, press **Shift+Tab** to leave plan mode and return to auto mode.
 
-Select **option 2** for both when they first appear. This approves all file edits and Python commands for the rest of the session without interruption.
-
-> Press Shift+Tab at any time to toggle permission mode.
+> Press Shift+Tab at any time to cycle the permission mode. The footer always shows the current mode.
 
 ---
 
@@ -198,25 +192,23 @@ WRITING STYLE:
 /model
 ```
 
-Note your current model. Then switch to Opus:
+Note your current model (Sonnet, from Step 4). Then switch to Opus:
 
 ```
 /model opus
 ```
 
-Confirm the switch:
+Claude Code asks `Switch model?` and warns that your next response is slower and uses more tokens, because the conversation is re-read for the new model. Select **1. Yes, switch to Opus 5.5**.
 
-```
-/model
-```
+Confirm the switch with `/model` and check that **Opus 5.5** has the check mark. Press **Esc** to close the picker.
 
-**Expected result:** The model string now shows the Opus inference profile.
+**Expected result:** The line under the Claude Code logo and the picker both show Opus 5.5, and the message reads `Set model to Opus 5.5 and saved as your default for new sessions`. Step 10 switches back to Sonnet, which saves Sonnet as the default again.
 
 > **Cost note:** Opus costs significantly more per token than Sonnet. You will use it for one planning step only, then switch back. Check current rates at https://aws.amazon.com/bedrock/pricing/
 
 ### Step 9: Activate Plan Mode and Create the Project Plan
 
-Activate Plan mode by pressing **Shift+Tab** twice to cycle to Plan mode, or type:
+Activate Plan mode by pressing **Shift+Tab** until the footer reads `plan mode on`, or type:
 
 ```
 /plan
@@ -268,9 +260,10 @@ If a plan suggests a significantly different approach than you expect, this is t
 If the plan looks good, do not approve it while you are still on Opus. After Claude Code writes a plan it offers three options:
 
 ```
-1. Yes, auto-accept edits
+1. Yes, and use auto mode
 2. Yes, manually approve edits
-3. Tell Claude what to change (shift+tab to approve with this feedback)
+3. Tell Claude what to change
+   shift+tab to approve with this feedback
 ```
 
 None of these says "hold without executing," but option **3** does exactly that: it opens a text field instead of starting execution. Select **3**, then type:
@@ -289,13 +282,11 @@ Switch back to Sonnet:
 /model sonnet
 ```
 
-Confirm:
+Select **1. Yes, switch to Sonnet 5.5** at the `Switch model?` prompt.
 
-```
-/model
-```
+**Expected result:** `Set model to Sonnet 5.5 and saved as your default for new sessions`. Claude Code will now implement the full plan, both functions and tests, using Sonnet.
 
-**Expected result:** Model string shows Sonnet inference profile. Claude Code will now implement the full plan, both functions and tests, using Sonnet.
+Press **Shift+Tab** once to leave plan mode. The footer changes from `plan mode on` to `auto mode on`. If you skip this, Claude Code asks `Do you want to create ...?` for every file it writes. Press **1** at each prompt if that happens.
 
 > **Why switch back now:** Opus produced the architectural thinking. Sonnet executes it. Every line of code from this point forward uses Sonnet's speed and lower cost. The plan guides it, and the heavy reasoning is already done.
 
@@ -623,13 +614,27 @@ Restart Claude Code so it loads the new server:
 claude --resume lab2-session
 ```
 
+**Do not type anything yet. Claude Code first asks about the new server:**
+
+```
+New MCP server found in this project: bedrock-info
+
+  Use this MCP server
+  Use this and all future MCP servers in this project
+> Continue without using this MCP server
+```
+
+> **The highlighted choice is the wrong one.** The default is **Continue without using this MCP server**. If you press Enter or start typing, Claude Code records the server as rejected, and `/mcp` later says `No MCP servers configured`. Press **Up** to select **Use this MCP server**, then press Enter.
+>
+> **Already rejected it?** Close Claude Code, delete the file `.claude/settings.local.json` in your lab folder, and run `claude --resume lab2-session` again. The prompt appears again.
+
 Confirm it connected:
 
 ```
 /mcp
 ```
 
-**Expected Result:** `bedrock-info` appears as a connected server with one tool. Now use it:
+**Expected Result:** `bedrock-info` appears under **Project MCPs** with a check mark and `1 tool`. Press **Esc** to close the list. Now use it:
 
 ```
 Use the list_bedrock_models tool to show which Claude models I can call

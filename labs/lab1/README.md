@@ -134,7 +134,9 @@ Your account number, user name, and the suffix on the role name will differ. The
 
 ### Step 2: Open the Lab and Check Your Environment
 
-The course repository, Python, and every package the labs need are already on your VM. Open the Lab 1 folder in VS Code and run the environment check:
+The course repository, Python, and every package the labs need are already on your VM. Open the Lab 1 folder in VS Code and run the environment check.
+
+> **Expected: this step opens VS Code.** The `code .` command launches VS Code on the Lab 1 folder so you can read the lab files in later steps. A VS Code window appears while the terminal prompt comes straight back. That is normal. Leave VS Code open and keep using the terminal for the commands in this lab.
 
 ```bash
 cd ~/anthropic_on_aws/labs/lab1
